@@ -17,15 +17,15 @@ export default function Login() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#F9FAFB] p-4">
       <Card className="w-full max-w-100 bg-white shadow-sm border-slate-200 py-6 px-2">
-        <CardHeader className="flex flex-col items-center">
+        <CardHeader className="flex flex-col items-center space-y-0">
           <div className="flex flex-col items-center transform">
             <img
               src={logoMarazul}
               alt="Logo da Marazul com um fundo azul escuro, um M em maiúsculo em vermelho e umas ondas logo abaixo"
-              className="h-40 object-contain"
+              className="h-32 object-contain"
             />
           </div>
-          <div className="text-center space-y-1">
+          <div className="text-center space-y-1 -mt-4">
             <CardTitle className="text-2xl font-bold text-[#062A45] tracking-tight">
               Marazul
             </CardTitle>
