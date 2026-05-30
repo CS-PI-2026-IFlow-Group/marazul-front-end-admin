@@ -15,16 +15,15 @@ import { Button } from "../components/ui/button";
 
 export default function Login() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F9FAFB] p-4">
-      <Card className="w-full max-w-md bg-white shadow-sm border-slate-200 py-6 px-2">
-        <CardHeader className="flex flex-col items-center space-y-6 pb-8">
-          <div className="flex flec-col items-center gap-1.5 transform -rotate-6">
-            <div>
-              <img
-                src={logoMarazul}
-                alt="Logo da Marazul com um fundo azul escuro, um M em maiúsculo em vermelho e umas ondas logo abaixo"
-              />
-            </div>
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#F9FAFB]">
+      <Card className="w-full max-w-100 bg-white shadow-sm border-slate-200 py-6 px-2">
+        <CardHeader className="flex flex-col items-center">
+          <div className="flex flex-col items-center transform">
+            <img
+              src={logoMarazul}
+              alt="Logo da Marazul com um fundo azul escuro, um M em maiúsculo em vermelho e umas ondas logo abaixo"
+              className="h-40 object-contain"
+            />
           </div>
           <div className="text-center space-y-1">
             <CardTitle className="text-2xl font-bold text-[#062A45] tracking-tight">
@@ -74,7 +73,7 @@ export default function Login() {
           <div className="flex items-center space-x-2 pt-1">
             <Checkbox
               id="keep-connected"
-              className="border-slate-300 data-[state=checked]:bg-[#062A45]"
+              className="border-slate-300 data-[state=checked]:bg-[#062A45] cursor-pointer"
             />
             <Label
               htmlFor="keep-connected"
@@ -83,14 +82,14 @@ export default function Login() {
               Manter conectado
             </Label>
           </div>
-          <Button className="w-full bg-[#062A45] hover:bg-[#004494] text-white h-12 font-bolder flex items-center justify-center gap-2 mt-2">
+          <Button className="w-full bg-[#062A45] hover:bg-[#004494] text-white h-12 font-bolder flex items-center justify-center gap-2 mt-2 cursor-pointer">
             Entrar <LogIn className="h-4 w-4 font-bolder" />
           </Button>
         </CardContent>
         <CardFooter className="flex justify-center">
           <div className="w-full border-t border-slate-100 pt-2 flex justify-center">
             <p className="text-sm text-slate-600">
-              Esqueceu a senha?
+              Esqueceu a senha?{" "}
               <a
                 href="#"
                 className="text-[#e31e24] hover:underline font-medium"
