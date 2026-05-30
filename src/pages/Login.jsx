@@ -8,6 +8,7 @@ import {
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Mail } from "lucide-react";
+import logoMarazul from "../assets/logoMarazul.png";
 
 export default function Login() {
   return (
@@ -15,10 +16,15 @@ export default function Login() {
       <Card className="w-full max-w-md bg-white shadow-sm border-slate-200 py-6 px-2">
         <CardHeader className="flex flex-col items-center space-y-6 pb-8">
           <div className="flex flec-col items-center gap-1.5 transform -rotate-6">
-            {/* logo */}
+            <div>
+              <img
+                src={logoMarazul}
+                alt="Logo da Marazul com um fundo azul escuro, um M em maiúsculo em vermelho e umas ondas logo abaixo"
+              />
+            </div>
           </div>
           <div className="text-center space-y-1">
-            <CardTitle className="text-2xl font-bold text-slate-900 tracking-tight">
+            <CardTitle className="text-2xl font-bold text-[#062A45] tracking-tight">
               Marazul
             </CardTitle>
             <CardDescription className="text-sm text-slate-500 font-medium">
@@ -30,7 +36,7 @@ export default function Login() {
           <div className="space-y-2">
             <Label
               htmlFor="email"
-              className="text-[11px] font-bold text-slate-700 tracking-wider"
+              className="text-[11px] font-bold text-[#062A45] tracking-wider"
             >
               EMAIL
             </Label>
