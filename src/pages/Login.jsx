@@ -6,6 +6,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -86,6 +87,19 @@ export default function Login() {
             Entrar <LogIn className="h-4 w-4 font-bolder" />
           </Button>
         </CardContent>
+        <CardFooter className="flex justify-center">
+          <div className="w-full border-t border-slate-100 pt-2 flex justify-center">
+            <p className="text-sm text-slate-600">
+              Esqueceu a senha?
+              <a
+                href="#"
+                className="text-[#e31e24] hover:underline font-medium"
+              >
+                Clique Aqui
+              </a>
+            </p>
+          </div>
+        </CardFooter>
       </Card>
     </div>
   );
