@@ -15,6 +15,8 @@ import { Label } from "../components/ui/label";
 
 import { useState } from "react";
 
+import axios from "axios";
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,15 +24,36 @@ export default function Login() {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const [errorMessage, setErrorMessage] = useState("");
+
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const response = await axios.post("", {
+        email: email,
+        password: password,
+      });
+
+      localStorage.setItem("token", response.data.token);
+      console.log("login realizado, token salvo");
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        setErrorMessage("E-mail ou senha incorretos");
+      } else {
+        setErrorMessage("Ocorreu um erro no servidor. Tente novamente");
+      }
+    } finally {
+      setIsLoading(false);
+    }
 
     setTimeout(() => {
       setIsLoading(false);
@@ -60,6 +83,14 @@ export default function Login() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          {errorMessage && (
+            <div className="p-3 bg-red-100 border border-red-400 rounded-md">
+              <p className="text-sm text-red-600 font-medium text-center">
+                {errorMessage}
+              </p>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label
               htmlFor="email"
