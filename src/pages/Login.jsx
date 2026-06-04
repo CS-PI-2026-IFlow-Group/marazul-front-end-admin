@@ -1,19 +1,31 @@
-import { Mail, Eye, Lock, LogIn } from "lucide-react";
+import { Eye, Lock, LogIn, Mail, EyeOff } from "lucide-react";
 import logoMarazul from "../assets/logoMarazul.png";
+import { Button } from "../components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "../components/ui/card";
+import { Checkbox } from "../components/ui/checkbox";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { Checkbox } from "../components/ui/checkbox";
-import { Button } from "../components/ui/button";
+
+import { useState } from "react";
 
 export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState("");
+
+  const isFormValid = email.trim() !== "" && password.trim() !== "";
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#F9FAFB] p-4">
       <Card className="w-full max-w-100 bg-white shadow-sm border-slate-200 py-6 px-2">
@@ -49,6 +61,8 @@ export default function Login() {
                 type="email"
                 placeholder="nome@marazul.com.br"
                 className="pl-9 bg-[#F8FAFC] border-slate-200 h-11 text-sm focus-visible:ring-slate-300"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
           </div>
@@ -63,11 +77,23 @@ export default function Login() {
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 className="pl-9 pr-10 bg-[#F8FAFC] border-slate-200 h-11 text-sm focus-visible:ring-slate-300"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
-              <Eye className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 cursor-pointer hover:text-slate-600 transition-colors" />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
             </div>
           </div>
           <div className="flex items-center space-x-2 pt-1">
@@ -82,7 +108,10 @@ export default function Login() {
               Manter conectado
             </Label>
           </div>
-          <Button className="w-full bg-[#062A45] hover:bg-[#004494] text-white h-12 font-bolder flex items-center justify-center gap-2 mt-2 cursor-pointer">
+          <Button
+            disabled={!isFormValid}
+            className="w-full bg-[#062A45] hover:bg-[#004494] text-white h-12 font-bolder flex items-center justify-center gap-2 mt-2 cursor-pointer"
+          >
             Entrar <LogIn className="h-4 w-4 font-bolder" />
           </Button>
         </CardContent>
