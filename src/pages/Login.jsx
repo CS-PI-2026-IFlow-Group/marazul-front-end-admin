@@ -19,12 +19,14 @@ import axios from "axios";
 
 import { toast } from "sonner";
 
+import { useNavigate } from "react-router-dom";
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState("");
-
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 
@@ -44,6 +46,10 @@ export default function Login() {
 
       localStorage.setItem("token", response.data.token);
       toast.success("Login realizado com sucesso!");
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
     } catch (error) {
       if (error.response && error.response.status === 401) {
         toast.error("Falha na autenticação", {
