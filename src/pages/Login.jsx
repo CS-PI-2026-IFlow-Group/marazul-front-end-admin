@@ -17,6 +17,8 @@ import { useState } from "react";
 
 import axios from "axios";
 
+import { toast } from "sonner";
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,12 +46,17 @@ export default function Login() {
       });
 
       localStorage.setItem("token", response.data.token);
-      console.log("login realizado, token salvo");
+      toast.success("Login realizado com sucesso!");
     } catch (error) {
       if (error.response && error.response.status === 401) {
-        setErrorMessage("E-mail ou senha incorretos");
+        toast.error("Falha na autenticação", {
+          description: "E-mail ou senha incorretos.",
+        });
       } else {
-        setErrorMessage("Ocorreu um erro no servidor. Tente novamente");
+        toast.error("Erro no servidor", {
+          description:
+            "Ocorreu um problema ao tentar conectar. Tente novamente.",
+        });
       }
     } finally {
       setIsLoading(false);
@@ -58,7 +65,7 @@ export default function Login() {
     setTimeout(() => {
       setIsLoading(false);
 
-      console.log("entando...");
+      console.log("entrando...");
     }, 2000);
   };
 
