@@ -1,4 +1,4 @@
-import { Eye, Lock, LogIn, Mail, EyeOff } from "lucide-react";
+import { Eye, Lock, LogIn, Mail, EyeOff, Loader2 } from "lucide-react";
 import logoMarazul from "../assets/logoMarazul.png";
 import { Button } from "../components/ui/button";
 import {
@@ -20,10 +20,23 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState("");
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    setTimeout(() => {
+      setIsLoading(false);
+
+      console.log("entando...");
+    }, 2000);
   };
 
   return (
@@ -109,10 +122,19 @@ export default function Login() {
             </Label>
           </div>
           <Button
-            disabled={!isFormValid}
+            onClick={handleLogin}
+            disabled={!isFormValid || isLoading}
             className="w-full bg-[#062A45] hover:bg-[#004494] text-white h-12 font-bolder flex items-center justify-center gap-2 mt-2 cursor-pointer"
           >
-            Entrar <LogIn className="h-4 w-4 font-bolder" />
+            {isLoading ? (
+              <>
+                Entrando... <Loader2 className="h-2 w-2 animate-spin" />
+              </>
+            ) : (
+              <>
+                Entrar <LogIn className="h-4 w-4 font-bolder" />
+              </>
+            )}
           </Button>
         </CardContent>
         <CardFooter className="flex justify-center">
