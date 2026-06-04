@@ -10,7 +10,7 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-      <Toaster position="top-right" />
+      <Toaster position="top-center" />
     </BrowserRouter>
   );
 }
