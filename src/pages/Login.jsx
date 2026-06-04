@@ -26,8 +26,6 @@ export default function Login() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const [errorMessage, setErrorMessage] = useState("");
-
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   const togglePasswordVisibility = () => {
@@ -37,7 +35,6 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setErrorMessage("");
 
     try {
       const response = await axios.post("", {
@@ -61,12 +58,6 @@ export default function Login() {
     } finally {
       setIsLoading(false);
     }
-
-    setTimeout(() => {
-      setIsLoading(false);
-
-      console.log("entrando...");
-    }, 2000);
   };
 
   return (
@@ -90,14 +81,6 @@ export default function Login() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {errorMessage && (
-            <div className="p-3 bg-red-100 border border-red-400 rounded-md">
-              <p className="text-sm text-red-600 font-medium text-center">
-                {errorMessage}
-              </p>
-            </div>
-          )}
-
           <div className="space-y-2">
             <Label
               htmlFor="email"
