@@ -47,12 +47,12 @@ export default function Login() {
     } catch (error) {
       if (error.response && error.response.status === 401) {
         toast.error("Falha na autenticação", {
-          description: "E-mail ou senha incorretos.",
+          description: "E-mail ou senha incorretos",
         });
       } else {
-        toast.error("Erro no servidor", {
+        toast.error("Erro ao fazer login", {
           description:
-            "Ocorreu um problema ao tentar conectar. Tente novamente.",
+            "Ocorreu um problema ao tentar conectar. Tente novamente",
         });
       }
     } finally {
