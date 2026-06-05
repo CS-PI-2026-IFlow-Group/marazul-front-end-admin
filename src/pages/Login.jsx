@@ -39,7 +39,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("", {
+      const response = await axios.post("/auth/login", {
         email: email,
         password: password,
       });
