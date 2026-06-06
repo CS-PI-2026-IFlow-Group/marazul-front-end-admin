@@ -151,7 +151,7 @@ export default function Login() {
           <Button
             onClick={handleLogin}
             disabled={!isFormValid || isLoading}
-            className="w-full bg-[#062A45] hover:bg-[#004494] text-white h-12 font-bolder flex items-center justify-center gap-2 mt-2 cursor-pointer"
+            className="w-full bg-[#062A45] hover:bg-[#004494] text-white h-12 font-bold flex items-center justify-center gap-2 mt-2 cursor-pointer"
           >
             {isLoading ? (
               <>
@@ -159,7 +159,7 @@ export default function Login() {
               </>
             ) : (
               <>
-                Entrar <LogIn className="h-4 w-4 font-bolder" />
+                Entrar <LogIn className="h-4 w-4 font-bold" />
               </>
             )}
           </Button>
