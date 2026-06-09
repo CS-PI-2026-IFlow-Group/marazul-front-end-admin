@@ -1,24 +1,18 @@
 import { Eye, Lock, LogIn, Mail, EyeOff, Loader2 } from "lucide-react";
-import logoMarazul from "../assets/logoMarazul.png";
 import { Button } from "../components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "../components/ui/card";
 import { Checkbox } from "../components/ui/checkbox";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-
+import AuthHeader from "../components/AuthHeader";
 import { useState } from "react";
-
 import axios from "axios";
-
 import { toast } from "sonner";
-
 import { useNavigate, Link } from "react-router-dom";
 
 export default function Login() {
@@ -70,21 +64,7 @@ export default function Login() {
     <div className="min-h-screen w-full flex items-center justify-center bg-[#F9FAFB] p-4">
       <Card className="w-full max-w-100 bg-white shadow-sm border-slate-200 py-6 px-2">
         <CardHeader className="flex flex-col items-center space-y-0">
-          <div className="flex flex-col items-center transform">
-            <img
-              src={logoMarazul}
-              alt="Logo da Marazul com um fundo azul escuro, um M em maiúsculo em vermelho e umas ondas logo abaixo"
-              className="h-32 object-contain"
-            />
-          </div>
-          <div className="text-center space-y-1 -mt-4">
-            <CardTitle className="text-2xl font-bold text-[#062A45] tracking-tight">
-              Marazul
-            </CardTitle>
-            <CardDescription className="text-sm text-slate-500 font-medium">
-              Painel Administrativo
-            </CardDescription>
-          </div>
+          <AuthHeader />
         </CardHeader>
 
         <CardContent>

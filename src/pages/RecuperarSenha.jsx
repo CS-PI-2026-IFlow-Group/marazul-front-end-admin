@@ -1,38 +1,22 @@
 import { Link } from "react-router-dom";
 import { Mail, ArrowRight, ArrowLeft } from "lucide-react";
-import logoMarazul from "../assets/logoMarazul.png";
 import { Button } from "../components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
-  CardDescription,
   CardFooter,
 } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import AuthHeader from "../components/AuthHeader";
 
 export default function RecuperarSenha() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#F9FAFB] p-4">
       <Card className="w-full max-w-100 bg-white shadow-sm border-slate-200 py-6 px-2">
         <CardHeader className="flex flex-col items-center space-y-0">
-          <div className="flex flex-col items-center transform">
-            <img
-              src={logoMarazul}
-              alt="Logo da Marazul"
-              className="h-32 object-contain"
-            />
-          </div>
-          <div className="text-center space-y-1 -mt-4">
-            <CardTitle className="text-2xl font-bold text-[#062A45] tracking-tight">
-              Marazul
-            </CardTitle>
-            <CardDescription className="text-sm text-slate-500 font-medium">
-              Painel Administrativo
-            </CardDescription>
-          </div>
+          <AuthHeader />
           <div className="text-center pt-6 space-y-2">
             <p className="text-sm text-slate-500 px-2 leading-relaxed">
               Digite o seu e-mail associado à sua conta para receber um link de
@@ -75,8 +59,7 @@ export default function RecuperarSenha() {
               to="/login"
               className="flex items-center text-sm text-[#e31e24] hover:text-[#c1191f] hover:underline font-medium gap-2 transition-colors"
             >
-              <ArrowLeft className="h-4 w-4" /> Voltar para o
-              login
+              <ArrowLeft className="h-4 w-4" /> Voltar para o login
             </Link>
           </div>
         </CardFooter>
