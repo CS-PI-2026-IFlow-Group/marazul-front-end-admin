@@ -19,7 +19,7 @@ import axios from "axios";
 
 import { toast } from "sonner";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -171,12 +171,12 @@ export default function Login() {
           <div className="w-full border-t border-slate-100 pt-2 flex justify-center">
             <p className="text-sm text-slate-600">
               Esqueceu a senha?{" "}
-              <a
-                href="#"
+              <Link
+                to="/recuperarSenha"
                 className="text-[#e31e24] hover:underline font-medium"
               >
                 Clique Aqui
-              </a>
+              </Link>
             </p>
           </div>
         </CardFooter>
