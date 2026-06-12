@@ -33,9 +33,9 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("/auth/login", {
+      const response = await axios.post("api/auth/login", {
         email: email,
-        password: password,
+        senha: password,
       });
 
       localStorage.setItem("token", response.data.token);
