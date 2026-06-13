@@ -1,4 +1,4 @@
-import AuthHeader from "@/components/AuthHeader";
+import AuthHeader from "../components/AuthHeader";
 import {
   Card,
   CardContent,
@@ -16,7 +16,6 @@ export default function RedefinirSenha() {
     <div className="min-h-screen w-full flex items-center justify-center bg-[#F9FAFB] p-4">
       <Card className="w-full max-w-100 bg-white shadow-md border-slate-200 py-6 px-2">
         <CardHeader className="flex flex-col items-center space-y-0 text-center">
-          <AuthHeader />
           <div className="pt-6 space-y-2">
             <h2 className="text-xl font-bold text-[#062A45]">
               Redefinir sua Senha
@@ -90,7 +89,7 @@ export default function RedefinirSenha() {
             </div>
             <Button
               type="submit"
-              className="w-full bg-[#062A45] hover:bg-[#004494] text-white h-11 font-bold flex items-center justify-center gap-2 mt-2 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full bg-[#1e293b] hover:bg-[#0f172a] text-white h-12 font-bold flex items-center justify-center gap-2 mt-2 transition-colors cursor-pointer disabled:cursor-not-allowed"
             >
               ATUALIZAR SENHA
             </Button>
@@ -100,9 +99,9 @@ export default function RedefinirSenha() {
           <div className="w-full border-t border-slate-100 pt-5 flex justify-center">
             <Link
               to="/login"
-              className="flex items-center text-sm text-[#062A45] hover:underline font-medium gap-2 transition-colors"
+              className="flex items-center text-sm text-[#e31e24] hover:text-[#c1191f] hover:underline font-medium gap-2 transition-colors"
             >
-              <ArrowLeft className="h-4 w-4" /> Voltar para o Login
+              <ArrowLeft className="h-4 w-4" /> Voltar para o login
             </Link>
           </div>
         </CardFooter>
