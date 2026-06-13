@@ -152,7 +152,7 @@ export default function Login() {
             <p className="text-sm text-slate-600">
               Esqueceu a senha?{" "}
               <Link
-                to="/recuperarSenha"
+                to="/recuperar-senha"
                 className="text-[#e31e24] hover:underline font-medium"
               >
                 Clique Aqui

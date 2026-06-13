@@ -1,4 +1,3 @@
-import AuthHeader from "../components/AuthHeader";
 import {
   Card,
   CardContent,
