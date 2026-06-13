@@ -52,7 +52,7 @@ export default function RedefinirSenha() {
 
       setTimeout(() => {
         navigate("/login");
-      }, 1500);
+      }, 2000);
     } catch (error) {
       toast.error("Erro ao redefinir a senha", {
         description:
