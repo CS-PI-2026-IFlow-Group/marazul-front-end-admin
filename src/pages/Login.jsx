@@ -1,32 +1,24 @@
-import { Eye, Lock, LogIn, Mail, EyeOff, Loader2 } from "lucide-react";
-import { Button } from "../components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "../components/ui/card";
+import { LogIn } from "lucide-react";
+import { CardContent, CardFooter, CardHeader } from "../components/ui/card";
 import { Checkbox } from "../components/ui/checkbox";
-import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import AuthHeader from "../components/AuthHeader";
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { useNavigate, Link } from "react-router-dom";
+import AuthLayout from "../components/AuthLayout";
+import EmailInput from "../components/EmailInput";
+import PasswordInput from "../components/PasswordInput";
+import SubmitButton from "../components/SubmitButton";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const isFormValid = email.trim() !== "" && password.trim() !== "";
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -61,106 +53,57 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#F9FAFB] p-4">
-      <Card className="w-full max-w-100 bg-white shadow-sm border-slate-200 py-6 px-2">
-        <CardHeader className="flex flex-col items-center space-y-0">
-          <AuthHeader />
-        </CardHeader>
+    <AuthLayout>
+      <CardHeader className="flex flex-col items-center space-y-0">
+        <AuthHeader />
+      </CardHeader>
 
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <Label
-                htmlFor="email"
-                className="text-[11px] font-bold text-[#e31e24] tracking-wider"
-              >
-                EMAIL
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="nome@marazul.com.br"
-                  className="pl-9 bg-[#F8FAFC] border-slate-200 h-11 text-sm focus-visible:ring-slate-300"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label
-                htmlFor="password"
-                className="text-[11px] font-bold text-[#e31e24] tracking-wider"
-              >
-                SENHA
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  className="pl-9 pr-10 bg-[#F8FAFC] border-slate-200 h-11 text-sm focus-visible:ring-slate-300"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2 pt-1">
-              <Checkbox
-                id="keep-connected"
-                className="border-slate-300 data-[state=checked]:bg-[#062A45] cursor-pointer"
-              />
-              <Label
-                htmlFor="keep-connected"
-                className="text-sm text-slate-600 font-normal cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Manter conectado
-              </Label>
-            </div>
-            <Button
-              type="submit"
-              disabled={!isFormValid || isLoading}
-              className="w-full bg-[#062A45] hover:bg-[#004494] text-white h-12 font-bold flex items-center justify-center gap-2 mt-2 cursor-pointer"
+      <CardContent>
+        <form onSubmit={handleLogin} className="space-y-6">
+          <EmailInput
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <PasswordInput
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <div className="flex items-center space-x-2 pt-1">
+            <Checkbox
+              id="keep-connected"
+              className="border-slate-300 data-[state=checked]:bg-[#062A45] cursor-pointer"
+            />
+            <Label
+              htmlFor="keep-connected"
+              className="text-sm text-slate-600 font-normal cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              {isLoading ? (
-                <>
-                  Entrando... <Loader2 className="h-2 w-2 animate-spin" />
-                </>
-              ) : (
-                <>
-                  Entrar <LogIn className="h-4 w-4 font-bold" />
-                </>
-              )}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <div className="w-full border-t border-slate-100 pt-2 flex justify-center">
-            <p className="text-sm text-slate-600">
-              Esqueceu a senha?{" "}
-              <Link
-                to="/recuperar-senha"
-                className="text-[#e31e24] hover:underline font-medium"
-              >
-                Clique Aqui
-              </Link>
-            </p>
+              Manter conectado
+            </Label>
           </div>
-        </CardFooter>
-      </Card>
-    </div>
+          <SubmitButton
+            isLoading={isLoading}
+            isDisabled={!isFormValid}
+            loadingText="Entrando..."
+            icon={LogIn}
+          >
+            Entrar
+          </SubmitButton>
+        </form>
+      </CardContent>
+      <CardFooter className="flex justify-center">
+        <div className="w-full border-t border-slate-100 pt-2 flex justify-center">
+          <p className="text-sm text-slate-600">
+            Esqueceu a senha?{" "}
+            <Link
+              to="/recuperar-senha"
+              className="text-[#e31e24] hover:underline font-medium"
+            >
+              Clique Aqui
+            </Link>
+          </p>
+        </div>
+      </CardFooter>
+    </AuthLayout>
   );
 }
