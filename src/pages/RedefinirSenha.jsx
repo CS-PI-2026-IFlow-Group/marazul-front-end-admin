@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Circle,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -63,6 +64,44 @@ export default function RedefinirSenha() {
       setIsLoading(false);
     }
   };
+
+  if (!token) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-[#F9FAFB] p-4">
+        <Card className="w-full max-w-100 bg-white shadow-sm border-slate-200 py-6 px-4 text-center">
+          <div className="flex justify-center">
+            <div className="bg-[#ffefef] p-4 rounded-xl relative mt-1">
+              <AlertCircle className="h-10 w-10 text-[#e31e24]" />
+            </div>
+          </div>
+          <h2 className="text-xl font-bold text-[#062A45] -mb-1">
+            Link Inválido
+          </h2>
+          <p className="text-slate-600 text-sm leading-relaxed px-4">
+            Não foi possível identificar o token de segurança. Por favor,
+            solicite um novo link de redefinição de senha para continuar
+          </p>
+
+          <Link to="/recuperar-senha" className="block w-full">
+            <Button className="w-full bg-[#1e293b] hover:bg-[#0f172a] text-white h-12 font-bold flex items-center justify-center gap-2 mt-2 transition-colors cursor-pointer disabled:cursor-not-allowed">
+              Solicitar Novo Link
+            </Button>
+          </Link>
+
+          <CardFooter className="flex justify-center pt-2">
+            <div className="w-full border-t border-slate-100 pt-6 flex justify-center">
+              <Link
+                to="/login"
+                className="inline-flex items-center text-sm text-[#e31e24] hover:text-[#c1191f] hover:underline font-medium transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" /> Voltar para o login
+              </Link>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#F9FAFB] p-4">
@@ -156,7 +195,7 @@ export default function RedefinirSenha() {
                 A senha deve conter:
               </p>
 
-              <div className="flex items-center gap-1 text-sm">
+              <div className="flex items-center gap-1 text-sm mt-1">
                 {hasMinLength ? (
                   <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
                 ) : (
