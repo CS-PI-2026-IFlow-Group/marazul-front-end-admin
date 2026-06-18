@@ -69,10 +69,10 @@ export default function RedefinirSenha() {
       <Card className="w-full max-w-100 bg-white shadow-md border-slate-200 py-6 px-2">
         <CardHeader className="flex flex-col items-center space-y-0 text-center">
           <div className="pt-6 space-y-2">
-            <h2 className="text-xl font-bold text-[#062A45]">
+            <h2 className="text-xl font-bold text-[#062A45] -mb-1">
               Redefinir sua Senha
             </h2>
-            <p className="text-sm text-slate-500 px-4 leading-relaxed">
+            <p className="text-slate-600 text-sm leading-relaxed px-4">
               Escolha uma nova senha para acessar sua conta.
             </p>
           </div>
@@ -83,16 +83,16 @@ export default function RedefinirSenha() {
             <div className="space-y-2">
               <Label
                 htmlFor="password"
-                className="text-[11px] font-bold text-[#e31e24] tracking-wider uppercase"
+                className="text-[11px] font-bold text-[#e31e24] tracking-wider"
               >
                 Nova Senha
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-1/2 h-4 w-4 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   id="password"
                   placeholder="••••••••"
-                  className="pl-9 pr-10 bg-[#F8FAFC] border-slate-200 h-11 text-sm focus-visible:ring-slate-300"
+                  className="pl-9 bg-[#F8FAFC] border-slate-200 h-11 text-sm focus-visible:ring-slate-300"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -113,7 +113,7 @@ export default function RedefinirSenha() {
             <div className="space-y-2">
               <Label
                 htmlFor="confirmPassword"
-                className="text-[11px] font-bold text-[#e31e24] tracking-wider uppercase"
+                className="text-[11px] font-bold text-[#e31e24] tracking-wider"
               >
                 Confirmar Senha
               </Label>
@@ -124,7 +124,7 @@ export default function RedefinirSenha() {
                 <Input
                   id="confirmPassword"
                   placeholder="••••••••"
-                  className={`pl-9 pr-10 bg-[#F8FAFC] h-11 text-sm transition-colors ${
+                  className={`pl-9 bg-[#F8FAFC] h-11 text-sm transition-colors ${
                     showMismatchError
                       ? "border-red-500 focus-visible:ring-red-500"
                       : "border-slate-200 focus-visible:ring-slate-300"
