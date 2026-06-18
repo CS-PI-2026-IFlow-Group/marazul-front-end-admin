@@ -1,32 +1,16 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardFooter,
-} from "../components/ui/card";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import {
-  Lock,
-  EyeOff,
-  ArrowLeft,
-  Eye,
-  CheckCircle2,
-  Circle,
-  Loader2,
-  AlertCircle,
-} from "lucide-react";
-import { Button } from "../components/ui/button";
+import { CardContent, CardHeader, CardFooter } from "../components/ui/card";
+import { ArrowLeft, CheckCircle2, Circle, AlertCircle } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import AuthLayout from "../components/AuthLayout";
+import PasswordInput from "../components/PasswordInput";
+import SubmitButton from "../components/SubmitButton";
 
 export default function RedefinirSenha() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
@@ -67,194 +51,125 @@ export default function RedefinirSenha() {
 
   if (!token) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-[#F9FAFB] p-4">
-        <Card className="w-full max-w-100 bg-white shadow-sm border-slate-200 py-6 px-4 text-center">
-          <div className="flex justify-center">
-            <div className="bg-[#ffefef] p-4 rounded-xl relative mt-1">
-              <AlertCircle className="h-10 w-10 text-[#e31e24]" />
-            </div>
+      <AuthLayout>
+        <div className="flex justify-center">
+          <div className="bg-[#ffefef] p-4 rounded-xl relative mt-1">
+            <AlertCircle className="h-10 w-10 text-[#e31e24]" />
           </div>
-          <h2 className="text-xl font-bold text-[#062A45] -mb-1">
-            Link Inválido
-          </h2>
-          <p className="text-slate-600 text-sm leading-relaxed px-4">
-            Não foi possível identificar o token de segurança. Por favor,
-            solicite um novo link de redefinição de senha para continuar
-          </p>
+        </div>
+        <h2 className="text-xl font-bold text-[#062A45] -mb-1">
+          Link Inválido
+        </h2>
+        <p className="text-slate-600 text-sm leading-relaxed px-4">
+          Não foi possível identificar o token de segurança. Por favor, solicite
+          um novo link de redefinição de senha para continuar
+        </p>
 
-          <Link to="/recuperar-senha" className="block w-full">
-            <Button className="w-full bg-[#1e293b] hover:bg-[#0f172a] text-white h-12 font-bold flex items-center justify-center gap-2 mt-2 transition-colors cursor-pointer disabled:cursor-not-allowed">
-              Solicitar Novo Link
-            </Button>
-          </Link>
+        <Link to="/recuperar-senha" className="block w-full">
+          <SubmitButton>Solicitar Novo Link</SubmitButton>
+        </Link>
 
-          <CardFooter className="flex justify-center pt-2">
-            <div className="w-full border-t border-slate-100 pt-6 flex justify-center">
-              <Link
-                to="/login"
-                className="inline-flex items-center text-sm text-[#e31e24] hover:text-[#c1191f] hover:underline font-medium transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" /> Voltar para o login
-              </Link>
-            </div>
-          </CardFooter>
-        </Card>
-      </div>
+        <CardFooter className="flex justify-center pt-2">
+          <div className="w-full border-t border-slate-100 pt-6 flex justify-center">
+            <Link
+              to="/login"
+              className="inline-flex items-center text-sm text-[#e31e24] hover:text-[#c1191f] hover:underline font-medium transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" /> Voltar para o login
+            </Link>
+          </div>
+        </CardFooter>
+      </AuthLayout>
     );
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#F9FAFB] p-4">
-      <Card className="w-full max-w-100 bg-white shadow-md border-slate-200 py-6 px-2">
-        <CardHeader className="flex flex-col items-center space-y-0 text-center">
-          <div className="pt-6 space-y-2">
-            <h2 className="text-xl font-bold text-[#062A45] -mb-1">
-              Redefinir sua Senha
-            </h2>
-            <p className="text-slate-600 text-sm leading-relaxed px-4">
-              Escolha uma nova senha para acessar sua conta.
+    <AuthLayout>
+      <CardHeader className="flex flex-col items-center space-y-0 text-center">
+        <div className="pt-6 space-y-2">
+          <h2 className="text-xl font-bold text-[#062A45] -mb-1">
+            Redefinir sua Senha
+          </h2>
+          <p className="text-slate-600 text-sm leading-relaxed px-4">
+            Escolha uma nova senha para acessar sua conta.
+          </p>
+        </div>
+      </CardHeader>
+
+      <CardContent>
+        <form onSubmit={handleResetPassword} className="space-y-6 text-left">
+          <PasswordInput
+            id="password"
+            label="Nova Senha"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <PasswordInput
+            id="confirmPassword"
+            label="Confirmar Senha"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            hasError={showMismatchError}
+            errorMessage="As senhas não coincidem"
+          />
+
+          <div className="bg-[#F8FAFC] border border-slate-100 rounded-lg p-4 space-y-0">
+            <p className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">
+              A senha deve conter:
             </p>
-          </div>
-        </CardHeader>
 
-        <CardContent>
-          <form onSubmit={handleResetPassword} className="space-y-5">
-            <div className="space-y-2">
-              <Label
-                htmlFor="password"
-                className="text-[11px] font-bold text-[#e31e24] tracking-wider"
-              >
-                Nova Senha
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  id="password"
-                  placeholder="••••••••"
-                  className="pl-9 bg-[#F8FAFC] border-slate-200 h-11 text-sm focus-visible:ring-slate-300"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none cursor-pointer"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label
-                htmlFor="confirmPassword"
-                className="text-[11px] font-bold text-[#e31e24] tracking-wider"
-              >
-                Confirmar Senha
-              </Label>
-              <div className="relative">
-                <Lock
-                  className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${showMismatchError ? "text-red-400" : "text-slate-400"}`}
-                />
-                <Input
-                  id="confirmPassword"
-                  placeholder="••••••••"
-                  className={`pl-9 bg-[#F8FAFC] h-11 text-sm transition-colors ${
-                    showMismatchError
-                      ? "border-red-500 focus-visible:ring-red-500"
-                      : "border-slate-200 focus-visible:ring-slate-300"
-                  }`}
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none cursor-pointer"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-              {showMismatchError && (
-                <p className="text-xs font-medium text-red-500 mt-1">
-                  As senhas não coincidem.
-                </p>
-              )}
-            </div>
-            <div className="bg-[#F8FAFC] border border-slate-100 rounded-lg p-4 space-y-0">
-              <p className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">
-                A senha deve conter:
-              </p>
-
-              <div className="flex items-center gap-1 text-sm mt-1">
-                {hasMinLength ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
-                ) : (
-                  <Circle className="h-4 w-4 text-slate-300 shrink-0" />
-                )}
-                <span
-                  className={
-                    hasMinLength
-                      ? "text-green-700 font-medium"
-                      : "text-slate-600"
-                  }
-                >
-                  Mínimo de 8 caracteres
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1 text-sm">
-                {hasLetterAndNumber ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
-                ) : (
-                  <Circle className="h-4 w-4 text-slate-300 shrink-0" />
-                )}
-                <span
-                  className={
-                    hasLetterAndNumber
-                      ? "text-green-700 font-medium"
-                      : "text-slate-600"
-                  }
-                >
-                  Combinação de letras e números
-                </span>
-              </div>
-            </div>
-            <Button
-              type="submit"
-              className="w-full bg-[#1e293b] hover:bg-[#0f172a] text-white h-12 font-bold flex items-center justify-center gap-2 mt-2 transition-colors cursor-pointer disabled:cursor-not-allowed"
-              disabled={!isFormValid || isLoading}
-            >
-              {isLoading ? (
-                <>
-                  Atualizando... <Loader2 className="h-4 w-4 animate-spin" />
-                </>
+            <div className="flex items-center gap-1 text-sm mt-1">
+              {hasMinLength ? (
+                <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
               ) : (
-                "ATUALIZAR SENHA"
+                <Circle className="h-4 w-4 text-slate-300 shrink-0" />
               )}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-center pt-1">
-          <div className="w-full border-t border-slate-100 pt-5 flex justify-center">
-            <Link
-              to="/login"
-              className="flex items-center text-sm text-[#e31e24] hover:text-[#c1191f] hover:underline font-medium gap-2 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" /> Voltar para o login
-            </Link>
+              <span
+                className={
+                  hasMinLength ? "text-green-700 font-medium" : "text-slate-600"
+                }
+              >
+                Mínimo de 8 caracteres
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1 text-sm">
+              {hasLetterAndNumber ? (
+                <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+              ) : (
+                <Circle className="h-4 w-4 text-slate-300 shrink-0" />
+              )}
+              <span
+                className={
+                  hasLetterAndNumber
+                    ? "text-green-700 font-medium"
+                    : "text-slate-600"
+                }
+              >
+                Combinação de letras e números
+              </span>
+            </div>
           </div>
-        </CardFooter>
-      </Card>
-    </div>
+          <SubmitButton
+            isLoading={isLoading}
+            isDisabled={!isFormValid}
+            loadingText="Atualizando..."
+          >
+            Atualizar Senha
+          </SubmitButton>
+        </form>
+      </CardContent>
+      <CardFooter className="flex justify-center pt-1">
+        <div className="w-full border-t border-slate-100 pt-5 flex justify-center">
+          <Link
+            to="/login"
+            className="flex items-center text-sm text-[#e31e24] hover:text-[#c1191f] hover:underline font-medium gap-2 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" /> Voltar para o login
+          </Link>
+        </div>
+      </CardFooter>
+    </AuthLayout>
   );
 }
