@@ -15,7 +15,7 @@ export default function EmailInput({
     <div className="space-y-2">
       <Label
         htmlFor={id}
-        className="text-[11px] font-bold text-[#e31e24] tracking-wider uppercase"
+        className="text-[11px] font-bold text-[#e31e24] tracking-wider"
       >
         {label}
       </Label>
