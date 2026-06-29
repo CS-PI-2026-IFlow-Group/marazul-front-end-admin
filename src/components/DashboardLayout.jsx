@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { X } from "lucide-react";
 import Sidebar from "./Sidebar";
 import TopHeader from "./TopHeader";
+import { Button } from "./ui/button";
 import { cn } from "../lib/utils";
 
 export default function DashboardLayout() {
@@ -33,14 +34,15 @@ export default function DashboardLayout() {
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => setMobileOpen(false)}
           aria-label="Fechar menu"
-          className="absolute top-4 right-4 z-10 rounded-lg p-1 text-slate-300 transition hover:bg-white/10 hover:text-white"
+          className="absolute top-4 right-4 z-10 rounded-lg text-slate-300 hover:bg-white/10 hover:text-white"
         >
           <X className="size-5" />
-        </button>
+        </Button>
         <Sidebar onNavigate={() => setMobileOpen(false)} />
       </aside>
 
