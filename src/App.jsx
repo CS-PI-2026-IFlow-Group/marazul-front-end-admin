@@ -2,8 +2,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Frota from "./pages/Frota";
-import Carrocerias from "./pages/Carrocerias";
+import Viagens from "./pages/Viagens";
 import Funcionarios from "./pages/Funcionarios";
+import Relatorios from "./pages/Relatorios";
 import RecuperarSenha from "./pages/RecuperarSenha";
 import RedefinirSenha from "./pages/RedefinirSenha";
 import DashboardLayout from "./components/DashboardLayout";
@@ -28,8 +29,9 @@ export default function App() {
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/frota" element={<Frota />} />
-          <Route path="/carrocerias" element={<Carrocerias />} />
+          <Route path="/viagens" element={<Viagens />} />
           <Route path="/funcionarios" element={<Funcionarios />} />
+          <Route path="/relatorios" element={<Relatorios />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />

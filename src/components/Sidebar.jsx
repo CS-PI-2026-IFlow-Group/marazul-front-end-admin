@@ -1,18 +1,14 @@
 import { NavLink } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Truck,
-  Container,
-  Users,
-} from "lucide-react";
+import { LayoutDashboard, Truck, Map, Users, BarChart3 } from "lucide-react";
 import logoMarazul from "../assets/logoMarazul.png";
 import { cn } from "../lib/utils";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/frota", label: "Frota", icon: Truck },
-  { to: "/carrocerias", label: "Carrocerias", icon: Container },
+  { to: "/viagens", label: "Viagens", icon: Map },
   { to: "/funcionarios", label: "Funcionários", icon: Users },
+  { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
 ];
 
 export default function Sidebar({ onNavigate }) {
@@ -41,7 +37,7 @@ export default function Sidebar({ onNavigate }) {
               cn(
                 "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition",
                 isActive
-                  ? "bg-[#e31e24] text-white shadow-md"
+                  ? "bg-[#e31e24]/85 text-white"
                   : "text-slate-300 hover:bg-white/10 hover:text-white",
               )
             }
