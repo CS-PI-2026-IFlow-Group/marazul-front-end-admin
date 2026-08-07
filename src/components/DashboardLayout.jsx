@@ -39,7 +39,7 @@ export default function DashboardLayout() {
           size="icon"
           onClick={() => setMobileOpen(false)}
           aria-label="Fechar menu"
-          className="absolute top-4 right-4 z-10 text-slate-300 hover:bg-white/10 hover:text-white"
+          className="absolute top-4 right-4 z-10 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
         >
           <X className="size-5" />
         </Button>
