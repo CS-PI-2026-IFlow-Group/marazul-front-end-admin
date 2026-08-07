@@ -30,6 +30,25 @@ const STATUS_LABELS = {
   MANUTENCAO: "Manutenção",
 };
 
+// Aceita formato antigo (ABC-1234) e Mercosul (ABC1D23)
+const PLACA_REGEX = /^[A-Z]{3}-?\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$/;
+
+/**
+ * Formata o valor digitado aplicando máscara de placa.
+ * - Remove caracteres inválidos e converte para maiúsculo.
+ * - Insere hífen automaticamente no formato antigo (ABC-1234).
+ */
+function formatPlaca(raw) {
+  const clean = raw.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 7);
+
+  // Formato antigo: 3 letras + 4 dígitos → insere hífen
+  if (clean.length > 3 && /^[A-Z]{3}\d+$/.test(clean)) {
+    return clean.slice(0, 3) + "-" + clean.slice(3);
+  }
+
+  return clean;
+}
+
 export default function CadastroFrota() {
   const navigate = useNavigate();
 
@@ -48,9 +67,27 @@ export default function CadastroFrota() {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
+  const handlePlacaChange = (e) => {
+    setForm((prev) => ({ ...prev, placa: formatPlaca(e.target.value) }));
+  };
+
   const handleSelectChange = (field) => (value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
+
+  // Validação: placa só é validada se o usuário já digitou algo
+  const placaValida = PLACA_REGEX.test(form.placa.replace("-", ""));
+  const placaTemErro = form.placa.length > 0 && !placaValida;
+
+  // Todos os campos obrigatórios preenchidos + placa válida
+  const isFormValid =
+    form.prefixo.trim() !== "" &&
+    placaValida &&
+    form.anoFabricacao !== "" &&
+    form.quantidadeAssentos !== "" &&
+    form.marca !== "" &&
+    form.tipo !== "" &&
+    form.status !== "";
 
   return (
     <div className="space-y-6">
@@ -102,10 +139,20 @@ export default function CadastroFrota() {
                 id="placa"
                 type="text"
                 placeholder="ABC-1234"
+                maxLength={8}
                 value={form.placa}
-                onChange={handleChange("placa")}
-                className="bg-[#F8FAFC] h-11 text-sm border-slate-200 focus-visible:ring-slate-300 uppercase"
+                onChange={handlePlacaChange}
+                className={`bg-[#F8FAFC] h-11 text-sm uppercase ${
+                  placaTemErro
+                    ? "border-red-500 focus-visible:ring-red-500"
+                    : "border-slate-200 focus-visible:ring-slate-300"
+                }`}
               />
+              {placaTemErro && (
+                <p className="text-xs font-medium text-red-500 -mt-1">
+                  Formato inválido. Use ABC-1234 ou ABC1D23
+                </p>
+              )}
             </div>
 
             {/* Ano de Fabricação */}
@@ -230,7 +277,8 @@ export default function CadastroFrota() {
           <div className="flex justify-end pt-2">
             <Button
               type="submit"
-              className="bg-[#062A45] hover:bg-[#0f172a] text-white h-12 px-8 font-bold cursor-pointer"
+              disabled={!isFormValid}
+              className="bg-[#062A45] hover:bg-[#0f172a] text-white h-12 px-8 font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Salvar Veículo
             </Button>
