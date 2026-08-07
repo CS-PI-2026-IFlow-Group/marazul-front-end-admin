@@ -1,12 +1,12 @@
-import { CardContent, CardHeader, CardFooter } from "../components/ui/card";
-import { ArrowLeft, CheckCircle2, Circle, AlertCircle } from "lucide-react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useState } from "react";
 import axios from "axios";
+import { AlertCircle, ArrowLeft, CheckCircle2, Circle } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import AuthLayout from "../components/AuthLayout";
-import PasswordInput from "../components/PasswordInput";
-import SubmitButton from "../components/SubmitButton";
+import AuthLayout from "../../components/AuthLayout";
+import PasswordInput from "../../components/PasswordInput";
+import SubmitButton from "../../components/SubmitButton";
+import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
 
 export default function RedefinirSenha() {
   const [password, setPassword] = useState("");

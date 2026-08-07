@@ -1,16 +1,16 @@
-import { LogIn } from "lucide-react";
-import { CardContent, CardFooter, CardHeader } from "../components/ui/card";
-import { Checkbox } from "../components/ui/checkbox";
-import { Label } from "../components/ui/label";
-import AuthHeader from "../components/AuthHeader";
-import { useState } from "react";
 import axios from "axios";
+import { LogIn } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useNavigate, Link } from "react-router-dom";
-import AuthLayout from "../components/AuthLayout";
-import EmailInput from "../components/EmailInput";
-import PasswordInput from "../components/PasswordInput";
-import SubmitButton from "../components/SubmitButton";
+import AuthHeader from "../../components/AuthHeader";
+import AuthLayout from "../../components/AuthLayout";
+import EmailInput from "../../components/EmailInput";
+import PasswordInput from "../../components/PasswordInput";
+import SubmitButton from "../../components/SubmitButton";
+import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Label } from "../../components/ui/label";
 
 export default function Login() {
   const [email, setEmail] = useState("");
