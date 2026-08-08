@@ -8,7 +8,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
           <button className="mt-1 flex items-center justify-center rounded-full p-1 hover:bg-slate-200 transition-colors">
             <ArrowLeft className="h-5 w-5 text-slate-700" />
           </button>
-          <h1 className="text-xl font-bold text-slate-900">
+          <h1 className="text-xl font-bold text-[#062A45]">
             {isEdicao ? "Edição" : "Cadastro"} de Usuário
           </h1>
         </div>
