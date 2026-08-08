@@ -92,8 +92,8 @@ export default function CadastroFrota() {
   const anoValido = form.anoFabricacao.length === 4 && Number(form.anoFabricacao) >= 1900;
   const anoTemErro = form.anoFabricacao.length > 0 && !anoValido;
 
-  // Validação de assentos: número positivo
-  const assentosValidos = form.quantidadeAssentos.length > 0 && Number(form.quantidadeAssentos) > 0;
+  // Validação de data de vistoria: campo obrigatório
+  const dataVistoriaValida = form.dataVistoria.trim() !== "";
 
   // Todos os campos obrigatórios preenchidos e válidos
   const isFormValid =
@@ -103,7 +103,8 @@ export default function CadastroFrota() {
     assentosValidos &&
     form.marca !== "" &&
     form.tipo !== "" &&
-    form.status !== "";
+    form.status !== "" &&
+    dataVistoriaValida;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -119,7 +120,7 @@ export default function CadastroFrota() {
       tipo: form.tipo,
       quantidadeAssentos: Number(form.quantidadeAssentos),
       status: form.status,
-      dataVistoria: form.dataVistoria || null,
+      dataVistoria: form.dataVistoria,
     };
 
     try {
