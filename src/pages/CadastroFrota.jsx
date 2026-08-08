@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Save } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
@@ -150,11 +150,11 @@ export default function CadastroFrota() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {/* Cabeçalho da página */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#062A45]">
-          Cadastro de Novo Veículo
+        <h1 className="text-xl font-bold text-[#062A45]">
+          Cadastro de Frota
         </h1>
         <Button
           variant="outline"
@@ -352,7 +352,9 @@ export default function CadastroFrota() {
                   Salvando... <Loader2 className="h-4 w-4 animate-spin" />
                 </>
               ) : (
-                "Salvar Veículo"
+                <>
+                  <Save className="h-4 w-4" /> Salvar Veículo
+                </>
               )}
             </Button>
           </div>
