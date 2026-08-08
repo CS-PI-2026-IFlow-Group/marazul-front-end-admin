@@ -1,4 +1,5 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, User } from "lucide-react";
+import { Card, CardContent } from "../../../components/ui/card";
 
 const CadastroFuncionario = ({ isEdicao = false }) => {
   return (
@@ -11,8 +12,21 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
           <h1 className="text-xl font-bold text-[#062A45]">
             {isEdicao ? "Edição" : "Cadastro"} de Usuário
           </h1>
+          <p>
+            Preencha as informações abaixo para{" "}
+            {isEdicao ? "editar o" : "cadastrar um novo"} usuário ou motorista.
+          </p>
         </div>
       </div>
+      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="border-b border-slate-100 px-8 py-5 items-center gap-3">
+          <User className="h-5 w-5 text-[#e31e24]" />
+          <h2 className="text-base font-medium text-[#062A45]">
+            Informações do colaborador
+          </h2>
+        </div>
+        <CardContent className="p-8"></CardContent>
+      </Card>
     </div>
   );
 };
