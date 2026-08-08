@@ -159,7 +159,7 @@ export default function CadastroFrota() {
         <Button
           variant="outline"
           onClick={() => navigate("/frota")}
-          className="gap-2 border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-[#062A45] cursor-pointer"
+          className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-4 h-10 shadow-xs transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" /> Voltar
         </Button>
@@ -174,7 +174,7 @@ export default function CadastroFrota() {
             <div className="space-y-2">
               <Label
                 htmlFor="prefixo"
-                className="text-[11px] font-bold text-[#e31e24] tracking-wider"
+                className="text-xs font-bold text-[#062A45] tracking-wider uppercase"
               >
                 PREFIXO
               </Label>
@@ -191,7 +191,7 @@ export default function CadastroFrota() {
             <div className="space-y-2">
               <Label
                 htmlFor="placa"
-                className="text-[11px] font-bold text-[#e31e24] tracking-wider"
+                className="text-xs font-bold text-[#062A45] tracking-wider uppercase"
               >
                 PLACA
               </Label>
@@ -217,7 +217,7 @@ export default function CadastroFrota() {
             <div className="space-y-2">
               <Label
                 htmlFor="anoFabricacao"
-                className="text-[11px] font-bold text-[#e31e24] tracking-wider"
+                className="text-xs font-bold text-[#062A45] tracking-wider uppercase"
               >
                 ANO DE FABRICAÇÃO
               </Label>
@@ -242,7 +242,7 @@ export default function CadastroFrota() {
             <div className="space-y-2">
               <Label
                 htmlFor="quantidadeAssentos"
-                className="text-[11px] font-bold text-[#e31e24] tracking-wider"
+                className="text-xs font-bold text-[#062A45] tracking-wider uppercase"
               >
                 QUANTIDADE DE ASSENTOS
               </Label>
@@ -259,7 +259,7 @@ export default function CadastroFrota() {
 
             {/* Marca (Select) */}
             <div className="space-y-2">
-              <Label className="text-[11px] font-bold text-[#e31e24] tracking-wider">
+              <Label className="text-xs font-bold text-[#062A45] tracking-wider uppercase">
                 MARCA
               </Label>
               <Select
@@ -281,7 +281,7 @@ export default function CadastroFrota() {
 
             {/* Tipo (Select) */}
             <div className="space-y-2">
-              <Label className="text-[11px] font-bold text-[#e31e24] tracking-wider">
+              <Label className="text-xs font-bold text-[#062A45] tracking-wider uppercase">
                 TIPO
               </Label>
               <Select
@@ -303,7 +303,7 @@ export default function CadastroFrota() {
 
             {/* Status (Select) */}
             <div className="space-y-2">
-              <Label className="text-[11px] font-bold text-[#e31e24] tracking-wider">
+              <Label className="text-xs font-bold text-[#062A45] tracking-wider uppercase">
                 STATUS
               </Label>
               <Select
@@ -327,7 +327,7 @@ export default function CadastroFrota() {
             <div className="space-y-2">
               <Label
                 htmlFor="dataVistoria"
-                className="text-[11px] font-bold text-[#e31e24] tracking-wider"
+                className="text-xs font-bold text-[#062A45] tracking-wider uppercase"
               >
                 DATA DE VISTORIA
               </Label>
@@ -345,7 +345,7 @@ export default function CadastroFrota() {
             <Button
               type="submit"
               disabled={!isFormValid || isLoading}
-              className="bg-[#062A45] hover:bg-[#0f172a] text-white h-12 px-8 font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-[#062A45] hover:bg-[#0f172a] text-white h-12 px-8 font-bold rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
             >
               {isLoading ? (
                 <>
