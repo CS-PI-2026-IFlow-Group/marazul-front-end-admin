@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { getToken } from "../lib/auth";
 import {
   Select,
   SelectContent,
@@ -51,6 +54,7 @@ function formatPlaca(raw) {
 
 export default function CadastroFrota() {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [form, setForm] = useState({
     prefixo: "",
@@ -101,6 +105,50 @@ export default function CadastroFrota() {
     form.tipo !== "" &&
     form.status !== "";
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!isFormValid || isLoading) return;
+
+    setIsLoading(true);
+
+    const payload = {
+      prefixo: form.prefixo.trim(),
+      placa: form.placa.trim().toUpperCase(),
+      marca: form.marca,
+      anoFabricacao: Number(form.anoFabricacao),
+      tipo: form.tipo,
+      quantidadeAssentos: Number(form.quantidadeAssentos),
+      status: form.status,
+      dataVistoria: form.dataVistoria || null,
+    };
+
+    try {
+      const token = getToken();
+      await axios.post("/api/frota", payload, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      toast.success("Veículo cadastrado com sucesso!");
+      navigate("/frota");
+    } catch (error) {
+      if (error.response && error.response.status === 409) {
+        toast.error("Conflito de cadastro", {
+          description:
+            error.response.data?.message ||
+            "Já existe um veículo cadastrado com esta placa.",
+        });
+      } else {
+        toast.error("Erro ao cadastrar veículo", {
+          description:
+            error.response?.data?.message ||
+            "Ocorreu um problema ao salvar os dados. Tente novamente.",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Cabeçalho da página */}
@@ -119,7 +167,7 @@ export default function CadastroFrota() {
 
       {/* Card do formulário */}
       <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm lg:p-8">
-        <form className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Grid 2 colunas */}
           <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
             {/* Prefixo */}
@@ -296,10 +344,16 @@ export default function CadastroFrota() {
           <div className="flex justify-end pt-2">
             <Button
               type="submit"
-              disabled={!isFormValid}
-              className="bg-[#062A45] hover:bg-[#0f172a] text-white h-12 px-8 font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!isFormValid || isLoading}
+              className="bg-[#062A45] hover:bg-[#0f172a] text-white h-12 px-8 font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Salvar Veículo
+              {isLoading ? (
+                <>
+                  Salvando... <Loader2 className="h-4 w-4 animate-spin" />
+                </>
+              ) : (
+                "Salvar Veículo"
+              )}
             </Button>
           </div>
         </form>
