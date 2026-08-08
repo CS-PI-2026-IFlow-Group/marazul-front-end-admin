@@ -71,20 +71,32 @@ export default function CadastroFrota() {
     setForm((prev) => ({ ...prev, placa: formatPlaca(e.target.value) }));
   };
 
+  const handleNumeroChange = (field, maxLen) => (e) => {
+    const numericValue = e.target.value.replace(/\D/g, "").slice(0, maxLen);
+    setForm((prev) => ({ ...prev, [field]: numericValue }));
+  };
+
   const handleSelectChange = (field) => (value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Validação: placa só é validada se o usuário já digitou algo
+  // Validação de placa: formato antigo (ABC-1234) ou Mercosul (ABC1D23)
   const placaValida = PLACA_REGEX.test(form.placa.replace("-", ""));
   const placaTemErro = form.placa.length > 0 && !placaValida;
 
-  // Todos os campos obrigatórios preenchidos + placa válida
+  // Validação de ano: exatamente 4 dígitos
+  const anoValido = form.anoFabricacao.length === 4 && Number(form.anoFabricacao) >= 1900;
+  const anoTemErro = form.anoFabricacao.length > 0 && !anoValido;
+
+  // Validação de assentos: número positivo
+  const assentosValidos = form.quantidadeAssentos.length > 0 && Number(form.quantidadeAssentos) > 0;
+
+  // Todos os campos obrigatórios preenchidos e válidos
   const isFormValid =
     form.prefixo.trim() !== "" &&
     placaValida &&
-    form.anoFabricacao !== "" &&
-    form.quantidadeAssentos !== "" &&
+    anoValido &&
+    assentosValidos &&
     form.marca !== "" &&
     form.tipo !== "" &&
     form.status !== "";
@@ -121,9 +133,9 @@ export default function CadastroFrota() {
               <Input
                 id="prefixo"
                 type="text"
+                placeholder="Ex: 1020"
                 value={form.prefixo}
                 onChange={handleChange("prefixo")}
-                className="bg-[#F8FAFC] h-11 text-sm border-slate-200 focus-visible:ring-slate-300"
               />
             </div>
 
@@ -142,14 +154,12 @@ export default function CadastroFrota() {
                 maxLength={8}
                 value={form.placa}
                 onChange={handlePlacaChange}
-                className={`bg-[#F8FAFC] h-11 text-sm uppercase ${
-                  placaTemErro
-                    ? "border-red-500 focus-visible:ring-red-500"
-                    : "border-slate-200 focus-visible:ring-slate-300"
+                className={`uppercase ${
+                  placaTemErro ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500" : ""
                 }`}
               />
               {placaTemErro && (
-                <p className="text-xs font-medium text-red-500 -mt-1">
+                <p className="text-xs font-medium text-red-500">
                   Formato inválido. Use ABC-1234 ou ABC1D23
                 </p>
               )}
@@ -165,11 +175,19 @@ export default function CadastroFrota() {
               </Label>
               <Input
                 id="anoFabricacao"
-                type="number"
+                type="text"
+                inputMode="numeric"
+                placeholder="Ex: 2024"
+                maxLength={4}
                 value={form.anoFabricacao}
-                onChange={handleChange("anoFabricacao")}
-                className="bg-[#F8FAFC] h-11 text-sm border-slate-200 focus-visible:ring-slate-300"
+                onChange={handleNumeroChange("anoFabricacao", 4)}
+                className={anoTemErro ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500" : ""}
               />
+              {anoTemErro && (
+                <p className="text-xs font-medium text-red-500">
+                  Informe um ano válido com 4 dígitos (ex: 2024)
+                </p>
+              )}
             </div>
 
             {/* Quantidade de Assentos */}
@@ -182,10 +200,12 @@ export default function CadastroFrota() {
               </Label>
               <Input
                 id="quantidadeAssentos"
-                type="number"
+                type="text"
+                inputMode="numeric"
+                placeholder="Ex: 46"
+                maxLength={3}
                 value={form.quantidadeAssentos}
-                onChange={handleChange("quantidadeAssentos")}
-                className="bg-[#F8FAFC] h-11 text-sm border-slate-200 focus-visible:ring-slate-300"
+                onChange={handleNumeroChange("quantidadeAssentos", 3)}
               />
             </div>
 
@@ -198,12 +218,12 @@ export default function CadastroFrota() {
                 value={form.marca}
                 onValueChange={handleSelectChange("marca")}
               >
-                <SelectTrigger className="w-full bg-[#F8FAFC] h-11 text-sm border border-slate-200 rounded-md px-3 focus-visible:ring-slate-300 cursor-pointer">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {MARCAS.map((m) => (
-                    <SelectItem key={m} value={m} className="cursor-pointer">
+                    <SelectItem key={m} value={m}>
                       {MARCA_LABELS[m]}
                     </SelectItem>
                   ))}
@@ -220,12 +240,12 @@ export default function CadastroFrota() {
                 value={form.tipo}
                 onValueChange={handleSelectChange("tipo")}
               >
-                <SelectTrigger className="w-full bg-[#F8FAFC] h-11 text-sm border border-slate-200 rounded-md px-3 focus-visible:ring-slate-300 cursor-pointer">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {TIPOS.map((t) => (
-                    <SelectItem key={t} value={t} className="cursor-pointer">
+                    <SelectItem key={t} value={t}>
                       {t}
                     </SelectItem>
                   ))}
@@ -242,12 +262,12 @@ export default function CadastroFrota() {
                 value={form.status}
                 onValueChange={handleSelectChange("status")}
               >
-                <SelectTrigger className="w-full bg-[#F8FAFC] h-11 text-sm border border-slate-200 rounded-md px-3 focus-visible:ring-slate-300 cursor-pointer">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {STATUS_OPTIONS.map((s) => (
-                    <SelectItem key={s} value={s} className="cursor-pointer">
+                    <SelectItem key={s} value={s}>
                       {STATUS_LABELS[s]}
                     </SelectItem>
                   ))}
@@ -268,7 +288,6 @@ export default function CadastroFrota() {
                 type="date"
                 value={form.dataVistoria}
                 onChange={handleChange("dataVistoria")}
-                className="bg-[#F8FAFC] h-11 text-sm border-slate-200 focus-visible:ring-slate-300"
               />
             </div>
           </div>
