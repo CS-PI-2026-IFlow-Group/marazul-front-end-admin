@@ -153,13 +153,15 @@ export default function CadastroFrota() {
     <div className="space-y-2">
       {/* Cabeçalho da página */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-[#062A45]">
-          Cadastro de Frota
-        </h1>
+        <div>
+          <h1 className="text-xl font-bold text-[#062A45] pb-1 border-b-[3.5px] border-[#e31e24] inline-block">
+            Cadastro de Frota
+          </h1>
+        </div>
         <Button
           variant="outline"
           onClick={() => navigate("/frota")}
-          className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-4 h-10 shadow-xs transition-colors cursor-pointer"
+          className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-6 h-10 shadow-xs transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" /> Voltar
         </Button>
