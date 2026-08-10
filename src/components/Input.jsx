@@ -5,6 +5,9 @@ import { Label } from "./ui/label";
 export default function EmailInput({
   id = "email",
   label = "EMAIL",
+  labelColor = "#e31e24",
+  icon: Icon = Mail,
+  type = "email",
   value,
   onChange,
   placeholder = "nome@marazul.com.br",
@@ -15,19 +18,22 @@ export default function EmailInput({
     <div className="space-y-2">
       <Label
         htmlFor={id}
-        className="text-[11px] font-bold text-[#e31e24] tracking-wider"
+        className="text-[11px] font-bold tracking-wider"
+        style={{ color: labelColor }}
       >
         {label}
       </Label>
       <div className="relative">
-        <Mail
-          className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${
-            hasError ? "text-red-400" : "text-slate-400"
-          }`}
-        />
+        {Icon && (
+          <Icon
+            className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${
+              hasError ? "text-red-400" : "text-slate-400"
+            }`}
+          ></Icon>
+        )}
         <Input
           id={id}
-          type="email"
+          type={type}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
