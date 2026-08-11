@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AuthHeader from "../../components/AuthHeader";
 import AuthLayout from "../../components/AuthLayout";
-import EmailInput from "../../components/Input";
+import GenericInput from "../../components/Input";
 import PasswordInput from "../../components/PasswordInput";
 import SubmitButton from "../../components/SubmitButton";
 import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
@@ -60,7 +60,7 @@ export default function Login() {
 
       <CardContent>
         <form onSubmit={handleLogin} className="space-y-6">
-          <EmailInput
+          <GenericInput
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />

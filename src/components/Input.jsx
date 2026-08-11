@@ -2,12 +2,13 @@ import { Mail } from "lucide-react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 
-export default function EmailInput({
+export default function GenericInput({
   id = "email",
   label = "EMAIL",
   labelColor = "#e31e24",
   icon: Icon = Mail,
   type = "email",
+  required = false,
   value,
   onChange,
   placeholder = "nome@marazul.com.br",
@@ -22,6 +23,7 @@ export default function EmailInput({
         style={{ color: labelColor }}
       >
         {label}
+        {required && <span className="text-[#e31e24]">*</span>}
       </Label>
       <div className="relative">
         {Icon && (

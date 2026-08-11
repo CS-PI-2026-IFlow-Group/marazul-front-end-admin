@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import AuthHeader from "../../components/AuthHeader";
 import AuthLayout from "../../components/AuthLayout";
-import Input from "../../components/Input";
+import GenericInput from "../../components/Input";
 import SubmitButton from "../../components/SubmitButton";
 import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
 
@@ -93,7 +93,10 @@ export default function RecuperarSenha() {
       <CardContent>
         <form onSubmit={handleRecoverPassword} className="space-y-6">
           <div className="space-y-2">
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} />
+            <GenericInput
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
 
           <SubmitButton
