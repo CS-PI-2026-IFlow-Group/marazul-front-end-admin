@@ -1,11 +1,15 @@
-import { ArrowLeft, Phone, User } from "lucide-react";
+import { ArrowLeft, Calendar1, Phone, User } from "lucide-react";
 import { useState } from "react";
-import Input from "../../../components/Input";
+import GenericInput from "../../../components/Input";
+import GenericSelect from "../../../components/Select";
 import { Card, CardContent } from "../../../components/ui/card";
-import { Label } from "../../../components/ui/label";
 
 const CadastroFuncionario = ({ isEdicao = false }) => {
   const [funcao, setFuncao] = useState("");
+  const funcoes = [
+    { value: "motorista", label: "Motorista" },
+    { value: "admin", label: "Administrador" },
+  ]; // valores mockados
 
   const dataAtual = new Date().toISOString().split("T")[0];
 
@@ -35,9 +39,9 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
         <CardContent className="p-8">
           <form className="space-y-6">
             <div>
-              <Input
+              <GenericInput
                 id="nome"
-                placeholder="Nome do funcionário"
+                placeholder="Nome do colaborador"
                 label="Nome"
                 labelColor="text-[#062A45]"
                 icon={User}
@@ -47,16 +51,17 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <Input
+                <GenericInput
                   id="admissao"
                   type="date"
                   max={dataAtual}
                   label="Admissão"
                   labelColor="text-[#062A45]"
+                  icon={Calendar1}
                 />
               </div>
               <div>
-                <Input
+                <GenericInput
                   label="telefone"
                   id="telefone"
                   type="text"
@@ -68,18 +73,16 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <Label
-                  htmlFor="funcao"
-                  className="mb-2 block text-sm font-medium text-slate-700 normal-case tracking-normal"
-                >
-                  Função <span className="text-[#e31e24]">*</span>
-                </Label>
-                <select
+                <GenericSelect
                   id="funcao"
-                  value={funcao}
-                  onChange={(e) => setFuncao(e.target.value)}
+                  label="Função"
+                  labelColor="text-[#062A45]"
                   required
-                ></select>
+                  value={funcao}
+                  placeholder="Selecione uma função"
+                  onChange={(e) => setFuncao(e.target.value)}
+                  options={funcoes}
+                />
               </div>
             </div>
           </form>
