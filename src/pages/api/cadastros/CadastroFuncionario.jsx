@@ -102,7 +102,6 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 <GenericSelect
                   id="funcao"
                   label="Função"
-                  labelColor="text-[#062A45]"
                   required
                   value={funcao}
                   placeholder="Selecione uma função"
@@ -114,7 +113,6 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 <GenericSelect
                   id="nivelAcesso"
                   label="Nível de Acesso"
-                  labelColor="text-[#062A45]"
                   required
                   value={nivelAcesso}
                   placeholder="Selecione o nível"
