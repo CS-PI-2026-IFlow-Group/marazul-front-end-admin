@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AuthHeader from "../../components/AuthHeader";
 import AuthLayout from "../../components/AuthLayout";
-import GenericInput from "../../components/Input";
+import GenericInput from "../../components/GenericInput";
 import PasswordInput from "../../components/PasswordInput";
 import SubmitButton from "../../components/SubmitButton";
 import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
