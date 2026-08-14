@@ -1,4 +1,11 @@
-import { ArrowLeft, Calendar1, CreditCard, Phone, User } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar1,
+  CreditCard,
+  Mail,
+  Phone,
+  User,
+} from "lucide-react";
 import { useState } from "react";
 import GenericInput from "../../../components/GenericInput";
 import GenericSelect from "../../../components/GenericSelect";
@@ -6,6 +13,7 @@ import { Card, CardContent } from "../../../components/ui/card";
 
 const CadastroFuncionario = ({ isEdicao = false }) => {
   const [funcao, setFuncao] = useState("");
+  const [nivelAcesso, setNivelAcesso] = useState("");
   const funcoes = [
     { value: "motorista", label: "Motorista" },
     { value: "admin", label: "Administrador" },
@@ -18,6 +26,11 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
     { value: "C", label: "C" },
     { value: "D", label: "D" },
     { value: "E", label: "E" },
+  ];
+
+  const niveisAcesso = [
+    { value: "comum", label: "Comum" },
+    { value: "admin", label: "Administrador (Admin)" },
   ];
 
   const dataAtual = new Date().toISOString().split("T")[0];
@@ -96,6 +109,18 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                   options={funcoes}
                 />
               </div>
+              <div>
+                <GenericSelect
+                  id="nivelAcesso"
+                  label="Nível de Acesso"
+                  labelColor="text-[#062A45]"
+                  required
+                  value={nivelAcesso}
+                  placeholder="Selecione o nível"
+                  onChange={(e) => setNivelAcesso(e.target.value)}
+                  options={niveisAcesso}
+                />
+              </div>
             </div>
             {funcao === "motorista" && (
               <div className="grid  grid-cols-1 gap-6 md:grid-cols-2">
@@ -120,6 +145,20 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 </div>
               </div>
             )}
+            <div>
+              <GenericInput
+                id="email"
+                label="E-mail"
+                labelColor="text-[#062A45]"
+                type="email"
+                icon={Mail}
+                placeholder="usuario@marazul.com.br"
+                required={nivelAcesso === "admin"}
+              />
+              <p className="mt-2 text-[13px] italic text-slate-500">
+                Obrigatório apenas para níveis administrativos.
+              </p>
+            </div>
           </form>
         </CardContent>
       </Card>
