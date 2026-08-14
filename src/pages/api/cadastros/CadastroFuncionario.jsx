@@ -1,7 +1,7 @@
-import { ArrowLeft, Calendar1, Phone, User } from "lucide-react";
+import { ArrowLeft, Calendar1, CreditCard, Phone, User } from "lucide-react";
 import { useState } from "react";
-import GenericInput from "../../../components/Input";
-import GenericSelect from "../../../components/Select";
+import GenericInput from "../../../components/GenericInput";
+import GenericSelect from "../../../components/GenericSelect";
 import { Card, CardContent } from "../../../components/ui/card";
 
 const CadastroFuncionario = ({ isEdicao = false }) => {
@@ -10,6 +10,15 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
     { value: "motorista", label: "Motorista" },
     { value: "admin", label: "Administrador" },
   ]; // valores mockados
+
+  const categoriasCnh = [
+    { value: "A", label: "A" },
+    { value: "B", label: "B" },
+    { value: "AB", label: "AB" },
+    { value: "C", label: "C" },
+    { value: "D", label: "D" },
+    { value: "E", label: "E" },
+  ];
 
   const dataAtual = new Date().toISOString().split("T")[0];
 
@@ -20,13 +29,16 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
           <button className="mt-1 flex items-center justify-center rounded-full p-1 hover:bg-slate-200 transition-colors">
             <ArrowLeft className="h-5 w-5 text-slate-700" />
           </button>
-          <h1 className="text-xl font-bold text-[#062A45]">
-            {isEdicao ? "Edição" : "Cadastro"} de Usuário
-          </h1>
-          <p>
-            Preencha as informações abaixo para{" "}
-            {isEdicao ? "editar o" : "cadastrar um novo"} usuário ou motorista.
-          </p>
+          <div>
+            <h1 className="text-xl font-bold text-[#062A45]">
+              {isEdicao ? "Edição" : "Cadastro"} de Usuário
+            </h1>
+            <p className="text-sm text-slate-500">
+              Preencha as informações abaixo para{" "}
+              {isEdicao ? "editar o" : "cadastrar um novo"} usuário ou
+              motorista.
+            </p>
+          </div>
         </div>
       </div>
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -82,6 +94,27 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                   placeholder="Selecione uma função"
                   onChange={(e) => setFuncao(e.target.value)}
                   options={funcoes}
+                />
+              </div>
+            </div>
+            <div className="grid  grid-cols-1 gap-6 md:grid-cols-2">
+              <div>
+                <GenericInput
+                  id="cnh"
+                  label="CNH"
+                  type="text"
+                  icon={CreditCard}
+                  placeholder="Número da Habilitação"
+                  labelColor="text-[#062A45]"
+                />
+              </div>
+              <div>
+                <GenericSelect
+                  id="categoriaCNH"
+                  label="Categoria"
+                  labelColor="text-[#062A45]"
+                  placeholder="Tipo"
+                  options={categoriasCnh}
                 />
               </div>
             </div>
