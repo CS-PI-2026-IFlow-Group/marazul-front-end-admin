@@ -4,7 +4,7 @@ import { Label } from "./ui/label";
 export default function GenericSelect({
   id,
   label,
-  labelColor = "#e31e24",
+  labelColor = "#062A45",
   icon: Icon,
   required = false,
   value,
