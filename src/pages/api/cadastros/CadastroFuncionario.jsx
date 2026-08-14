@@ -97,27 +97,29 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 />
               </div>
             </div>
-            <div className="grid  grid-cols-1 gap-6 md:grid-cols-2">
-              <div>
-                <GenericInput
-                  id="cnh"
-                  label="CNH"
-                  type="text"
-                  icon={CreditCard}
-                  placeholder="Número da Habilitação"
-                  labelColor="text-[#062A45]"
-                />
+            {funcao === "motorista" && (
+              <div className="grid  grid-cols-1 gap-6 md:grid-cols-2">
+                <div>
+                  <GenericInput
+                    id="cnh"
+                    label="CNH"
+                    type="text"
+                    icon={CreditCard}
+                    placeholder="Número da Habilitação"
+                    labelColor="text-[#062A45]"
+                  />
+                </div>
+                <div>
+                  <GenericSelect
+                    id="categoriaCNH"
+                    label="Categoria"
+                    labelColor="text-[#062A45]"
+                    placeholder="Tipo"
+                    options={categoriasCnh}
+                  />
+                </div>
               </div>
-              <div>
-                <GenericSelect
-                  id="categoriaCNH"
-                  label="Categoria"
-                  labelColor="text-[#062A45]"
-                  placeholder="Tipo"
-                  options={categoriasCnh}
-                />
-              </div>
-            </div>
+            )}
           </form>
         </CardContent>
       </Card>
