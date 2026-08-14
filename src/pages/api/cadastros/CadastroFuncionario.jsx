@@ -9,7 +9,8 @@ import {
 import { useState } from "react";
 import GenericInput from "../../../components/GenericInput";
 import GenericSelect from "../../../components/GenericSelect";
-import { Card, CardContent } from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Card, CardContent, CardFooter } from "../../../components/ui/card";
 
 const CadastroFuncionario = ({ isEdicao = false }) => {
   const [funcao, setFuncao] = useState("");
@@ -161,6 +162,11 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
             </div>
           </form>
         </CardContent>
+        <CardFooter className="flex justify-end border-t border-slate-100 bg-slate-50/50 px-8 py-5">
+          <Button className="bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 px-8 py-5 text-sm font-medium rounded-md normal-case tracking-normal">
+            {isEdicao ? "Salvar Alterações" : "Salvar Usuário"}
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );
