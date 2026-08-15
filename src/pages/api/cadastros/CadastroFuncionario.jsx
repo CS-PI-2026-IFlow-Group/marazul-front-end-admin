@@ -4,6 +4,7 @@ import {
   CreditCard,
   Mail,
   Phone,
+  Save,
   User,
 } from "lucide-react";
 import { useState } from "react";
@@ -38,16 +39,16 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 font-sans">
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-8 flex items-start gap-4">
-          <button className="mt-1 flex items-center justify-center rounded-full p-1 hover:bg-slate-200 transition-colors">
+      <div className="mb-8">
+        <div className="flex items-center gap-3">
+          <button className="flex items-center justify-center rounded-full p-1 hover:bg-slate-200 transition-colors">
             <ArrowLeft className="h-5 w-5 text-slate-700" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-[#062A45]">
+            <h1 className="text-3xl font-bold text-[#062A45] leading-none">
               {isEdicao ? "Edição" : "Cadastro"} de Usuário
             </h1>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-500 mt-2">
               Preencha as informações abaixo para{" "}
               {isEdicao ? "editar o" : "cadastrar um novo"} usuário ou
               motorista.
@@ -56,7 +57,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
         </div>
       </div>
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="border-b border-slate-100 px-8 py-5 items-center gap-3">
+        <div className="flex border-b border-slate-100 px-8 py-5 items-center gap-3">
           <User className="h-5 w-5 text-[#e31e24]" />
           <h2 className="text-base font-medium text-[#062A45]">
             Informações do colaborador
@@ -160,8 +161,9 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
             </div>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-end border-t border-slate-100 bg-slate-50/50 px-8 py-5">
+        <CardFooter className="flex justify-start border-t border-slate-100 bg-slate-50/50 px-8 py-5">
           <Button className="bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 px-8 py-5 text-sm font-medium rounded-md normal-case tracking-normal">
+            <Save className="size-4 mr-1" />
             {isEdicao ? "Salvar Alterações" : "Salvar Usuário"}
           </Button>
         </CardFooter>
