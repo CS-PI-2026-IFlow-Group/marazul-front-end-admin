@@ -48,11 +48,6 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
             <h1 className="text-3xl font-bold text-[#062A45] leading-none">
               {isEdicao ? "Edição" : "Cadastro"} de Usuário
             </h1>
-            <p className="text-sm text-slate-500 mt-2">
-              Preencha as informações abaixo para{" "}
-              {isEdicao ? "editar o" : "cadastrar um novo"} usuário ou
-              motorista.
-            </p>
           </div>
         </div>
       </div>
@@ -161,7 +156,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
             </div>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-start border-t border-slate-100 bg-slate-50/50 px-8 py-5">
+        <CardFooter className="flex justify-end border-t border-slate-100 bg-slate-50/50 px-8 py-5">
           <Button className="bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 px-8 py-5 text-sm font-medium rounded-md normal-case tracking-normal">
             <Save className="size-4 mr-1" />
             {isEdicao ? "Salvar Alterações" : "Salvar Usuário"}
