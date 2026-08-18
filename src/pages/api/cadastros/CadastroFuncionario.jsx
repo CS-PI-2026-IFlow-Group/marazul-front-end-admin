@@ -8,6 +8,7 @@ import {
   User,
 } from "lucide-react";
 import { useState } from "react";
+// import useNavigate from "react-router-dom";
 import GenericInput from "../../../components/GenericInput";
 import GenericSelect from "../../../components/GenericSelect";
 import { Button } from "../../../components/ui/button";
@@ -20,6 +21,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
     { value: "motorista", label: "Motorista" },
     { value: "admin", label: "Administrador" },
   ]; // valores mockados
+  // const navigate = useNavigate();
 
   const categoriasCnh = [
     { value: "A", label: "A" },
@@ -39,13 +41,17 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 font-sans">
-      <div className="mb-8">
-        <div className="flex items-center gap-3">
-          <button className="flex items-center justify-center rounded-full p-1 hover:bg-slate-200 transition-colors">
-            <ArrowLeft className="h-5 w-5 text-slate-700" />
-          </button>
+      <div className="mb-3">
+        <div className="flex justify-start gap-3 flex-col">
+          <Button
+            variant="outline"
+            // onClick={() => navigate("/funcionarios")}
+            className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-6 h-10 shadow-xs transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="h-4 w-4" /> Voltar
+          </Button>
           <div>
-            <h1 className="text-3xl font-bold text-[#062A45] leading-none">
+            <h1 className="text-3xl font-bold text-[#062A45] pb-1 border-b-[3.5px] border-[#e31e24] inline-block">
               {isEdicao ? "Edição" : "Cadastro"} de Usuário
             </h1>
           </div>
@@ -157,7 +163,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
           </form>
         </CardContent>
         <CardFooter className="flex justify-end border-t border-slate-100 bg-slate-50/50 px-8 py-5">
-          <Button className="bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 px-8 py-5 text-sm font-medium rounded-md normal-case tracking-normal">
+          <Button className="bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 px-8 py-5 text-sm font-medium rounded-md normal-case tracking-normal cursor-pointer">
             <Save className="size-4 mr-1" />
             {isEdicao ? "Salvar Alterações" : "Salvar Usuário"}
           </Button>
