@@ -107,7 +107,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                   required
                   value={funcao}
                   placeholder="Selecione uma função"
-                  onChange={(e) => setFuncao(e.target.value)}
+                  onChange={setFuncao}
                   options={funcoes}
                 />
               </div>
@@ -118,7 +118,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                   required
                   value={nivelAcesso}
                   placeholder="Selecione o nível"
-                  onChange={(e) => setNivelAcesso(e.target.value)}
+                  onChange={setNivelAcesso}
                   options={niveisAcesso}
                 />
               </div>
