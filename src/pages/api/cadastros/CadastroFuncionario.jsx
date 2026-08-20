@@ -14,9 +14,18 @@ import GenericSelect from "../../../components/GenericSelect";
 import { Button } from "../../../components/ui/button";
 import { Card, CardContent, CardFooter } from "../../../components/ui/card";
 
-const CadastroFuncionario = ({ isEdicao = false }) => {
+const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
   const [funcao, setFuncao] = useState("");
   const [nivelAcesso, setNivelAcesso] = useState("");
+  const [nome, setNome] = useState("");
+  const [admissao, setAdmissao] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [cnh, setCnh] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [email, setEmail] = useState("");
+
+  const [isLoading, setIsLoading] = useState(false);
+
   const funcoes = [
     { value: "motorista", label: "Motorista" },
     { value: "admin", label: "Administrador" },
