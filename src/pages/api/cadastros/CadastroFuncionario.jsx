@@ -41,8 +41,8 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 font-sans">
-      <div className="mb-3">
-        <div className="flex justify-start gap-3 flex-col">
+      <div className="mb-4">
+        <div className="flex items-start gap-4 flex-col">
           <Button
             variant="outline"
             // onClick={() => navigate("/funcionarios")}
