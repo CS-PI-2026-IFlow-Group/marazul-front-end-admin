@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 // import useNavigate from "react-router-dom";
+import axios from "axios";
+import toast from "sonner";
 import GenericInput from "../../../components/GenericInput";
 import GenericSelect from "../../../components/GenericSelect";
 import { Button } from "../../../components/ui/button";
@@ -30,7 +32,7 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
     { value: "motorista", label: "Motorista" },
     { value: "admin", label: "Administrador" },
   ]; // valores mockados
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const categoriasCnh = [
     { value: "A", label: "A" },
@@ -47,6 +49,54 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
   ];
 
   const dataAtual = new Date().toISOString().split("T")[0];
+
+  const isFormValid =
+    nome.trim() != "" &&
+    funcao != "" &&
+    nivelAcesso !== "" &&
+    (nivelAcesso === "admin" ? email.trim() !== "" : true);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(e);
+
+    if (!isFormValid || isLoading) return;
+
+    setIsLoading(true);
+
+    const payload = {
+      nome: nome.trim(),
+      admissao: admissao,
+      telefone: telefone,
+      funcao: funcao,
+      nivelAcesso: niveisAcesso,
+      ...(funcao === "motorista" && { cnh: cnh.trim(), categoria }),
+      ...(email && { email: email.trim() }),
+    };
+
+    try {
+      if (isEdicao) {
+        await axios.put(`/api/funcionario/${funcionarioId}`, payload);
+        toast.success("Usuário atualizado com sucesso!");
+      } else {
+        await axios.post("/api/funcionario", payload);
+        toast.success("Usuário cadastrado com sucesso!");
+      }
+      setTimeout(() => {
+        navigate("/funcionario");
+      }, 1000);
+    } catch (error) {
+      toast.error(
+        isEdicao ? "Erro ao atualizar usuário" : "Erro ao cadastrar usuário",
+        {
+          description:
+            error.response?.data?.message ||
+            "Ocorreu um erro ao salvar os dados. Tente novamente.",
+        },
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 font-sans">
@@ -74,7 +124,11 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
           </h2>
         </div>
         <CardContent className="p-8">
-          <form className="space-y-6">
+          <form
+            className="space-y-6"
+            onSubmit={handleSubmit}
+            id="form-funcionario"
+          >
             <div>
               <GenericInput
                 id="nome"
@@ -84,6 +138,7 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
                 icon={User}
                 type="text"
                 required
+                onChange={(e) => setNome(e.target.value)}
               />
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -95,6 +150,7 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
                   label="Admissão"
                   labelColor="text-[#062A45]"
                   icon={Calendar1}
+                  onChange={(e) => setAdmissao(e.target.value)}
                 />
               </div>
               <div>
@@ -105,6 +161,7 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
                   icon={Phone}
                   placeholder="(44) 9 9999-9999"
                   labelColor="text-[#062A45]"
+                  onChange={(e)=>setTelefone(e.target.value)}
                 />
               </div>
             </div>
