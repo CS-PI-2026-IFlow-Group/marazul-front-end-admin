@@ -10,8 +10,8 @@ import {
   User,
 } from "lucide-react";
 import { useState } from "react";
-import useNavigate from "react-router-dom";
-import toast from "sonner";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import GenericInput from "../../../components/GenericInput";
 import GenericSelect from "../../../components/GenericSelect";
 import { Button } from "../../../components/ui/button";
@@ -105,7 +105,7 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
         <div className="flex items-start gap-4 flex-col">
           <Button
             variant="outline"
-            // onClick={() => navigate("/funcionarios")}
+            onClick={() => navigate("/funcionarios")}
             className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-6 h-10 shadow-xs transition-colors cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
