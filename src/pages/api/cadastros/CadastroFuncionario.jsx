@@ -161,7 +161,7 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
                   icon={Phone}
                   placeholder="(44) 9 9999-9999"
                   labelColor="text-[#062A45]"
-                  onChange={(e)=>setTelefone(e.target.value)}
+                  onChange={(e) => setTelefone(e.target.value)}
                 />
               </div>
             </div>
@@ -199,6 +199,8 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
                     icon={CreditCard}
                     placeholder="Número da Habilitação"
                     labelColor="text-[#062A45]"
+                    value={cnh}
+                    onChange={(e) => setCnh(e.target.value)}
                   />
                 </div>
                 <div>
@@ -208,6 +210,8 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
                     labelColor="text-[#062A45]"
                     placeholder="Tipo"
                     options={categoriasCnh}
+                    value={categoria}
+                    onChange={setCategoria}
                   />
                 </div>
               </div>
@@ -221,6 +225,8 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
                 icon={Mail}
                 placeholder="usuario@marazul.com.br"
                 required={nivelAcesso === "admin"}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
               <p className="mt-2 text-[13px] italic text-slate-500">
                 Obrigatório apenas para níveis administrativos.
