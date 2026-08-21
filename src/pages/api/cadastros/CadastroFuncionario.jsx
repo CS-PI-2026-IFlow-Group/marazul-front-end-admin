@@ -1,15 +1,16 @@
+import axios from "axios";
 import {
   ArrowLeft,
   Calendar1,
   CreditCard,
+  Loader2,
   Mail,
   Phone,
   Save,
   User,
 } from "lucide-react";
 import { useState } from "react";
-// import useNavigate from "react-router-dom";
-import axios from "axios";
+import useNavigate from "react-router-dom";
 import toast from "sonner";
 import GenericInput from "../../../components/GenericInput";
 import GenericSelect from "../../../components/GenericSelect";
@@ -235,9 +236,24 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
           </form>
         </CardContent>
         <CardFooter className="flex justify-end border-t border-slate-100 bg-slate-50/50 px-8 py-5">
-          <Button className="bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 px-8 py-5 text-sm font-medium rounded-md normal-case tracking-normal cursor-pointer">
-            <Save className="size-4 mr-1" />
-            {isEdicao ? "Salvar Alterações" : "Salvar Usuário"}
+          <Button
+            className="bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 px-8 py-5 text-sm font-medium rounded-md normal-case tracking-normal cursor-pointer"
+            type="submit"
+            form="form-funcionario"
+            disabled={!isFormValid || isLoading}
+          >
+            {" "}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 size-5 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 size-5" />
+                {isEdicao ? "Salvar Alterações" : "Salvar Usuário"}
+              </>
+            )}
           </Button>
         </CardFooter>
       </Card>
