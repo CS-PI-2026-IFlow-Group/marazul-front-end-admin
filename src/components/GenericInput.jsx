@@ -14,6 +14,7 @@ export default function GenericInput({
   placeholder = "nome@marazul.com.br",
   hasError = false,
   errorMessage = "",
+  ...props
 }) {
   return (
     <div className="space-y-2">
@@ -39,11 +40,12 @@ export default function GenericInput({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          className={`pl-9 bg-[#F8FAFC] h-11 text-sm transition-colors ${
+          className={`pl-9 pr-3 bg-[#F8FAFC] h-11 text-sm transition-colors ${
             hasError
               ? "border-red-500 focus-visible:ring-red-500"
               : "border-slate-200 focus-visible:ring-slate-300"
           }`}
+          {...props}
         />
       </div>
       {hasError && errorMessage && (
