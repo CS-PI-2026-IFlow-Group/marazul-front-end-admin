@@ -1,5 +1,5 @@
 import { Pencil, Plus, Search, Trash2 } from "lucide-react";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 
@@ -31,7 +31,7 @@ const mockFuncionarios = [
 ];
 
 export default function Funcionarios() {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 font-sans">
@@ -54,7 +54,7 @@ export default function Funcionarios() {
             />
           </div>
           <Button
-            // onClick={() => navigate()}
+            onClick={() => navigate("/cadastroFuncionario")}
             className="w-full sm:w-auto bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 h-11 px-6 text-sm font-medium rounded-md normal-case tracking-normal cursor-pointer"
           >
             <Plus className="mr-2 size-4" />
