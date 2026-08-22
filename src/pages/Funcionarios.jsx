@@ -46,7 +46,7 @@ export default function Funcionarios() {
       window.confirm(`Tem certeza que deseja excluir o colaborador ${nome}?`)
     ) {
       try {
-        await axios.put(`/api/funcionarios/${id}/excluir`);
+        await axios.put(`/api/funcionario/${id}/excluir`);
         toast.success("Colaborador excluir com sucesso!");
         fetchFuncionarios();
       } catch (error) {
