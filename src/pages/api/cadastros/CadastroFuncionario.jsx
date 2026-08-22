@@ -49,7 +49,7 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
     { value: "admin", label: "Administrador (Admin)" },
   ];
 
-  const dataAtual = new Date().toISOString().split("T")[0];
+  const dataAtual = new Date().toLocaleDateString("en-CA");
 
   const isFormValid =
     nome.trim() != "" &&
