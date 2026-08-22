@@ -58,7 +58,7 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
     (nivelAcesso === "admin" ? email.trim() !== "" : true);
 
   const handleSubmit = async (e) => {
-    e.preventDefault(e);
+    e.preventDefault();
 
     if (!isFormValid || isLoading) return;
 
@@ -69,7 +69,7 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
       admissao: admissao,
       telefone: telefone,
       funcao: funcao,
-      nivelAcesso: niveisAcesso,
+      nivelAcesso: nivelAcesso,
       ...(funcao === "motorista" && { cnh: cnh.trim(), categoria }),
       ...(email && { email: email.trim() }),
     };
@@ -83,7 +83,7 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
         toast.success("Usuário cadastrado com sucesso!");
       }
       setTimeout(() => {
-        navigate("/funcionario");
+        navigate("/funcionarios");
       }, 1000);
     } catch (error) {
       toast.error(
@@ -140,6 +140,7 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
                 type="text"
                 required
                 onChange={(e) => setNome(e.target.value)}
+                value={nome}
               />
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -152,6 +153,7 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
                   labelColor="text-[#062A45]"
                   icon={Calendar1}
                   onChange={(e) => setAdmissao(e.target.value)}
+                  value={admissao}
                 />
               </div>
               <div>
@@ -163,6 +165,7 @@ const CadastroFuncionario = ({ isEdicao = false, funcionarioId = null }) => {
                   placeholder="(44) 9 9999-9999"
                   labelColor="text-[#062A45]"
                   onChange={(e) => setTelefone(e.target.value)}
+                  value={telefone}
                 />
               </div>
             </div>
