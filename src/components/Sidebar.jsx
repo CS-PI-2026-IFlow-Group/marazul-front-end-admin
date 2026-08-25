@@ -13,9 +13,9 @@ const navItems = [
 
 export default function Sidebar({ onNavigate }) {
   return (
-    <div className="flex h-full flex-col bg-[#062A45] text-slate-200">
+    <div className="flex h-full flex-col bg-white border-r border-slate-200">
       {/* Logo */}
-      <div className="flex flex-col items-center border-b border-white/10 px-4 py-6">
+      <div className="flex flex-col items-center border-b border-slate-100 px-4 py-6">
         <img
           src={logoMarazul}
           alt="Logo da Marazul"
@@ -27,7 +27,7 @@ export default function Sidebar({ onNavigate }) {
       </div>
 
       {/* Navegação */}
-      <nav className="flex-grow space-y-1.5 overflow-y-auto px-4 py-6">
+      <nav className="flex-grow space-y-1 overflow-y-auto px-3 py-6">
         {navItems.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
@@ -35,10 +35,10 @@ export default function Sidebar({ onNavigate }) {
             onClick={onNavigate}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition",
+                "flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-[#e31e24]/85 text-white"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white",
+                  ? "bg-[#e31e24]/10 text-[#e31e24] font-semibold"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-[#062A45]",
               )
             }
           >

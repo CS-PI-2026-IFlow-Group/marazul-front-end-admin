@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Frota from "./pages/Frota";
+import CadastroFrota from "./pages/CadastroFrota";
 import Viagens from "./pages/Viagens";
 import Funcionarios from "./pages/Funcionarios";
 import Relatorios from "./pages/Relatorios";
@@ -29,6 +30,7 @@ export default function App() {
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/frota" element={<Frota />} />
+          <Route path="/frota/cadastro" element={<CadastroFrota />} />
           <Route path="/viagens" element={<Viagens />} />
           <Route path="/funcionarios" element={<Funcionarios />} />
           <Route path="/relatorios" element={<Relatorios />} />
