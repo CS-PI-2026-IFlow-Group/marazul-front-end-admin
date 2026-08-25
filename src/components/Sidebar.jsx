@@ -35,7 +35,7 @@ export default function Sidebar({ onNavigate }) {
             onClick={onNavigate}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium transition-colors",
                 isActive
                   ? "bg-[#e31e24]/10 text-[#e31e24] font-semibold"
                   : "text-slate-500 hover:bg-slate-50 hover:text-[#062A45]",

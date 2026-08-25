@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import AuthHeader from "../components/AuthHeader";
 import { CardContent, CardFooter, CardHeader } from "../components/ui/card";
-import axios from "axios";
+import api from "../config/axiosConfig";
 import { toast } from "sonner";
 import AuthLayout from "../components/AuthLayout";
 import EmailInput from "../components/EmailInput";
@@ -21,7 +21,7 @@ export default function RecuperarSenha() {
     setIsLoading(true);
 
     try {
-      await axios.post("api/auth/recuperar-senha", { email });
+      await api.post("/api/auth/recuperar-senha", { email });
       toast.info("Processando sua solicitação...");
 
       setIsSubmitted(true);

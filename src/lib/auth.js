@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "../config/axiosConfig";
 
 const TOKEN_KEY = "token";
 
@@ -26,12 +26,8 @@ const MOCK_PROFILE = {
  * Enquanto o back-end não estiver pronto, retorna dados mockados.
  */
 export async function getProfile() {
-  const token = getToken();
-
   try {
-    const response = await axios.get("/api/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await api.get("/api/auth/me");
     return response.data;
   } catch {
     // Fallback mockado para permitir o desenvolvimento do front-end.
