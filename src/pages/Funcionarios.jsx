@@ -14,12 +14,12 @@ export default function Funcionarios() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchFuncionarios = async () => {
-    setIsLoading(true);
     try {
-      const response = await axios.get("/api/funcionario");
+      const response = await axios.get("/api/funcionarios");
       setFuncionarios(response.data);
     } catch (error) {
       toast.error("Erro ao carregar funcionários", {
+        id: "erro-fetch-funcionarios",
         description:
           error.response?.data?.message ||
           "Não foi possível carregar os colaboradores. Tente novamente mais tarde.",
@@ -38,22 +38,23 @@ export default function Funcionarios() {
   }, []);
 
   const funcionariosFiltrados = funcionarios.filter((func) =>
-    func.nome.toLowerCase().includes(searchTerm.toLowerCase()),
+    (func.name || "").toLowerCase().includes(searchTerm.toLowerCase()),
   );
-
-  const handleExcluir = async (id, nome) => {
+  const handleInativar = async (id, nome) => {
     if (
-      window.confirm(`Tem certeza que deseja excluir o colaborador ${nome}?`)
+      window.confirm(`Tem certeza que deseja inativar o colaborador ${nome}?`)
     ) {
       try {
-        await axios.put(`/api/funcionario/${id}/excluir`);
-        toast.success("Colaborador excluir com sucesso!");
-        fetchFuncionarios();
+        await axios.put(`/api/funcionarios/${id}/inativar`);
+        toast.success("Colaborador inativado com sucesso!");
+        setIsLoading(true);
+        await fetchFuncionarios();
       } catch (error) {
-        toast.error("Erro ao excluir", {
+        toast.error("Erro ao inativar", {
+          id: "erro-inativar",
           description:
             error.response?.data?.message ||
-            "Ocorreu um problema ao tentar excluir o colaborador.",
+            "Ocorreu um problema ao tentar inativar o colaborador.",
         });
       }
     }
@@ -82,13 +83,14 @@ export default function Funcionarios() {
             />
           </div>
           <Button
-            onClick={() => navigate("/cadastroFuncionario")}
+            onClick={() => navigate("/funcionarios/cadastro")}
             className="w-full sm:w-auto bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 h-11 px-6 text-sm font-medium rounded-md normal-case tracking-normal cursor-pointer"
           >
             <Plus className="mr-2 size-4" />
             Novo Funcionário
           </Button>
         </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-slate-700">
             <thead className="bg-slate-50/50 text-slate-600 font-semibold border-b border-slate-100">
@@ -128,51 +130,53 @@ export default function Funcionarios() {
                 </tr>
               )}
               {!isLoading &&
-                funcionariosFiltrados.map((func) => (
-                  <tr
-                    key={func.id}
-                    className="hover:bg-slate-50/50 transition-colors group"
-                  >
-                    <td className="px-6 py-4 font-medium text-[#0A1A2F]">
-                      {func.nome}
-                    </td>
-                    <td className="px-6 py-4 text-slate-600">
-                      {func.telefone}
-                    </td>
-                    <td className="px-6 py-4 text-slate-600">{func.funcao}</td>
-                    <td className="px-6 py-4 text-slate-600">
-                      {func.funcao.toLowerCase() === "motorista" && func.cnh
-                        ? func.cnh
-                        : "—"}
-                    </td>
-                    <td className="px-6 py-4 text-slate-600">
-                      {func.funcao.toLowerCase() === "motorista" &&
-                      func.categoriaCnh
-                        ? func.categoriaCnh
-                        : "—"}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() =>
-                            navigate(`/funcionario/editar/${func.id}`)
-                          }
-                          title="Editar"
-                          className="p-1.5 text-slate-400 hover:text-[#062A45] hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
-                        >
-                          <Pencil className="size-4" />
-                        </button>
-                        <button
-                          onClick={() => handleExcluir(func.id, func.nome)}
-                          title="Excluir"
-                          className="p-1.5 text-slate-400 hover:text-[#e31e24] hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                funcionariosFiltrados.map((func) => {
+                  const isMotorista =
+                    (func.position || "").toLowerCase() === "motorista";
+
+                  return (
+                    <tr
+                      key={func.id}
+                      className="hover:bg-slate-50/50 transition-colors group"
+                    >
+                      <td className="px-6 py-4 font-medium text-[#0A1A2F]">
+                        {func.name}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">
+                        {func.cellphoneNumber}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">
+                        {func.position}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">
+                        {isMotorista && func.cnhNumber ? func.cnhNumber : "—"}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">
+                        {isMotorista && func.cnhType ? func.cnhType : "—"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() =>
+                              navigate(`/funcionarios/editar/${func.id}`)
+                            }
+                            title="Editar"
+                            className="p-1.5 text-slate-400 hover:text-[#062A45] hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+                          >
+                            <Pencil className="size-4" />
+                          </button>
+                          <button
+                            onClick={() => handleInativar(func.id, func.name)}
+                            title="Inativar"
+                            className="p-1.5 text-slate-400 hover:text-[#e31e24] hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>
