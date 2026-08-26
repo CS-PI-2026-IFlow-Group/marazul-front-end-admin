@@ -2,6 +2,8 @@ import axios from "axios";
 import { AlertCircle, ArrowLeft, CheckCircle2, Circle } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import api from "../config/axiosConfig";
 import { toast } from "sonner";
 import AuthLayout from "../../components/AuthLayout";
 import PasswordInput from "../../components/PasswordInput";
@@ -28,7 +30,7 @@ export default function RedefinirSenha() {
 
     setIsLoading(true);
     try {
-      await axios.post("api/auth/redefinir-senha", {
+      await api.post("/api/auth/redefinir-senha", {
         token: token,
         novaSenha: password,
       });

@@ -2,6 +2,9 @@ import axios from "axios";
 import { ArrowLeft, ArrowRight, MailCheck } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import AuthHeader from "../components/AuthHeader";
+import { CardContent, CardFooter, CardHeader } from "../components/ui/card";
+import api from "../config/axiosConfig";
 import { toast } from "sonner";
 import AuthHeader from "../../components/AuthHeader";
 import AuthLayout from "../../components/AuthLayout";
@@ -21,7 +24,7 @@ export default function RecuperarSenha() {
     setIsLoading(true);
 
     try {
-      await axios.post("api/auth/recuperar-senha", { email });
+      await api.post("/api/auth/recuperar-senha", { email });
       toast.info("Processando sua solicitação...");
 
       setIsSubmitted(true);

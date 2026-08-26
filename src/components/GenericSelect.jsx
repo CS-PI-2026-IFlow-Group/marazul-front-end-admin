@@ -47,13 +47,13 @@ export default function GenericSelect({
               Icon ? "pl-9" : "pl-3"
             } ${
               hasError
-                ? "border-red-500 focus:ring-red-500"
-                : "border-slate-200 focus:ring-slate-300"
+                ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                : "border-slate-200 focus:ring-slate-300 focus:border-slate-400"
             }`}
           >
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
-          <SelectContent className="rounded-none border-slate-200">
+          <SelectContent className="rounded-none border-slate-200 bg-white shadow-lg">
             {options.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}

@@ -1,14 +1,15 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Frota from "./pages/Frota";
+import CadastroFrota from "./pages/CadastroFrota";
+import Viagens from "./pages/Viagens";
+import Relatorios from "./pages/Relatorios";
+import RecuperarSenha from "./pages/RecuperarSenha";
+import RedefinirSenha from "./pages/RedefinirSenha";
 import DashboardLayout from "./components/DashboardLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "./components/ui/sonner";
-import Dashboard from "./pages/Dashboard";
-import Frota from "./pages/Frota";
-import Relatorios from "./pages/Relatorios";
-import Viagens from "./pages/Viagens";
-import Login from "./pages/auth/Login";
-import RecuperarSenha from "./pages/auth/RecuperarSenha";
-import RedefinirSenha from "./pages/auth/RedefinirSenha";
 import CadastroFuncionario from "./pages/funcionarios/CadastroFuncionario";
 import Funcionarios from "./pages/funcionarios/Funcionarios";
 
@@ -30,6 +31,7 @@ export default function App() {
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/frota" element={<Frota />} />
+          <Route path="/frota/cadastro" element={<CadastroFrota />} />
           <Route path="/viagens" element={<Viagens />} />
 
           <Route path="/funcionarios" element={<Funcionarios />} />
