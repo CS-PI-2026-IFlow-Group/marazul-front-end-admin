@@ -4,7 +4,7 @@ import { Checkbox } from "../components/ui/checkbox";
 import { Label } from "../components/ui/label";
 import AuthHeader from "../components/AuthHeader";
 import { useState } from "react";
-import axios from "axios";
+import api from "../config/axiosConfig";
 import { toast } from "sonner";
 import { useNavigate, Link } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout";
@@ -25,7 +25,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("api/auth/login", {
+      const response = await api.post("/api/auth/login", {
         email: email,
         senha: password,
       });
