@@ -6,7 +6,7 @@ import CadastroFrota from "./pages/CadastroFrota";
 import Dashboard from "./pages/Dashboard";
 import Frota from "./pages/Frota";
 import Funcionarios from "./pages/funcionario/Funcionario";
-import CadastroFuncionario from "./pages/funcionarios/CadastroFuncionario";
+import CadastroFuncionario from "./pages/funcionario/CadastroFuncionario";
 import Login from "./pages/Login";
 import Viagens from "./pages/Viagens";
 import Relatorios from "./pages/Relatorios";
