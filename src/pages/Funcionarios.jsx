@@ -1,10 +1,10 @@
-import axios from "axios";
 import { Loader2, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
+import api from "../config/axiosConfig";
 
 export default function Funcionarios() {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ export default function Funcionarios() {
 
   const fetchFuncionarios = async () => {
     try {
-      const response = await axios.get("/api/funcionarios");
+      const response = await api.get("/api/funcionario");
       setFuncionarios(response.data);
     } catch (error) {
       toast.error("Erro ao carregar funcionários", {
@@ -45,7 +45,7 @@ export default function Funcionarios() {
       window.confirm(`Tem certeza que deseja inativar o colaborador ${nome}?`)
     ) {
       try {
-        await axios.put(`/api/funcionarios/${id}/inativar`);
+        await api.put(`/api/funcionario/${id}/inativar`);
         toast.success("Colaborador inativado com sucesso!");
         setIsLoading(true);
         await fetchFuncionarios();
@@ -83,7 +83,7 @@ export default function Funcionarios() {
             />
           </div>
           <Button
-            onClick={() => navigate("/funcionarios/cadastro")}
+            onClick={() => navigate("/funcionario/cadastro")}
             className="w-full sm:w-auto bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 h-11 px-6 text-sm font-medium rounded-md normal-case tracking-normal cursor-pointer"
           >
             <Plus className="mr-2 size-4" />
@@ -132,6 +132,7 @@ export default function Funcionarios() {
               {!isLoading &&
                 funcionariosFiltrados.map((func) => {
                   const isMotorista =
+                    func.position === "DRIVER" ||
                     (func.position || "").toLowerCase() === "motorista";
 
                   return (

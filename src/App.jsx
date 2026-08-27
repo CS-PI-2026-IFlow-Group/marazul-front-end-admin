@@ -32,7 +32,7 @@ export default function App() {
           <Route path="/frota" element={<Frota />} />
           <Route path="/frota/cadastro" element={<CadastroFrota />} />
           <Route path="/viagens" element={<Viagens />} />
-          <Route path="/funcionarios" element={<Funcionarios />} />
+          <Route path="/funcionario" element={<Funcionarios />} />
           <Route path="/relatorios" element={<Relatorios />} />
         </Route>
 
