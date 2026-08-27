@@ -5,13 +5,13 @@ import { Toaster } from "./components/ui/sonner";
 import CadastroFrota from "./pages/CadastroFrota";
 import Dashboard from "./pages/Dashboard";
 import Frota from "./pages/Frota";
-import Funcionarios from "./pages/funcionario/Funcionario";
 import CadastroFuncionario from "./pages/funcionario/CadastroFuncionario";
+import Funcionarios from "./pages/funcionario/Funcionario";
 import Login from "./pages/Login";
-import Viagens from "./pages/Viagens";
-import Relatorios from "./pages/Relatorios";
 import RecuperarSenha from "./pages/RecuperarSenha";
 import RedefinirSenha from "./pages/RedefinirSenha";
+import Relatorios from "./pages/Relatorios";
+import Viagens from "./pages/Viagens";
 
 export default function App() {
   return (
