@@ -264,7 +264,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 type="email"
                 icon={Mail}
                 placeholder="usuario@marazul.com.br"
-                required={nivelAcesso === "admin"}
+                required={nivelAcesso === "ADMIN"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
