@@ -72,6 +72,44 @@ class FrotaService extends BaseService {
     };
     return super.create(payload);
   }
+
+  /**
+   * Altera o status de um veículo via PUT.
+   * Busca os dados atuais e reenvia preservando os demais campos.
+   */
+  async changeStatus(id, newStatus) {
+    const vehicle = await this.getById(id);
+    const payload = {
+      prefix: vehicle.prefix,
+      licensePlate: vehicle.licensePlate,
+      model: vehicle.model,
+      type: vehicle.type,
+      year: vehicle.year,
+      seats: vehicle.seats,
+      inspectionDate: vehicle.inspectionDate || null,
+      status: newStatus,
+    };
+    return this.update(id, payload);
+  }
+
+  /** Inativa um veículo (status → INACTIVE). */
+  async inactivate(id) {
+    return this.changeStatus(id, 'INACTIVE');
+  }
+
+  /** Ativa um veículo (status → ACTIVE). */
+  async activate(id) {
+    return this.changeStatus(id, 'ACTIVE');
+  }
+
+  /**
+   * Retorna o label amigável de um valor de enum.
+   * Ex: getLabel('models', 'MARCOPOLO') → 'Marcopolo'
+   */
+  getLabel(enumKey, value) {
+    const item = FALLBACK_ENUMS[enumKey]?.find((e) => e.value === value);
+    return item?.label || value;
+  }
 }
 
 // Exporta uma instância única (singleton) para uso em toda a aplicação
