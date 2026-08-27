@@ -40,7 +40,7 @@ export default function GenericInput({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          className={`pl-9 pr-3 bg-[#F8FAFC] h-11 text-sm transition-colors border rounded-none ${
+          className={`${Icon ? "pl-9" : "pl-3"} pr-3 bg-[#F8FAFC] h-11 text-sm transition-colors border rounded-lg ${
             hasError
               ? "border-red-500 focus-visible:ring-red-500 focus-visible:border-red-500"
               : "border-slate-200 focus-visible:ring-slate-300 focus-visible:border-slate-400"
