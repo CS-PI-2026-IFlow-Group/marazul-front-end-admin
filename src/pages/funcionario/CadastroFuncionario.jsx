@@ -1,4 +1,3 @@
-import axios from "axios";
 import {
   ArrowLeft,
   Calendar1,
@@ -16,6 +15,7 @@ import GenericInput from "../../components/GenericInput";
 import GenericSelect from "../../components/GenericSelect";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardFooter } from "../../components/ui/card";
+import FuncionarioService from "../../services/FuncionarioService";
 
 const CadastroFuncionario = ({ isEdicao = false }) => {
   const [funcao, setFuncao] = useState("");
@@ -30,37 +30,25 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const { id } = useParams();
-  const [isFetching, setIsFetching] = useState(isEdicao);
-
-  const funcoes = [
-    { value: "motorista", label: "Motorista" },
-    { value: "admin", label: "Administrador" },
-  ]; // valores mockados
+  const [isFetching, setIsFetching] = useState(true);
   const navigate = useNavigate();
 
-  const categoriasCnh = [
-    { value: "A", label: "A" },
-    { value: "B", label: "B" },
-    { value: "AB", label: "AB" },
-    { value: "C", label: "C" },
-    { value: "D", label: "D" },
-    { value: "E", label: "E" },
-  ];
-
-  const niveisAcesso = [
-    { value: "comum", label: "Comum" },
-    { value: "admin", label: "Administrador (Admin)" },
-  ];
+  const [funcoes, setFuncoes] = useState([]);
+  const [niveisAcesso, setNiveisAcesso] = useState([]);
+  const [categoriasCnh, setCategoriasCnh] = useState([]);
 
   const dataAtual = new Date().toLocaleDateString("en-CA");
 
   useEffect(() => {
-    const carregarFuncionario = async () => {
-      if (isEdicao && id) {
-        try {
-          const response = await axios.get(`/api/funcionario/${id}`);
-          const dados = response.data;
+    const carregarDadosIniciais = async () => {
+      try {
+        const enums = await FuncionarioService.getEnums();
+        setFuncoes(enums.positions);
+        setNiveisAcesso(enums.roles);
+        setCategoriasCnh(enums.cnhCategories);
 
+        if (isEdicao && id) {
+          const dados = await FuncionarioService.getById(id);
           setNome(dados.name || "");
           setAdmissao(dados.admissionDate || "");
           setTelefone(dados.cellphoneNumber || "");
@@ -69,26 +57,27 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
           setCnh(dados.cnhNumber || "");
           setCategoria(dados.cnhType || "");
           setEmail(dados.email || "");
-        } catch (error) {
-          toast.error(
-            error.response?.data?.message ||
-              "Erro ao carregar os dados do funcionário.",
-          );
-          navigate("/funcionarios");
-        } finally {
-          setIsFetching(false);
         }
+      } catch (error) {
+        toast.error(
+          error.response?.data?.message ||
+            "Erro ao carregar os dados iniciais.",
+        );
+        if (isEdicao) navigate("/funcionario");
+      } finally {
+        setIsFetching(false);
       }
     };
 
-    carregarFuncionario();
+    carregarDadosIniciais();
   }, [isEdicao, id, navigate]);
 
   const isFormValid =
-    nome.trim() != "" &&
-    funcao != "" &&
+    nome.trim() !== "" &&
+    funcao !== "" &&
     nivelAcesso !== "" &&
-    (nivelAcesso === "admin" ? email.trim() !== "" : true);
+    (nivelAcesso === "ADMIN" ? email.trim() !== "" : true) &&
+    (funcao === "DRIVER" ? cnh.trim() !== "" && categoria !== "" : true);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -103,7 +92,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
       cellphoneNumber: telefone,
       position: funcao,
       userRole: nivelAcesso,
-      ...(funcao === "motorista" && {
+      ...(funcao === "DRIVER" && {
         cnhNumber: cnh.trim(),
         cnhType: categoria,
       }),
@@ -112,10 +101,10 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
 
     try {
       if (isEdicao) {
-        await axios.put(`/api/funcionario/${id}`, payload);
+        await FuncionarioService.update(id, payload);
         toast.success("Usuário atualizado com sucesso!");
       } else {
-        await axios.post("/api/funcionario", payload);
+        await FuncionarioService.create(payload);
         toast.success("Usuário cadastrado com sucesso!");
       }
       setTimeout(() => {
@@ -238,7 +227,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 />
               </div>
             </div>
-            {funcao === "motorista" && (
+            {funcao === "DRIVER" && (
               <div className="grid  grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
                   <GenericInput
@@ -250,6 +239,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                     labelColor="text-[#062A45]"
                     value={cnh}
                     onChange={(e) => setCnh(e.target.value)}
+                    required
                   />
                 </div>
                 <div>
@@ -261,6 +251,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                     options={categoriasCnh}
                     value={categoria}
                     onChange={setCategoria}
+                    required
                   />
                 </div>
               </div>
@@ -290,7 +281,6 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
             form="form-funcionario"
             disabled={!isFormValid || isLoading}
           >
-            {" "}
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 size-5 animate-spin" />
