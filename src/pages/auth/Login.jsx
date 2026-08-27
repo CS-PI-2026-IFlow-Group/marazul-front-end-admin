@@ -1,6 +1,5 @@
 import { LogIn } from "lucide-react";
 import { useState } from "react";
-import api from "../config/axiosConfig";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AuthHeader from "../../components/AuthHeader";
@@ -11,6 +10,7 @@ import SubmitButton from "../../components/SubmitButton";
 import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Label } from "../../components/ui/label";
+import api from "../config/axiosConfig";
 
 export default function Login() {
   const [email, setEmail] = useState("");

@@ -1,14 +1,12 @@
-import axios from "axios";
 import { AlertCircle, ArrowLeft, CheckCircle2, Circle } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useState } from "react";
-import api from "../config/axiosConfig";
 import { toast } from "sonner";
 import AuthLayout from "../../components/AuthLayout";
 import PasswordInput from "../../components/PasswordInput";
 import SubmitButton from "../../components/SubmitButton";
 import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
+import api from "../config/axiosConfig";
 
 export default function RedefinirSenha() {
   const [password, setPassword] = useState("");
