@@ -8,6 +8,7 @@ import {
   LogOut,
   UserCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { cn } from "../lib/utils";
 import { getProfile, logout } from "../lib/auth";
@@ -15,14 +16,34 @@ import { getProfile, logout } from "../lib/auth";
 export default function TopHeader({ onOpenMenu }) {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
+  const [profileFailed, setProfileFailed] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
     let active = true;
-    getProfile().then((data) => {
-      if (active) setProfile(data);
-    });
+
+    getProfile()
+      .then((data) => {
+        if (active) setProfile(data);
+      })
+      .catch((error) => {
+        if (!active) return;
+
+        // Token expirado ou sessão inválida (401) já é tratado pelo interceptor
+        // do axios, que limpa o token e redireciona. Duplicar aqui causaria
+        // navegação dupla.
+        if (error.response?.status === 401) return;
+
+        // API indisponível ou erro inesperado: o painel continua utilizável e
+        // o usuário fica sabendo que o perfil não carregou.
+        setProfileFailed(true);
+        toast.error("Não foi possível carregar seu perfil", {
+          description:
+            "Verifique sua conexão com o servidor e recarregue a página.",
+        });
+      });
+
     return () => {
       active = false;
     };
@@ -38,6 +59,12 @@ export default function TopHeader({ onOpenMenu }) {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  const displayName = profile
+    ? profile.nome
+    : profileFailed
+      ? "Perfil indisponível"
+      : "Carregando...";
 
   const handleLogout = () => {
     logout();
@@ -83,7 +110,7 @@ export default function TopHeader({ onOpenMenu }) {
           >
             <div className="hidden text-right leading-tight sm:block">
               <p className="text-sm font-bold text-[#062A45]">
-                {profile ? profile.nome : "Carregando..."}
+                {displayName}
               </p>
               <p className="text-xs font-normal text-slate-500">Administrador</p>
             </div>
@@ -103,7 +130,7 @@ export default function TopHeader({ onOpenMenu }) {
                   Usuário Logado
                 </p>
                 <p className="truncate text-sm font-bold text-[#062A45]">
-                  {profile ? profile.nome : "Carregando..."}
+                  {displayName}
                 </p>
                 {profile && (
                   <p className="truncate text-xs text-slate-500">
