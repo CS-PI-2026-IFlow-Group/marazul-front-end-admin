@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Building2,
@@ -13,17 +11,22 @@ import {
   Truck,
   Users,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Button } from "../components/ui/button";
-import { Card, CardContent, CardFooter } from "../components/ui/card";
 import GenericInput from "../components/GenericInput";
 import GenericSelect from "../components/GenericSelect";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardFooter } from "../components/ui/card";
 import FrotaService from "../services/FrotaService";
 
 const PLACA_REGEX = /^[A-Z]{3}-?\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$/;
 
 function formatPlaca(raw) {
-  const clean = raw.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 7);
+  const clean = raw
+    .replace(/[^A-Za-z0-9]/g, "")
+    .toUpperCase()
+    .slice(0, 7);
 
   if (clean.length > 3 && /^[A-Z]{3}\d+$/.test(clean)) {
     return clean.slice(0, 3) + "-" + clean.slice(3);
