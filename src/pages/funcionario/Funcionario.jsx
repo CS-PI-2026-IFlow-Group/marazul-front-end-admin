@@ -159,7 +159,7 @@ export default function Funcionarios() {
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() =>
-                              navigate(`/funcionarios/editar/${func.id}`)
+                              navigate(`/funcionario/editar/${func.id}`)
                             }
                             title="Editar"
                             className="p-1.5 text-slate-400 hover:text-[#062A45] hover:bg-slate-100 rounded-md transition-colors cursor-pointer"

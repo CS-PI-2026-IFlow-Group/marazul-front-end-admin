@@ -5,7 +5,7 @@ import { Toaster } from "./components/ui/sonner";
 import CadastroFrota from "./pages/CadastroFrota";
 import Dashboard from "./pages/Dashboard";
 import Frota from "./pages/Frota";
-import Funcionarios from "./pages/funcionario/Funcionarios";
+import Funcionarios from "./pages/funcionario/Funcionario";
 import Login from "./pages/Login";
 import RecuperarSenha from "./pages/RecuperarSenha";
 import RedefinirSenha from "./pages/RedefinirSenha";
@@ -20,7 +20,6 @@ export default function App() {
         <Route path="/recuperar-senha" element={<RecuperarSenha />} />
         <Route path="/redefinir-senha" element={<RedefinirSenha />} />
 
-        {/* Área autenticada: o layout fica fixo e só o Workspace muda */}
         <Route
           element={
             <ProtectedRoute>
