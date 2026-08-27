@@ -1,17 +1,17 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import DashboardLayout from "./components/DashboardLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { Toaster } from "./components/ui/sonner";
+import CadastroFrota from "./pages/CadastroFrota";
 import Dashboard from "./pages/Dashboard";
 import Frota from "./pages/Frota";
-import CadastroFrota from "./pages/CadastroFrota";
+import Funcionarios from "./pages/funcionario/Funcionario";
+import CadastroFuncionario from "./pages/funcionarios/CadastroFuncionario";
+import Login from "./pages/Login";
 import Viagens from "./pages/Viagens";
 import Relatorios from "./pages/Relatorios";
 import RecuperarSenha from "./pages/RecuperarSenha";
 import RedefinirSenha from "./pages/RedefinirSenha";
-import DashboardLayout from "./components/DashboardLayout";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { Toaster } from "./components/ui/sonner";
-import CadastroFuncionario from "./pages/funcionarios/CadastroFuncionario";
-import Funcionarios from "./pages/funcionarios/Funcionarios";
 
 export default function App() {
   return (
@@ -21,7 +21,6 @@ export default function App() {
         <Route path="/recuperar-senha" element={<RecuperarSenha />} />
         <Route path="/redefinir-senha" element={<RedefinirSenha />} />
 
-        {/* Área autenticada: o layout fica fixo e só o Workspace muda */}
         <Route
           element={
             <ProtectedRoute>
@@ -34,13 +33,13 @@ export default function App() {
           <Route path="/frota/cadastro" element={<CadastroFrota />} />
           <Route path="/viagens" element={<Viagens />} />
 
-          <Route path="/funcionarios" element={<Funcionarios />} />
+          <Route path="/funcionario" element={<Funcionarios />} />
           <Route
-            path="/funcionarios/cadastro"
+            path="/funcionario/cadastro"
             element={<CadastroFuncionario />}
           />
           <Route
-            path="/funcionarios/editar/:id"
+            path="/funcionario/editar/:id"
             element={<CadastroFuncionario isEdicao={true} />}
           />
 
