@@ -10,7 +10,7 @@ import SubmitButton from "../../components/SubmitButton";
 import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Label } from "../../components/ui/label";
-import api from "../config/axiosConfig";
+import api from "../../config/axiosConfig";
 
 export default function Login() {
   const [email, setEmail] = useState("");

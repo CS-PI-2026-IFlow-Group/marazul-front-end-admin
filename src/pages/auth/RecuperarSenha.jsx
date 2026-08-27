@@ -2,12 +2,12 @@ import { ArrowLeft, ArrowRight, MailCheck } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import AuthHeader from "../../components/AuthHeader";
 import AuthLayout from "../../components/AuthLayout";
 import GenericInput from "../../components/GenericInput";
 import SubmitButton from "../../components/SubmitButton";
-import AuthHeader from "../components/AuthHeader";
-import { CardContent, CardFooter, CardHeader } from "../components/ui/card";
-import api from "../config/axiosConfig";
+import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
+import api from "../../config/axiosConfig";
 
 export default function RecuperarSenha() {
   const [email, setEmail] = useState("");
