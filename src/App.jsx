@@ -1,16 +1,16 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Frota from "./pages/Frota";
-import CadastroFrota from "./pages/CadastroFrota";
-import Viagens from "./pages/Viagens";
-import Funcionarios from "./pages/Funcionarios";
-import Relatorios from "./pages/Relatorios";
-import RecuperarSenha from "./pages/RecuperarSenha";
-import RedefinirSenha from "./pages/RedefinirSenha";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import DashboardLayout from "./components/DashboardLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "./components/ui/sonner";
+import CadastroFrota from "./pages/CadastroFrota";
+import Dashboard from "./pages/Dashboard";
+import Frota from "./pages/Frota";
+import Funcionarios from "./pages/funcionario/Funcionarios";
+import Login from "./pages/Login";
+import RecuperarSenha from "./pages/RecuperarSenha";
+import RedefinirSenha from "./pages/RedefinirSenha";
+import Relatorios from "./pages/Relatorios";
+import Viagens from "./pages/Viagens";
 
 export default function App() {
   return (
