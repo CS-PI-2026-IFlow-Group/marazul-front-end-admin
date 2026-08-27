@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
-import api from "../../config/axiosConfig";
+import FuncionarioService from "../../services/FuncionarioService";
 
 export default function Funcionarios() {
   const navigate = useNavigate();
@@ -15,8 +15,8 @@ export default function Funcionarios() {
 
   const fetchFuncionarios = async () => {
     try {
-      const response = await api.get("/api/funcionario");
-      setFuncionarios(response.data);
+      const response = await FuncionarioService.getAll();
+      setFuncionarios(response);
     } catch (error) {
       toast.error("Erro ao carregar funcionários", {
         id: "erro-fetch-funcionarios",
@@ -40,12 +40,13 @@ export default function Funcionarios() {
   const funcionariosFiltrados = funcionarios.filter((func) =>
     (func.name || "").toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
   const handleInativar = async (id, nome) => {
     if (
       window.confirm(`Tem certeza que deseja inativar o colaborador ${nome}?`)
     ) {
       try {
-        await api.put(`/api/funcionario/${id}/inativar`);
+        await FuncionarioService.inativar(id);
         toast.success("Colaborador inativado com sucesso!");
         setIsLoading(true);
         await fetchFuncionarios();
