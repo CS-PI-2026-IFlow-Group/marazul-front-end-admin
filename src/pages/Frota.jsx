@@ -159,23 +159,7 @@ function ConfirmModal({ vehicle, isLoading, onConfirm, onCancel }) {
   );
 }
 
-// ─── Dados mockados para desenvolvimento ────────────────────────────
-const MOCK_VEHICLES = [
-  { id: 1, prefix: "18001", licensePlate: "ABC1D23", model: "MARCOPOLO", type: "DD", year: 2024, seats: 46, inspectionDate: "2025-06-15", status: "ACTIVE" },
-  { id: 2, prefix: "18002", licensePlate: "DEF5678", model: "COMIL", type: "LD", year: 2022, seats: 42, inspectionDate: "2025-03-10", status: "ACTIVE" },
-  { id: 3, prefix: "18003", licensePlate: "GHI9012", model: "BUSSCAR", type: "CONVENTIONAL", year: 2020, seats: 50, inspectionDate: "2024-12-01", status: "INACTIVE" },
-  { id: 4, prefix: "18004", licensePlate: "JKL3456", model: "IRIZAR_BRASIL", type: "DD", year: 2023, seats: 44, inspectionDate: "2025-08-20", status: "UNDER_MAINTENANCE" },
-  { id: 5, prefix: "18005", licensePlate: "MNO7890", model: "MARCOPOLO", type: "LD", year: 2021, seats: 48, inspectionDate: "2025-01-05", status: "ACTIVE" },
-  { id: 6, prefix: "18006", licensePlate: "PQR1234", model: "COMIL", type: "DD", year: 2023, seats: 44, inspectionDate: "2025-09-01", status: "ACTIVE" },
-  { id: 7, prefix: "18007", licensePlate: "STU5678", model: "BUSSCAR", type: "CONVENTIONAL", year: 2019, seats: 50, inspectionDate: "2024-11-20", status: "UNDER_MAINTENANCE" },
-  { id: 8, prefix: "18008", licensePlate: "VWX9012", model: "MARCOPOLO", type: "DD", year: 2024, seats: 46, inspectionDate: "2025-07-10", status: "ACTIVE" },
-  { id: 9, prefix: "18009", licensePlate: "YZA3456", model: "IRIZAR_BRASIL", type: "LD", year: 2022, seats: 42, inspectionDate: "2025-04-18", status: "ACTIVE" },
-  { id: 10, prefix: "18010", licensePlate: "BCD7890", model: "COMIL", type: "CONVENTIONAL", year: 2021, seats: 48, inspectionDate: "2025-02-28", status: "INACTIVE" },
-  { id: 11, prefix: "18011", licensePlate: "EFG1234", model: "BUSSCAR", type: "DD", year: 2023, seats: 46, inspectionDate: "2025-10-15", status: "ACTIVE" },
-  { id: 12, prefix: "18012", licensePlate: "HIJ5678", model: "MARCOPOLO", type: "LD", year: 2020, seats: 44, inspectionDate: "2024-10-05", status: "UNDER_MAINTENANCE" },
-];
-
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 8;
 
 // ─── Componente principal ───────────────────────────────────────────
 export default function Frota() {
@@ -217,8 +201,8 @@ export default function Frota() {
       const data = await FrotaService.getAll();
       setVehicles(Array.isArray(data) ? data : []);
     } catch {
-      // Fallback: usa dados mockados para permitir desenvolvimento sem backend
-      setVehicles(MOCK_VEHICLES);
+      setError("Não foi possível carregar a lista de veículos.");
+      setVehicles([]);
     } finally {
       setIsLoading(false);
     }
