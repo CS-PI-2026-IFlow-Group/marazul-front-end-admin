@@ -1,19 +1,19 @@
-import { Label } from "./ui/label";
+import { Mail } from "lucide-react";
 import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 
 export default function GenericInput({
-  id = "input",
-  label,
-  labelColor = "#062A45",
-  icon: Icon,
-  type = "text",
+  id = "email",
+  label = "EMAIL",
+  labelColor = "#e31e24",
+  icon: Icon = Mail,
+  type = "email",
   required = false,
   value,
   onChange,
-  placeholder,
+  placeholder = "nome@marazul.com.br",
   hasError = false,
   errorMessage = "",
-  className = "",
   ...props
 }) {
   return (
@@ -24,15 +24,15 @@ export default function GenericInput({
         style={{ color: labelColor }}
       >
         {label}
-        {required && <span className="text-[#e31e24] ml-1">*</span>}
+        {required && <span className="text-[#e31e24]">*</span>}
       </Label>
       <div className="relative">
         {Icon && (
           <Icon
-            className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none ${
+            className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${
               hasError ? "text-red-400" : "text-slate-400"
             }`}
-          />
+          ></Icon>
         )}
         <Input
           id={id}
@@ -40,11 +40,11 @@ export default function GenericInput({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          className={`${Icon ? "pl-9" : "pl-3"} pr-3 bg-[#F8FAFC] h-11 text-sm transition-colors border rounded-lg ${
+          className={`pl-9 pr-3 bg-[#F8FAFC] h-11 text-sm transition-colors ${
             hasError
-              ? "border-red-500 focus-visible:ring-red-500 focus-visible:border-red-500"
-              : "border-slate-200 focus-visible:ring-slate-300 focus-visible:border-slate-400"
-          } ${className}`}
+              ? "border-red-500 focus-visible:ring-red-500"
+              : "border-slate-200 focus-visible:ring-slate-300"
+          }`}
           {...props}
         />
       </div>

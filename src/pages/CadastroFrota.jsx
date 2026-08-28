@@ -1,21 +1,32 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
+  Building2,
+  Calendar1,
+  CheckCircle2,
+  CreditCard,
+  Hash,
+  Layers,
   Loader2,
   Save,
+  Truck,
+  Users,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Button } from "../components/ui/button";
-import { Card, CardContent, CardFooter } from "../components/ui/card";
 import GenericInput from "../components/GenericInput";
 import GenericSelect from "../components/GenericSelect";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardFooter } from "../components/ui/card";
 import FrotaService from "../services/FrotaService";
 
 const PLACA_REGEX = /^[A-Z]{3}-?\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$/;
 
 function formatPlaca(raw) {
-  const clean = raw.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 7);
+  const clean = raw
+    .replace(/[^A-Za-z0-9]/g, "")
+    .toUpperCase()
+    .slice(0, 7);
 
   if (clean.length > 3 && /^[A-Z]{3}\d+$/.test(clean)) {
     return clean.slice(0, 3) + "-" + clean.slice(3);
@@ -26,6 +37,8 @@ function formatPlaca(raw) {
 
 export default function CadastroFrota() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditing = Boolean(id);
   const [isLoading, setIsLoading] = useState(false);
 
   const [enums, setEnums] = useState({
@@ -50,29 +63,58 @@ export default function CadastroFrota() {
     FrotaService.getEnums().then((data) => {
       if (active && data) {
         setEnums(data);
-        setForm((prev) => ({
-          ...prev,
-          model:
-            prev.model && data.models?.some((m) => m.value === prev.model)
-              ? prev.model
-              : data.models?.[0]?.value || "MARCOPOLO",
-          type:
-            prev.type && data.types?.some((t) => t.value === prev.type)
-              ? prev.type
-              : data.types?.[0]?.value || "DD",
-          status:
-            prev.status && data.statuses?.some((s) => s.value === prev.status)
-              ? prev.status
-              : data.statuses?.find((s) => s.value === "ACTIVE")?.value ||
-                data.statuses?.[0]?.value ||
-                "ACTIVE",
-        }));
+        if (!isEditing) {
+          setForm((prev) => ({
+            ...prev,
+            model:
+              prev.model && data.models?.some((m) => m.value === prev.model)
+                ? prev.model
+                : data.models?.[0]?.value || "MARCOPOLO",
+            type:
+              prev.type && data.types?.some((t) => t.value === prev.type)
+                ? prev.type
+                : data.types?.[0]?.value || "DD",
+            status:
+              prev.status && data.statuses?.some((s) => s.value === prev.status)
+                ? prev.status
+                : data.statuses?.find((s) => s.value === "ACTIVE")?.value ||
+                  data.statuses?.[0]?.value ||
+                  "ACTIVE",
+          }));
+        }
       }
     });
     return () => {
       active = false;
     };
-  }, []);
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (id) {
+      setIsLoading(true);
+      FrotaService.getById(id)
+        .then((data) => {
+          if (data) {
+            setForm({
+              prefix: data.prefix || "",
+              licensePlate: formatPlaca(data.licensePlate || ""),
+              model: data.model || "MARCOPOLO",
+              year: data.year ? String(data.year) : "",
+              type: data.type || "DD",
+              seats: data.seats ? String(data.seats) : "",
+              status: data.status || "ACTIVE",
+              inspectionDate: data.inspectionDate || "",
+            });
+          }
+        })
+        .catch(() => {
+          toast.error("Erro ao carregar dados do veículo.");
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, [id]);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -130,8 +172,13 @@ export default function CadastroFrota() {
     };
 
     try {
-      await FrotaService.create(payload);
-      toast.success("Veículo cadastrado com sucesso!");
+      if (isEditing) {
+        await FrotaService.update(id, payload);
+        toast.success("Veículo atualizado com sucesso!");
+      } else {
+        await FrotaService.create(payload);
+        toast.success("Veículo cadastrado com sucesso!");
+      }
       navigate("/frota");
     } catch (error) {
       const status = error.response?.status;
@@ -145,7 +192,7 @@ export default function CadastroFrota() {
             "Já existe um veículo cadastrado com esta placa.",
         });
       } else {
-        toast.error("Erro ao cadastrar veículo", {
+        toast.error(isEditing ? "Erro ao atualizar veículo" : "Erro ao cadastrar veículo", {
           description:
             data?.message ||
             data?.erro ||
@@ -158,24 +205,25 @@ export default function CadastroFrota() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-[#062A45] pb-1 border-b-[3.5px] border-[#e31e24] inline-block">
-            Cadastro de Frota
-          </h1>
-        </div>
+    <div className="space-y-1">
+      <div className="flex items-start gap-3 flex-col">
         <Button
           variant="outline"
           onClick={() => navigate("/frota")}
-          className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-5 h-9 text-xs shadow-xs transition-colors cursor-pointer w-fit"
+          className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-5 h-9 text-xs shadow-xs transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" /> Voltar
         </Button>
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-[#062A45] pb-1 border-b-[3.5px] border-[#e31e24] inline-block">
+            {isEditing ? "Edição de Frota" : "Cadastro de Frota"}
+          </h1>
+        </div>
       </div>
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div className="flex border-b border-slate-100 px-6 py-3.5 items-center gap-3 bg-slate-50/50">
+          <Truck className="h-5 w-5 text-[#e31e24]" />
           <h2 className="text-base font-medium text-[#062A45]">
             Informações do veículo
           </h2>
@@ -188,6 +236,7 @@ export default function CadastroFrota() {
                 id="prefix"
                 label="PREFIXO"
                 labelColor="#062A45"
+                icon={Hash}
                 placeholder="Ex: 18001"
                 required
                 value={form.prefix}
@@ -198,6 +247,7 @@ export default function CadastroFrota() {
                 id="licensePlate"
                 label="PLACA"
                 labelColor="#062A45"
+                icon={CreditCard}
                 placeholder="ABC-1234 ou ABC1D23"
                 maxLength={8}
                 required
@@ -212,6 +262,7 @@ export default function CadastroFrota() {
                 id="model"
                 label="MARCA"
                 labelColor="#062A45"
+                icon={Building2}
                 required
                 value={form.model}
                 onChange={handleSelectChange("model")}
@@ -223,6 +274,7 @@ export default function CadastroFrota() {
                 id="type"
                 label="TIPO"
                 labelColor="#062A45"
+                icon={Layers}
                 required
                 value={form.type}
                 onChange={handleSelectChange("type")}
@@ -234,6 +286,7 @@ export default function CadastroFrota() {
                 id="year"
                 label="ANO DE FABRICAÇÃO"
                 labelColor="#062A45"
+                icon={Calendar1}
                 inputMode="numeric"
                 placeholder="Ex: 2024"
                 maxLength={4}
@@ -248,6 +301,7 @@ export default function CadastroFrota() {
                 id="seats"
                 label="QUANTIDADE DE ASSENTOS"
                 labelColor="#062A45"
+                icon={Users}
                 inputMode="numeric"
                 placeholder="Ex: 46"
                 maxLength={3}
@@ -262,6 +316,7 @@ export default function CadastroFrota() {
                 id="status"
                 label="STATUS"
                 labelColor="#062A45"
+                icon={CheckCircle2}
                 required
                 value={form.status}
                 onChange={handleSelectChange("status")}
@@ -273,6 +328,7 @@ export default function CadastroFrota() {
                 id="inspectionDate"
                 label="DATA DE VISTORIA"
                 labelColor="#062A45"
+                icon={Calendar1}
                 type="date"
                 required
                 value={form.inspectionDate}

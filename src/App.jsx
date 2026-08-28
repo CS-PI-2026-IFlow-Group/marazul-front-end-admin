@@ -31,6 +31,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/frota" element={<Frota />} />
           <Route path="/frota/cadastro" element={<CadastroFrota />} />
+          <Route path="/frota/editar/:id" element={<CadastroFrota />} />
           <Route path="/viagens" element={<Viagens />} />
           <Route path="/funcionarios" element={<Funcionarios />} />
           <Route path="/relatorios" element={<Relatorios />} />
