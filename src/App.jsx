@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import DashboardLayout from "./components/DashboardLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "./components/ui/sonner";
+import AuthProvider from "./context/AuthProvider";
 import Login from "./pages/auth/Login";
 import RecuperarSenha from "./pages/auth/RecuperarSenha";
 import RedefinirSenha from "./pages/auth/RedefinirSenha";
@@ -24,7 +25,9 @@ export default function App() {
         <Route
           element={
             <ProtectedRoute>
-              <DashboardLayout />
+              <AuthProvider>
+                <DashboardLayout />
+              </AuthProvider>
             </ProtectedRoute>
           }
         >
