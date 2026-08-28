@@ -19,7 +19,6 @@ import { Input } from "../components/ui/input";
 import Pagination from "../components/Pagination";
 import FrotaService from "../services/FrotaService";
 
-// ─── Mapeamento de status ───────────────────────────────────────────
 const STATUS_CONFIG = {
   ACTIVE: {
     label: "Ativo",
@@ -58,18 +57,15 @@ function StatusBadge({ status }) {
   );
 }
 
-// ─── Formatar data ISO → dd/MM/yyyy ─────────────────────────────────
 function formatDate(isoDate) {
   if (!isoDate) return "—";
   const [year, month, day] = isoDate.split("-");
   return `${day}/${month}/${year}`;
 }
 
-// ─── Card de resumo ─────────────────────────────────────────────────
 function SummaryCard({ label, value, accent }) {
   return (
     <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      {/* Faixa lateral colorida */}
       <div
         className="absolute top-0 left-0 h-full w-1 rounded-l-xl"
         style={{ backgroundColor: accent }}
@@ -85,7 +81,6 @@ function SummaryCard({ label, value, accent }) {
   );
 }
 
-// ─── Modal de confirmação ───────────────────────────────────────────
 function ConfirmModal({ vehicle, isLoading, onConfirm, onCancel }) {
   if (!vehicle) return null;
 
@@ -161,11 +156,11 @@ function ConfirmModal({ vehicle, isLoading, onConfirm, onCancel }) {
 
 const ITEMS_PER_PAGE = 8;
 
-// ─── Componente principal ───────────────────────────────────────────
 export default function Frota() {
   const navigate = useNavigate();
 
   const [vehicles, setVehicles] = useState([]);
+  const [modelOptions, setModelOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -178,7 +173,6 @@ export default function Frota() {
   const [confirmVehicle, setConfirmVehicle] = useState(null);
   const [isInactivating, setIsInactivating] = useState(false);
 
-  // Fecha o popover de filtros ao clicar fora
   useEffect(() => {
     function handleClickOutside(event) {
       if (filterRef.current && !filterRef.current.contains(event.target)) {
@@ -193,7 +187,6 @@ export default function Frota() {
     };
   }, [filterOpen]);
 
-  // ─── Buscar dados da API ──────────────────────────────────────────
   const fetchVehicles = async () => {
     setIsLoading(true);
     setError(null);
@@ -210,9 +203,13 @@ export default function Frota() {
 
   useEffect(() => {
     fetchVehicles();
+    FrotaService.getEnums().then((data) => {
+      if (data?.models) {
+        setModelOptions(data.models);
+      }
+    });
   }, []);
 
-  // ─── Métricas dos cards ───────────────────────────────────────────
   const stats = useMemo(() => {
     const total = vehicles.length;
     const active = vehicles.filter((v) => v.status === "ACTIVE").length;
@@ -221,7 +218,6 @@ export default function Frota() {
     return { total, active, maintenance, operationalRate };
   }, [vehicles]);
 
-  // ─── Filtragem combinada (busca + status + modelo) ────────────────
   const filteredVehicles = useMemo(() => {
     return vehicles.filter((v) => {
       const term = searchTerm.toLowerCase().trim();
@@ -239,12 +235,10 @@ export default function Frota() {
     });
   }, [vehicles, searchTerm, statusFilter, modelFilter]);
 
-  // Reseta para a página 1 ao alterar qualquer filtro ou busca
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, modelFilter]);
 
-  // Cálculos de paginação
   const totalPages = Math.ceil(filteredVehicles.length / ITEMS_PER_PAGE) || 1;
 
   const paginatedVehicles = useMemo(() => {
@@ -265,7 +259,6 @@ export default function Frota() {
     setCurrentPage(1);
   };
 
-  // ─── Inativação ───────────────────────────────────────────────────
   const handleInactivate = async () => {
     if (!confirmVehicle) return;
     setIsInactivating(true);
@@ -292,7 +285,6 @@ export default function Frota() {
     }
   };
 
-  // ─── Colunas ──────────────────────────────────────────────────────
   const columns = [
     "Prefixo",
     "Placa",
@@ -304,10 +296,8 @@ export default function Frota() {
     "Ações",
   ];
 
-  // ─── Render ───────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
-      {/* ── Header ──────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-[#062A45] pb-1 border-b-[3.5px] border-[#e31e24] inline-block">
@@ -322,7 +312,6 @@ export default function Frota() {
         </Button>
       </div>
 
-      {/* ── Cards de resumo ─────────────────────────────────────────── */}
       {!isLoading && !error && vehicles.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <SummaryCard
@@ -343,9 +332,7 @@ export default function Frota() {
         </div>
       )}
 
-      {/* ── Card principal (busca + tabela) ─────────────────────────── */}
       <div className="relative flex flex-col min-h-[480px] rounded-xl border border-slate-200 bg-white shadow-sm">
-        {/* Barra superior com título, busca e botão de filtro */}
         <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between rounded-t-xl">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-[#062A45]">
@@ -360,7 +347,6 @@ export default function Frota() {
 
           {!isLoading && !error && vehicles.length > 0 && (
             <div className="flex items-center gap-2">
-              {/* Campo de Busca */}
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <Input
@@ -372,7 +358,6 @@ export default function Frota() {
                 />
               </div>
 
-              {/* Botão de Filtros com Ícone */}
               <div className="relative" ref={filterRef}>
                 <button
                   type="button"
@@ -393,7 +378,6 @@ export default function Frota() {
                   )}
                 </button>
 
-                {/* Popover flutuante de filtros */}
                 {filterOpen && (
                   <div className="absolute right-0 top-11 z-50 w-72 rounded-xl border border-slate-200 bg-white p-4 shadow-2xl animate-in fade-in zoom-in-95 duration-100">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
@@ -415,7 +399,6 @@ export default function Frota() {
                     </div>
 
                     <div className="space-y-3.5">
-                      {/* Status */}
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                           Status
@@ -443,19 +426,23 @@ export default function Frota() {
                         </div>
                       </div>
 
-                      {/* Marca */}
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                           Marca
                         </label>
                         <div className="grid grid-cols-2 gap-1.5">
-                          {[
-                            { value: "ALL", label: "Todas" },
-                            { value: "MARCOPOLO", label: "Marcopolo" },
-                            { value: "COMIL", label: "Comil" },
-                            { value: "BUSSCAR", label: "Busscar" },
-                            { value: "IRIZAR_BRASIL", label: "Irizar" },
-                          ].map((opt) => (
+                          <button
+                            type="button"
+                            onClick={() => setModelFilter("ALL")}
+                            className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors text-left cursor-pointer ${
+                              modelFilter === "ALL"
+                                ? "bg-[#062A45] text-white font-semibold shadow-xs"
+                                : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                            }`}
+                          >
+                            Todas
+                          </button>
+                          {modelOptions.map((opt) => (
                             <button
                               key={opt.value}
                               type="button"
@@ -479,7 +466,6 @@ export default function Frota() {
           )}
         </div>
 
-        {/* ── Loading ─────────────────────────────────────────────── */}
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <div className="relative">
@@ -497,7 +483,6 @@ export default function Frota() {
           </div>
         )}
 
-        {/* ── Erro ────────────────────────────────────────────────── */}
         {!isLoading && error && (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
@@ -519,7 +504,6 @@ export default function Frota() {
           </div>
         )}
 
-        {/* ── Lista vazia ─────────────────────────────────────────── */}
         {!isLoading && !error && vehicles.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
@@ -542,7 +526,6 @@ export default function Frota() {
           </div>
         )}
 
-        {/* ── Busca / Filtro sem resultado ───────────────────────── */}
         {!isLoading &&
           !error &&
           vehicles.length > 0 &&
@@ -572,7 +555,6 @@ export default function Frota() {
             </div>
           )}
 
-        {/* ── Tabela ──────────────────────────────────────────────── */}
         {!isLoading && !error && filteredVehicles.length > 0 && (
           <div className="flex-1 overflow-x-auto">
             <table className="w-full text-sm">
@@ -660,7 +642,6 @@ export default function Frota() {
           </div>
         )}
 
-        {/* Paginação fixada na base do card */}
         {!isLoading && !error && filteredVehicles.length > 0 && (
           <div className="mt-auto">
             <Pagination
@@ -675,7 +656,6 @@ export default function Frota() {
         )}
       </div>
 
-      {/* Modal de confirmação */}
       <ConfirmModal
         vehicle={confirmVehicle}
         isLoading={isInactivating}

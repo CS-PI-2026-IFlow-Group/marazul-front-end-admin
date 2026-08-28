@@ -1,16 +1,7 @@
 import BaseService from './BaseService';
 import api from '../config/axiosConfig';
 
-/**
- * Enums locais usados como fallback caso o endpoint
- * GET /api/frota/enums esteja indisponível.
- *
- * Os valores devem corresponder exatamente aos nomes dos enums Java:
- *   - BodyworkModel: MARCOPOLO, COMIL, IRIZAR_BRASIL, BUSSCAR
- *   - VehicleType:   DD, LD, CONVENTIONAL
- *   - VehicleStatus: ACTIVE, INACTIVE, UNDER_MAINTENANCE
- */
-const FALLBACK_ENUMS = {
+export const FALLBACK_ENUMS = {
   models: [
     { value: 'MARCOPOLO', label: 'Marcopolo' },
     { value: 'COMIL', label: 'Comil' },
@@ -34,11 +25,6 @@ class FrotaService extends BaseService {
     super('/api/frota');
   }
 
-  /**
-   * Busca os enums de modelos, tipos e status do backend.
-   * Retorna o objeto com as chaves: models, types, statuses.
-   * Cada item possui { value, label }.
-   */
   async getEnums() {
     try {
       const response = await api.get(`${this.endpoint}/enums`);
@@ -54,11 +40,6 @@ class FrotaService extends BaseService {
     }
   }
 
-  /**
-   * Cadastra um novo veículo.
-   * O payload é mapeado para os nomes de campo que o VehicleRequestDTO espera:
-   *   prefix, licensePlate, model, type, year, seats, inspectionDate, status
-   */
   async create(data) {
     const payload = {
       prefix: data.prefix,
@@ -73,10 +54,6 @@ class FrotaService extends BaseService {
     return super.create(payload);
   }
 
-  /**
-   * Altera o status de um veículo via PUT.
-   * Busca os dados atuais e reenvia preservando os demais campos.
-   */
   async changeStatus(id, newStatus) {
     const vehicle = await this.getById(id);
     const payload = {
@@ -92,25 +69,18 @@ class FrotaService extends BaseService {
     return this.update(id, payload);
   }
 
-  /** Inativa um veículo (status → INACTIVE). */
   async inactivate(id) {
     return this.changeStatus(id, 'INACTIVE');
   }
 
-  /** Ativa um veículo (status → ACTIVE). */
   async activate(id) {
     return this.changeStatus(id, 'ACTIVE');
   }
 
-  /**
-   * Retorna o label amigável de um valor de enum.
-   * Ex: getLabel('models', 'MARCOPOLO') → 'Marcopolo'
-   */
   getLabel(enumKey, value) {
     const item = FALLBACK_ENUMS[enumKey]?.find((e) => e.value === value);
     return item?.label || value;
   }
 }
 
-// Exporta uma instância única (singleton) para uso em toda a aplicação
 export default new FrotaService();
