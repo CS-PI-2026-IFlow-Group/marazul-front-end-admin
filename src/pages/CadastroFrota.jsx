@@ -197,20 +197,20 @@ export default function CadastroFrota() {
   };
 
   return (
-    <div className="space-y-1">
-      <div className="flex items-start gap-3 flex-col">
-        <Button
-          variant="outline"
-          onClick={() => navigate("/frota")}
-          className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-5 h-9 text-xs shadow-xs transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="h-4 w-4" /> Voltar
-        </Button>
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-[#062A45] pb-1 border-b-[3.5px] border-[#e31e24] inline-block">
             {isEditing ? "Edição de Frota" : "Cadastro de Frota"}
           </h1>
         </div>
+        <Button
+          variant="outline"
+          onClick={() => navigate("/frota")}
+          className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-5 h-9 text-xs shadow-xs transition-colors cursor-pointer w-fit"
+        >
+          <ArrowLeft className="h-4 w-4" /> Voltar
+        </Button>
       </div>
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -227,6 +227,7 @@ export default function CadastroFrota() {
                 id="prefix"
                 label="PREFIXO"
                 labelColor="#062A45"
+                icon={null}
                 placeholder="Ex: 18001"
                 required
                 value={form.prefix}
@@ -237,6 +238,7 @@ export default function CadastroFrota() {
                 id="licensePlate"
                 label="PLACA"
                 labelColor="#062A45"
+                icon={null}
                 placeholder="ABC-1234 ou ABC1D23"
                 maxLength={8}
                 required
@@ -273,6 +275,7 @@ export default function CadastroFrota() {
                 id="year"
                 label="ANO DE FABRICAÇÃO"
                 labelColor="#062A45"
+                icon={null}
                 inputMode="numeric"
                 placeholder="Ex: 2024"
                 maxLength={4}
@@ -287,6 +290,7 @@ export default function CadastroFrota() {
                 id="seats"
                 label="QUANTIDADE DE ASSENTOS"
                 labelColor="#062A45"
+                icon={null}
                 inputMode="numeric"
                 placeholder="Ex: 46"
                 maxLength={3}
@@ -312,6 +316,7 @@ export default function CadastroFrota() {
                 id="inspectionDate"
                 label="DATA DE VISTORIA"
                 labelColor="#062A45"
+                icon={null}
                 type="date"
                 required
                 value={form.inspectionDate}
