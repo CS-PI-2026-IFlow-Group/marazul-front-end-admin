@@ -227,17 +227,20 @@ export default function CadastroFrota() {
                 id="prefix"
                 label="PREFIXO"
                 labelColor="#062A45"
+                type="text"
                 icon={null}
                 placeholder="Ex: 18001"
                 required
                 value={form.prefix}
                 onChange={handleChange("prefix")}
+                className="!pl-3"
               />
 
               <GenericInput
                 id="licensePlate"
                 label="PLACA"
                 labelColor="#062A45"
+                type="text"
                 icon={null}
                 placeholder="ABC-1234 ou ABC1D23"
                 maxLength={8}
@@ -246,7 +249,7 @@ export default function CadastroFrota() {
                 onChange={handlePlacaChange}
                 hasError={placaTemErro}
                 errorMessage="Formato inválido. Use ABC-1234 ou ABC1D23"
-                className="uppercase"
+                className="!pl-3 uppercase"
               />
 
               <GenericSelect
@@ -275,6 +278,7 @@ export default function CadastroFrota() {
                 id="year"
                 label="ANO DE FABRICAÇÃO"
                 labelColor="#062A45"
+                type="text"
                 icon={null}
                 inputMode="numeric"
                 placeholder="Ex: 2024"
@@ -284,12 +288,14 @@ export default function CadastroFrota() {
                 onChange={handleNumeroChange("year", 4)}
                 hasError={anoTemErro}
                 errorMessage="Informe um ano válido com 4 dígitos (mínimo 1950)"
+                className="!pl-3"
               />
 
               <GenericInput
                 id="seats"
                 label="QUANTIDADE DE ASSENTOS"
                 labelColor="#062A45"
+                type="text"
                 icon={null}
                 inputMode="numeric"
                 placeholder="Ex: 46"
@@ -299,6 +305,7 @@ export default function CadastroFrota() {
                 onChange={handleNumeroChange("seats", 3)}
                 hasError={assentosTemErro}
                 errorMessage="Informe uma quantidade válida de assentos"
+                className="!pl-3"
               />
 
               <GenericSelect
@@ -321,6 +328,7 @@ export default function CadastroFrota() {
                 required
                 value={form.inspectionDate}
                 onChange={handleChange("inspectionDate")}
+                className="!pl-3"
               />
             </div>
           </form>
