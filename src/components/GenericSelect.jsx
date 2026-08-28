@@ -43,7 +43,7 @@ export default function GenericSelect({
         <Select required={required} value={value} onValueChange={onChange}>
           <SelectTrigger
             id={id}
-            className={`w-full bg-[#F8FAFC] h-11 text-sm transition-colors border rounded-none ${
+            className={`w-full bg-[#F8FAFC] h-11 text-sm transition-colors border rounded-md ${
               Icon ? "pl-9" : "pl-3"
             } ${
               hasError
@@ -53,7 +53,7 @@ export default function GenericSelect({
           >
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
-          <SelectContent className="rounded-none border-slate-200 bg-white shadow-lg">
+          <SelectContent className="rounded-md border-slate-200 bg-white shadow-lg">
             {options.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}

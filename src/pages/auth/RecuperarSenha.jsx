@@ -1,13 +1,13 @@
 import { ArrowLeft, ArrowRight, MailCheck } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import AuthHeader from "../components/AuthHeader";
-import { CardContent, CardFooter, CardHeader } from "../components/ui/card";
-import api from "../config/axiosConfig";
 import { toast } from "sonner";
-import AuthLayout from "../components/AuthLayout";
-import EmailInput from "../components/EmailInput";
-import SubmitButton from "../components/SubmitButton";
+import AuthHeader from "../../components/AuthHeader";
+import AuthLayout from "../../components/AuthLayout";
+import GenericInput from "../../components/GenericInput";
+import SubmitButton from "../../components/SubmitButton";
+import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
+import api from "../../config/axiosConfig";
 
 export default function RecuperarSenha() {
   const [email, setEmail] = useState("");
@@ -93,7 +93,7 @@ export default function RecuperarSenha() {
       <CardContent>
         <form onSubmit={handleRecoverPassword} className="space-y-6">
           <div className="space-y-2">
-            <EmailInput
+            <GenericInput
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />

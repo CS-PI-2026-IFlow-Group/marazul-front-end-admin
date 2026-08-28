@@ -2,13 +2,14 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import DashboardLayout from "./components/DashboardLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "./components/ui/sonner";
+import Login from "./pages/auth/Login";
+import RecuperarSenha from "./pages/auth/RecuperarSenha";
+import RedefinirSenha from "./pages/auth/RedefinirSenha";
 import CadastroFrota from "./pages/CadastroFrota";
 import Dashboard from "./pages/Dashboard";
 import Frota from "./pages/Frota";
+import CadastroFuncionario from "./pages/funcionario/CadastroFuncionario";
 import Funcionarios from "./pages/funcionario/Funcionario";
-import Login from "./pages/Login";
-import RecuperarSenha from "./pages/RecuperarSenha";
-import RedefinirSenha from "./pages/RedefinirSenha";
 import Relatorios from "./pages/Relatorios";
 import Viagens from "./pages/Viagens";
 
@@ -31,7 +32,17 @@ export default function App() {
           <Route path="/frota" element={<Frota />} />
           <Route path="/frota/cadastro" element={<CadastroFrota />} />
           <Route path="/viagens" element={<Viagens />} />
+
           <Route path="/funcionario" element={<Funcionarios />} />
+          <Route
+            path="/funcionario/cadastro"
+            element={<CadastroFuncionario />}
+          />
+          <Route
+            path="/funcionario/editar/:id"
+            element={<CadastroFuncionario isEdicao={true} />}
+          />
+
           <Route path="/relatorios" element={<Relatorios />} />
         </Route>
 
