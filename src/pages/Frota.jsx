@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import Pagination from "../components/Pagination";
 import FrotaService from "../services/FrotaService";
 
 // ─── Mapeamento de status ───────────────────────────────────────────
@@ -167,7 +168,14 @@ const MOCK_VEHICLES = [
   { id: 5, prefix: "18005", licensePlate: "MNO7890", model: "MARCOPOLO", type: "LD", year: 2021, seats: 48, inspectionDate: "2025-01-05", status: "ACTIVE" },
   { id: 6, prefix: "18006", licensePlate: "PQR1234", model: "COMIL", type: "DD", year: 2023, seats: 44, inspectionDate: "2025-09-01", status: "ACTIVE" },
   { id: 7, prefix: "18007", licensePlate: "STU5678", model: "BUSSCAR", type: "CONVENTIONAL", year: 2019, seats: 50, inspectionDate: "2024-11-20", status: "UNDER_MAINTENANCE" },
+  { id: 8, prefix: "18008", licensePlate: "VWX9012", model: "MARCOPOLO", type: "DD", year: 2024, seats: 46, inspectionDate: "2025-07-10", status: "ACTIVE" },
+  { id: 9, prefix: "18009", licensePlate: "YZA3456", model: "IRIZAR_BRASIL", type: "LD", year: 2022, seats: 42, inspectionDate: "2025-04-18", status: "ACTIVE" },
+  { id: 10, prefix: "18010", licensePlate: "BCD7890", model: "COMIL", type: "CONVENTIONAL", year: 2021, seats: 48, inspectionDate: "2025-02-28", status: "INACTIVE" },
+  { id: 11, prefix: "18011", licensePlate: "EFG1234", model: "BUSSCAR", type: "DD", year: 2023, seats: 46, inspectionDate: "2025-10-15", status: "ACTIVE" },
+  { id: 12, prefix: "18012", licensePlate: "HIJ5678", model: "MARCOPOLO", type: "LD", year: 2020, seats: 44, inspectionDate: "2024-10-05", status: "UNDER_MAINTENANCE" },
 ];
+
+const ITEMS_PER_PAGE = 5;
 
 // ─── Componente principal ───────────────────────────────────────────
 export default function Frota() {
@@ -179,6 +187,7 @@ export default function Frota() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [modelFilter, setModelFilter] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef(null);
 
@@ -246,6 +255,19 @@ export default function Frota() {
     });
   }, [vehicles, searchTerm, statusFilter, modelFilter]);
 
+  // Reseta para a página 1 ao alterar qualquer filtro ou busca
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, modelFilter]);
+
+  // Cálculos de paginação
+  const totalPages = Math.ceil(filteredVehicles.length / ITEMS_PER_PAGE) || 1;
+
+  const paginatedVehicles = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredVehicles.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredVehicles, currentPage]);
+
   const activeFilterCount =
     (statusFilter !== "ALL" ? 1 : 0) + (modelFilter !== "ALL" ? 1 : 0);
 
@@ -256,6 +278,7 @@ export default function Frota() {
     setSearchTerm("");
     setStatusFilter("ALL");
     setModelFilter("ALL");
+    setCurrentPage(1);
   };
 
   // ─── Inativação ───────────────────────────────────────────────────
@@ -585,7 +608,7 @@ export default function Frota() {
               </thead>
 
               <tbody className="divide-y divide-slate-50">
-                {filteredVehicles.map((vehicle, idx) => (
+                {paginatedVehicles.map((vehicle, idx) => (
                   <tr
                     key={vehicle.id}
                     className={`transition-colors duration-150 hover:bg-blue-50/30 ${
@@ -653,20 +676,17 @@ export default function Frota() {
           </div>
         )}
 
-        {/* Rodapé da tabela fixado na base do card */}
-        {!isLoading && !error && vehicles.length > 0 && (
-          <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/40 px-5 py-3 rounded-b-xl mt-auto">
-            <p className="text-xs text-slate-400">
-              Exibindo{" "}
-              <span className="font-semibold text-slate-600">
-                {filteredVehicles.length}
-              </span>{" "}
-              de{" "}
-              <span className="font-semibold text-slate-600">
-                {vehicles.length}
-              </span>{" "}
-              veículo{vehicles.length !== 1 && "s"}
-            </p>
+        {/* Paginação fixada na base do card */}
+        {!isLoading && !error && filteredVehicles.length > 0 && (
+          <div className="mt-auto">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredVehicles.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+              onPageChange={setCurrentPage}
+              itemName="veículo"
+            />
           </div>
         )}
       </div>
