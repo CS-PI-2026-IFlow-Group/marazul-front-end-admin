@@ -1,15 +1,7 @@
 import {
   ArrowLeft,
-  Building2,
-  Calendar1,
-  CheckCircle2,
-  CreditCard,
-  Hash,
-  Layers,
   Loader2,
   Save,
-  Truck,
-  Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -223,7 +215,6 @@ export default function CadastroFrota() {
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div className="flex border-b border-slate-100 px-6 py-3.5 items-center gap-3 bg-slate-50/50">
-          <Truck className="h-5 w-5 text-[#e31e24]" />
           <h2 className="text-base font-medium text-[#062A45]">
             Informações do veículo
           </h2>
@@ -236,7 +227,6 @@ export default function CadastroFrota() {
                 id="prefix"
                 label="PREFIXO"
                 labelColor="#062A45"
-                icon={Hash}
                 placeholder="Ex: 18001"
                 required
                 value={form.prefix}
@@ -247,7 +237,6 @@ export default function CadastroFrota() {
                 id="licensePlate"
                 label="PLACA"
                 labelColor="#062A45"
-                icon={CreditCard}
                 placeholder="ABC-1234 ou ABC1D23"
                 maxLength={8}
                 required
@@ -262,7 +251,6 @@ export default function CadastroFrota() {
                 id="model"
                 label="MARCA"
                 labelColor="#062A45"
-                icon={Building2}
                 required
                 value={form.model}
                 onChange={handleSelectChange("model")}
@@ -274,7 +262,6 @@ export default function CadastroFrota() {
                 id="type"
                 label="TIPO"
                 labelColor="#062A45"
-                icon={Layers}
                 required
                 value={form.type}
                 onChange={handleSelectChange("type")}
@@ -286,7 +273,6 @@ export default function CadastroFrota() {
                 id="year"
                 label="ANO DE FABRICAÇÃO"
                 labelColor="#062A45"
-                icon={Calendar1}
                 inputMode="numeric"
                 placeholder="Ex: 2024"
                 maxLength={4}
@@ -301,7 +287,6 @@ export default function CadastroFrota() {
                 id="seats"
                 label="QUANTIDADE DE ASSENTOS"
                 labelColor="#062A45"
-                icon={Users}
                 inputMode="numeric"
                 placeholder="Ex: 46"
                 maxLength={3}
@@ -316,7 +301,6 @@ export default function CadastroFrota() {
                 id="status"
                 label="STATUS"
                 labelColor="#062A45"
-                icon={CheckCircle2}
                 required
                 value={form.status}
                 onChange={handleSelectChange("status")}
@@ -328,7 +312,6 @@ export default function CadastroFrota() {
                 id="inspectionDate"
                 label="DATA DE VISTORIA"
                 labelColor="#062A45"
-                icon={Calendar1}
                 type="date"
                 required
                 value={form.inspectionDate}
