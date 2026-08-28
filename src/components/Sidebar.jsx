@@ -7,14 +7,13 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/frota", label: "Frota", icon: Truck },
   { to: "/viagens", label: "Viagens", icon: Map },
-  { to: "/funcionarios", label: "Funcionários", icon: Users },
+  { to: "/funcionario", label: "Funcionários", icon: Users },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
 ];
 
 export default function Sidebar({ onNavigate }) {
   return (
     <div className="flex h-full flex-col bg-white border-r border-slate-200">
-      {/* Logo */}
       <div className="flex flex-col items-center border-b border-slate-100 px-4 py-6">
         <img
           src={logoMarazul}
@@ -26,7 +25,6 @@ export default function Sidebar({ onNavigate }) {
         </span>
       </div>
 
-      {/* Navegação */}
       <nav className="flex-grow space-y-1 overflow-y-auto px-3 py-6">
         {navItems.map(({ to, label, icon: Icon }) => (
           <NavLink

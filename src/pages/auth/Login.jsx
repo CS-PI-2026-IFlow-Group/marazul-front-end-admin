@@ -1,16 +1,16 @@
 import { LogIn } from "lucide-react";
-import { CardContent, CardFooter, CardHeader } from "../components/ui/card";
-import { Checkbox } from "../components/ui/checkbox";
-import { Label } from "../components/ui/label";
-import AuthHeader from "../components/AuthHeader";
 import { useState } from "react";
-import api from "../config/axiosConfig";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useNavigate, Link } from "react-router-dom";
-import AuthLayout from "../components/AuthLayout";
-import EmailInput from "../components/EmailInput";
-import PasswordInput from "../components/PasswordInput";
-import SubmitButton from "../components/SubmitButton";
+import AuthHeader from "../../components/AuthHeader";
+import AuthLayout from "../../components/AuthLayout";
+import GenericInput from "../../components/GenericInput";
+import PasswordInput from "../../components/PasswordInput";
+import SubmitButton from "../../components/SubmitButton";
+import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Label } from "../../components/ui/label";
+import api from "../../config/axiosConfig";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -60,7 +60,7 @@ export default function Login() {
 
       <CardContent>
         <form onSubmit={handleLogin} className="space-y-6">
-          <EmailInput
+          <GenericInput
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />

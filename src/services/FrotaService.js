@@ -1,28 +1,28 @@
-import BaseService from './BaseService';
-import api from '../config/axiosConfig';
+import api from "../config/axiosConfig";
+import BaseService from "./BaseService";
 
 export const FALLBACK_ENUMS = {
   models: [
-    { value: 'MARCOPOLO', label: 'Marcopolo' },
-    { value: 'COMIL', label: 'Comil' },
-    { value: 'IRIZAR_BRASIL', label: 'Irizar Brasil' },
-    { value: 'BUSSCAR', label: 'Busscar' },
+    { value: "MARCOPOLO", label: "Marcopolo" },
+    { value: "COMIL", label: "Comil" },
+    { value: "IRIZAR_BRASIL", label: "Irizar Brasil" },
+    { value: "BUSSCAR", label: "Busscar" },
   ],
   types: [
-    { value: 'DD', label: 'DD' },
-    { value: 'LD', label: 'LD' },
-    { value: 'CONVENTIONAL', label: 'Convencional' },
+    { value: "DD", label: "DD" },
+    { value: "LD", label: "LD" },
+    { value: "CONVENTIONAL", label: "Convencional" },
   ],
   statuses: [
-    { value: 'ACTIVE', label: 'Ativo' },
-    { value: 'INACTIVE', label: 'Inativo' },
-    { value: 'UNDER_MAINTENANCE', label: 'Em manutenção' },
+    { value: "ACTIVE", label: "Ativo" },
+    { value: "INACTIVE", label: "Inativo" },
+    { value: "UNDER_MAINTENANCE", label: "Em manutenção" },
   ],
 };
 
 class FrotaService extends BaseService {
   constructor() {
-    super('/api/frota');
+    super("/api/frota");
   }
 
   async getEnums() {
