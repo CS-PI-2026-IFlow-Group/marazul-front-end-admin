@@ -9,7 +9,6 @@ const FALLBACK_ENUMS = {
   roles: [
     { value: "USER", label: "Comum" },
     { value: "ADMIN", label: "Administrador (Admin)" },
-    { value: "NO_ACCESS", label: "Sem Acesso" },
   ],
   cnhCategories: [
     { value: "A", label: "A" },
@@ -42,8 +41,7 @@ class FuncionarioService extends BaseService {
   }
 
   async inativar(id) {
-    const response = await api.put(`${this.endpoint}/${id}/inativar`);
-    return response.data;
+    return this.delete(id);
   }
 }
 
