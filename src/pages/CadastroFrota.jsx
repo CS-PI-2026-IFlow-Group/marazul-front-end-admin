@@ -1,7 +1,14 @@
 import {
   ArrowLeft,
+  Building2,
+  Calendar1,
+  CheckCircle2,
+  CreditCard,
+  Hash,
+  Layers,
   Loader2,
   Save,
+  Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -227,21 +234,18 @@ export default function CadastroFrota() {
                 id="prefix"
                 label="PREFIXO"
                 labelColor="#062A45"
-                type="text"
-                icon={null}
+                icon={Hash}
                 placeholder="Ex: 18001"
                 required
                 value={form.prefix}
                 onChange={handleChange("prefix")}
-                className="!pl-3"
               />
 
               <GenericInput
                 id="licensePlate"
                 label="PLACA"
                 labelColor="#062A45"
-                type="text"
-                icon={null}
+                icon={CreditCard}
                 placeholder="ABC-1234 ou ABC1D23"
                 maxLength={8}
                 required
@@ -249,13 +253,14 @@ export default function CadastroFrota() {
                 onChange={handlePlacaChange}
                 hasError={placaTemErro}
                 errorMessage="Formato inválido. Use ABC-1234 ou ABC1D23"
-                className="!pl-3 uppercase"
+                className="uppercase"
               />
 
               <GenericSelect
                 id="model"
                 label="MARCA"
                 labelColor="#062A45"
+                icon={Building2}
                 required
                 value={form.model}
                 onChange={handleSelectChange("model")}
@@ -267,6 +272,7 @@ export default function CadastroFrota() {
                 id="type"
                 label="TIPO"
                 labelColor="#062A45"
+                icon={Layers}
                 required
                 value={form.type}
                 onChange={handleSelectChange("type")}
@@ -278,8 +284,7 @@ export default function CadastroFrota() {
                 id="year"
                 label="ANO DE FABRICAÇÃO"
                 labelColor="#062A45"
-                type="text"
-                icon={null}
+                icon={Calendar1}
                 inputMode="numeric"
                 placeholder="Ex: 2024"
                 maxLength={4}
@@ -288,15 +293,13 @@ export default function CadastroFrota() {
                 onChange={handleNumeroChange("year", 4)}
                 hasError={anoTemErro}
                 errorMessage="Informe um ano válido com 4 dígitos (mínimo 1950)"
-                className="!pl-3"
               />
 
               <GenericInput
                 id="seats"
                 label="QUANTIDADE DE ASSENTOS"
                 labelColor="#062A45"
-                type="text"
-                icon={null}
+                icon={Users}
                 inputMode="numeric"
                 placeholder="Ex: 46"
                 maxLength={3}
@@ -305,13 +308,13 @@ export default function CadastroFrota() {
                 onChange={handleNumeroChange("seats", 3)}
                 hasError={assentosTemErro}
                 errorMessage="Informe uma quantidade válida de assentos"
-                className="!pl-3"
               />
 
               <GenericSelect
                 id="status"
                 label="STATUS"
                 labelColor="#062A45"
+                icon={CheckCircle2}
                 required
                 value={form.status}
                 onChange={handleSelectChange("status")}
@@ -323,12 +326,11 @@ export default function CadastroFrota() {
                 id="inspectionDate"
                 label="DATA DE VISTORIA"
                 labelColor="#062A45"
-                icon={null}
+                icon={Calendar1}
                 type="date"
                 required
                 value={form.inspectionDate}
                 onChange={handleChange("inspectionDate")}
-                className="!pl-3"
               />
             </div>
           </form>

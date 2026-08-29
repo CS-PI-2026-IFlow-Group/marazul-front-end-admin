@@ -8,46 +8,16 @@ import {
   LogOut,
   UserCircle,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { cn } from "../lib/utils";
-import { getProfile, logout } from "../lib/auth";
+import { logout } from "../lib/auth";
+import { useAuth } from "../context/AuthContext";
 
 export default function TopHeader({ onOpenMenu }) {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [profileFailed, setProfileFailed] = useState(false);
+  const { profile, failed } = useAuth();
   const [accountOpen, setAccountOpen] = useState(false);
   const menuRef = useRef(null);
-
-  useEffect(() => {
-    let active = true;
-
-    getProfile()
-      .then((data) => {
-        if (active) setProfile(data);
-      })
-      .catch((error) => {
-        if (!active) return;
-
-        // Token expirado ou sessão inválida (401) já é tratado pelo interceptor
-        // do axios, que limpa o token e redireciona. Duplicar aqui causaria
-        // navegação dupla.
-        if (error.response?.status === 401) return;
-
-        // API indisponível ou erro inesperado: o painel continua utilizável e
-        // o usuário fica sabendo que o perfil não carregou.
-        setProfileFailed(true);
-        toast.error("Não foi possível carregar seu perfil", {
-          description:
-            "Verifique sua conexão com o servidor e recarregue a página.",
-        });
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   // Fecha o dropdown ao clicar fora.
   useEffect(() => {
@@ -62,7 +32,7 @@ export default function TopHeader({ onOpenMenu }) {
 
   const displayName = profile
     ? profile.nome
-    : profileFailed
+    : failed
       ? "Perfil indisponível"
       : "Carregando...";
 
