@@ -1,16 +1,7 @@
 import api from "../config/axiosConfig";
 import BaseService from "./BaseService";
 
-/**
- * Enums locais usados como fallback caso o endpoint
- * GET /api/frota/enums esteja indisponível.
- *
- * Os valores devem corresponder exatamente aos nomes dos enums Java:
- *   - BodyworkModel: MARCOPOLO, COMIL, IRIZAR_BRASIL, BUSSCAR
- *   - VehicleType:   DD, LD, CONVENTIONAL
- *   - VehicleStatus: ACTIVE, INACTIVE, UNDER_MAINTENANCE
- */
-const FALLBACK_ENUMS = {
+export const FALLBACK_ENUMS = {
   models: [
     { value: "MARCOPOLO", label: "Marcopolo" },
     { value: "COMIL", label: "Comil" },
@@ -34,11 +25,6 @@ class FrotaService extends BaseService {
     super("/api/frota");
   }
 
-  /**
-   * Busca os enums de modelos, tipos e status do backend.
-   * Retorna o objeto com as chaves: models, types, statuses.
-   * Cada item possui { value, label }.
-   */
   async getEnums() {
     try {
       const response = await api.get(`${this.endpoint}/enums`);
@@ -54,11 +40,6 @@ class FrotaService extends BaseService {
     }
   }
 
-  /**
-   * Cadastra um novo veículo.
-   * O payload é mapeado para os nomes de campo que o VehicleRequestDTO espera:
-   *   prefix, licensePlate, model, type, year, seats, inspectionDate, status
-   */
   async create(data) {
     const payload = {
       prefix: data.prefix,
@@ -72,7 +53,34 @@ class FrotaService extends BaseService {
     };
     return super.create(payload);
   }
+
+  async changeStatus(id, newStatus) {
+    const vehicle = await this.getById(id);
+    const payload = {
+      prefix: vehicle.prefix,
+      licensePlate: vehicle.licensePlate,
+      model: vehicle.model,
+      type: vehicle.type,
+      year: vehicle.year,
+      seats: vehicle.seats,
+      inspectionDate: vehicle.inspectionDate || null,
+      status: newStatus,
+    };
+    return this.update(id, payload);
+  }
+
+  async inactivate(id) {
+    return this.changeStatus(id, 'INACTIVE');
+  }
+
+  async activate(id) {
+    return this.changeStatus(id, 'ACTIVE');
+  }
+
+  getLabel(enumKey, value) {
+    const item = FALLBACK_ENUMS[enumKey]?.find((e) => e.value === value);
+    return item?.label || value;
+  }
 }
 
-// Exporta uma instância única (singleton) para uso em toda a aplicação
 export default new FrotaService();
