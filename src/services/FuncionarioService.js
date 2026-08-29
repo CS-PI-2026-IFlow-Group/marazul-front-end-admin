@@ -33,7 +33,8 @@ class FuncionarioService extends BaseService {
       return {
         positions: data.positions || FALLBACK_ENUMS.positions,
         roles: data.roles || FALLBACK_ENUMS.roles,
-        cnhCategories: data.cnhCategories || FALLBACK_ENUMS.cnhCategories,
+        cnhCategories:
+          data.cnhCategories || data.cnhTypes || FALLBACK_ENUMS.cnhCategories,
       };
     } catch {
       return { ...FALLBACK_ENUMS };
