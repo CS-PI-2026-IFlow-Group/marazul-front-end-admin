@@ -1,6 +1,7 @@
 import { Mail } from "lucide-react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { cn } from "../lib/utils";
 
 export default function GenericInput({
   id = "email",
@@ -14,6 +15,7 @@ export default function GenericInput({
   placeholder = "nome@marazul.com.br",
   hasError = false,
   errorMessage = "",
+  className,
   ...props
 }) {
   return (
@@ -29,10 +31,10 @@ export default function GenericInput({
       <div className="relative">
         {Icon && (
           <Icon
-            className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${
+            className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none ${
               hasError ? "text-red-400" : "text-slate-400"
             }`}
-          ></Icon>
+          />
         )}
         <Input
           id={id}
@@ -40,11 +42,14 @@ export default function GenericInput({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          className={`pl-9 pr-3 bg-[#F8FAFC] h-11 text-sm transition-colors ${
+          className={cn(
+            "pr-3 bg-[#F8FAFC] h-11 text-sm transition-colors",
+            Icon ? "pl-9" : "pl-3",
             hasError
               ? "border-red-500 focus-visible:ring-red-500"
-              : "border-slate-200 focus-visible:ring-slate-300"
-          }`}
+              : "border-slate-200 focus-visible:ring-slate-300",
+            className
+          )}
           {...props}
         />
       </div>
