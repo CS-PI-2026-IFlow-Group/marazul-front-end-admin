@@ -137,13 +137,6 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
     <div className="min-h-screen bg-slate-50/50 p-6 font-sans">
       <div className="mb-4">
         <div className="flex items-start gap-4 flex-col">
-          <Button
-            variant="outline"
-            onClick={() => navigate("/funcionario")}
-            className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-6 h-10 shadow-xs transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </Button>
           <div>
             <h1 className="text-3xl font-bold text-[#062A45] pb-1 border-b-[3.5px] border-[#e31e24] inline-block">
               {isEdicao ? "Edição" : "Cadastro"} de Usuário
@@ -274,9 +267,16 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
             </div>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-end border-t border-slate-100 bg-slate-50/50 px-8 py-5">
+        <CardFooter className="flex justify-between border-t border-slate-100 bg-slate-50/50 px-8 py-5">
           <Button
-            className="bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 px-8 py-5 text-sm font-medium rounded-md normal-case tracking-normal cursor-pointer"
+            variant="outline"
+            onClick={() => navigate("/funcionario")}
+            className="h-10 gap-2 rounded-md border border-slate-200 bg-white px-6 font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer"
+          >
+            <ArrowLeft className="h-4 w-4" /> Voltar
+          </Button>
+          <Button
+            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-8 py-5 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300"
             type="submit"
             form="form-funcionario"
             disabled={!isFormValid || isLoading}
