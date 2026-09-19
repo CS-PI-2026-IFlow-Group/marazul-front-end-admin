@@ -94,6 +94,11 @@ export default function RecuperarSenha() {
         <form onSubmit={handleRecoverPassword} className="space-y-6">
           <div className="space-y-2">
             <GenericInput
+              id="email"
+              label="EMAIL"
+              type="email"
+              icon={MailCheck}
+              placeholder="nome@marazul.com.br"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
