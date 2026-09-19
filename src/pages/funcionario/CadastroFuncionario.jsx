@@ -126,7 +126,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
 
   if (isFetching) {
     return (
-      <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center font-sans text-slate-500 gap-3">
+      <div className="flex min-h-[calc(100svh-8rem)] flex-col items-center justify-center font-sans text-slate-500 gap-3">
         <Loader2 className="size-8 animate-spin text-[#062A45]" />
         <p>Carregando dados do colaborador...</p>
       </div>
@@ -134,7 +134,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 font-sans">
+    <div className="space-y-4 font-sans">
       <div className="mb-4">
         <div className="flex items-start gap-4 flex-col">
           <Button
