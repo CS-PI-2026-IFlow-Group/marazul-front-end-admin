@@ -12,7 +12,7 @@ export default function SubmitButton({
     <Button
       type="submit"
       disabled={isDisabled || isLoading}
-      className="w-full bg-[#062A45] hover:bg-[#0f172a] text-white h-12 font-bold flex items-center justify-center gap-2 mt-2 cursor-pointer"
+      className="w-full bg-[#062A45] hover:bg-[#0f172a] text-white h-12 font-bold flex items-center justify-center gap-2 mt-2 cursor-pointer rounded-md"
     >
       {isLoading ? (
         <>
