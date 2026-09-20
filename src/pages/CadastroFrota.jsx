@@ -208,11 +208,11 @@ export default function CadastroFrota() {
     <div className="bg-slate-50/50 font-sans">
       <div className="mb-3">
         <div className="flex items-start gap-2 flex-col-reverse">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-700">
-            {isEditing ? "Edição de Frota" : "Cadastro de Frota"}
-          </h1>
-        </div>
+          <div>
+            <h1 className="text-xl font-semibold text-slate-700">
+              {isEditing ? "Edição de Frota" : "Cadastro de Frota"}
+            </h1>
+          </div>
         </div>
       </div>
 
@@ -344,7 +344,7 @@ export default function CadastroFrota() {
             type="submit"
             form="form-frota"
             disabled={!isFormValid || isLoading}
-            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300"
+            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer"
           >
             {isLoading ? (
               <>
