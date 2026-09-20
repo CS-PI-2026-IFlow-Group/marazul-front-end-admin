@@ -269,15 +269,16 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
             </div>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50/50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <CardFooter className="flex justify-between border-t border-slate-100 bg-slate-50/50 px-8 py-5">
           <Button
             variant="outline"
-            onClick={() => navigate("/frota")}
-            className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-5 h-9 text-xs shadow-xs transition-colors cursor-pointer w-fit"
+            onClick={() => navigate("/funcionario")}
+            className="h-10 gap-2 rounded-md border border-slate-200 bg-white px-6 font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
           <Button
+            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-8 py-5 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300"
             type="submit"
             form="form-frota"
             disabled={!isFormValid || isLoading}

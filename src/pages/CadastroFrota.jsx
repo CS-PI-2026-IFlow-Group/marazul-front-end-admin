@@ -1,14 +1,8 @@
 import {
   ArrowLeft,
-  Building2,
-  Calendar1,
-  CheckCircle2,
-  CreditCard,
-  Hash,
-  Layers,
+  BusFront,
   Loader2,
   Save,
-  Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -20,6 +14,7 @@ import { Card, CardContent, CardFooter } from "../components/ui/card";
 import FrotaService from "../services/FrotaService";
 
 const PLACA_REGEX = /^[A-Z]{3}-?\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$/;
+const PREFIX_REGEX = /^[A-Za-z0-9]+$/;
 
 function formatPlaca(raw) {
   const clean = raw
@@ -135,6 +130,9 @@ export default function CadastroFrota() {
   const placaValida = PLACA_REGEX.test(form.licensePlate.replace("-", ""));
   const placaTemErro = form.licensePlate.length > 0 && !placaValida;
 
+  const prefixValido = PREFIX_REGEX.test(form.prefix.trim());
+  const prefixTemErro = form.prefix.length > 0 && !prefixValido;
+
   const anoValido = form.year.length === 4 && Number(form.year) >= 1950;
   const anoTemErro = form.year.length > 0 && !anoValido;
 
@@ -144,7 +142,7 @@ export default function CadastroFrota() {
   const dataVistoriaValida = form.inspectionDate.trim() !== "";
 
   const isFormValid =
-    form.prefix.trim() !== "" &&
+    prefixValido &&
     placaValida &&
     anoValido &&
     assentosValidos &&
@@ -207,41 +205,47 @@ export default function CadastroFrota() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3">
+    <div className="bg-slate-50/50 font-sans">
+      <div className="mb-3">
+        <div className="flex items-start gap-2 flex-col-reverse">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-[#062A45] pb-1 border-b-[3.5px] border-[#e31e24] inline-block">
+          <h1 className="text-xl font-semibold text-slate-700">
             {isEditing ? "Edição de Frota" : "Cadastro de Frota"}
           </h1>
+        </div>
         </div>
       </div>
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex border-b border-slate-100 px-6 py-3.5 items-center gap-3 bg-slate-50/50">
-          <h2 className="text-base font-medium text-[#062A45]">
+        <div className="flex border-b border-slate-100 px-6 py-3 items-center gap-3">
+          <BusFront className="h-4 w-4 text-[#e31e24]" />
+          <h2 className="text-sm font-medium text-slate-700">
             Informações do veículo
           </h2>
         </div>
 
         <CardContent className="p-6">
-          <form id="form-frota" onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <form id="form-frota" onSubmit={handleSubmit} className="space-y-3">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
               <GenericInput
                 id="prefix"
                 label="PREFIXO"
                 labelColor="#062A45"
-                icon={Hash}
+                type="text"
                 placeholder="Ex: 18001"
+                pattern="[A-Za-z0-9]+"
                 required
                 value={form.prefix}
                 onChange={handleChange("prefix")}
+                hasError={prefixTemErro}
+                errorMessage="Informe apenas letras e numeros"
               />
 
               <GenericInput
                 id="licensePlate"
                 label="PLACA"
                 labelColor="#062A45"
-                icon={CreditCard}
+                type="text"
                 placeholder="ABC-1234 ou ABC1D23"
                 maxLength={8}
                 required
@@ -256,7 +260,6 @@ export default function CadastroFrota() {
                 id="model"
                 label="MARCA"
                 labelColor="#062A45"
-                icon={Building2}
                 required
                 value={form.model}
                 onChange={handleSelectChange("model")}
@@ -268,7 +271,6 @@ export default function CadastroFrota() {
                 id="type"
                 label="TIPO"
                 labelColor="#062A45"
-                icon={Layers}
                 required
                 value={form.type}
                 onChange={handleSelectChange("type")}
@@ -280,7 +282,7 @@ export default function CadastroFrota() {
                 id="year"
                 label="ANO DE FABRICAÇÃO"
                 labelColor="#062A45"
-                icon={Calendar1}
+                type="text"
                 inputMode="numeric"
                 placeholder="Ex: 2024"
                 maxLength={4}
@@ -295,7 +297,7 @@ export default function CadastroFrota() {
                 id="seats"
                 label="QUANTIDADE DE ASSENTOS"
                 labelColor="#062A45"
-                icon={Users}
+                type="text"
                 inputMode="numeric"
                 placeholder="Ex: 46"
                 maxLength={3}
@@ -310,7 +312,6 @@ export default function CadastroFrota() {
                 id="status"
                 label="STATUS"
                 labelColor="#062A45"
-                icon={CheckCircle2}
                 required
                 value={form.status}
                 onChange={handleSelectChange("status")}
@@ -322,7 +323,6 @@ export default function CadastroFrota() {
                 id="inspectionDate"
                 label="DATA DE VISTORIA"
                 labelColor="#062A45"
-                icon={Calendar1}
                 type="date"
                 required
                 value={form.inspectionDate}
@@ -332,11 +332,11 @@ export default function CadastroFrota() {
           </form>
         </CardContent>
 
-        <CardFooter className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50/50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <CardFooter className="flex justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
           <Button
             variant="outline"
             onClick={() => navigate("/frota")}
-            className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-5 h-9 text-xs shadow-xs transition-colors cursor-pointer w-fit"
+            className="h-9 gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
@@ -344,7 +344,7 @@ export default function CadastroFrota() {
             type="submit"
             form="form-frota"
             disabled={!isFormValid || isLoading}
-            className="bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 px-8 py-5 text-sm font-medium rounded-md normal-case tracking-normal cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300"
           >
             {isLoading ? (
               <>
