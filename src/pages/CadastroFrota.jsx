@@ -191,12 +191,15 @@ export default function CadastroFrota() {
             "Já existe um veículo cadastrado com esta placa.",
         });
       } else {
-        toast.error(isEditing ? "Erro ao atualizar veículo" : "Erro ao cadastrar veículo", {
-          description:
-            data?.message ||
-            data?.erro ||
-            "Ocorreu um problema ao salvar os dados. Tente novamente.",
-        });
+        toast.error(
+          isEditing ? "Erro ao atualizar veículo" : "Erro ao cadastrar veículo",
+          {
+            description:
+              data?.message ||
+              data?.erro ||
+              "Ocorreu um problema ao salvar os dados. Tente novamente.",
+          },
+        );
       }
     } finally {
       setIsLoading(false);
@@ -211,13 +214,6 @@ export default function CadastroFrota() {
             {isEditing ? "Edição de Frota" : "Cadastro de Frota"}
           </h1>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => navigate("/frota")}
-          className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-5 h-9 text-xs shadow-xs transition-colors cursor-pointer w-fit"
-        >
-          <ArrowLeft className="h-4 w-4" /> Voltar
-        </Button>
       </div>
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -336,7 +332,14 @@ export default function CadastroFrota() {
           </form>
         </CardContent>
 
-        <CardFooter className="flex justify-end border-t border-slate-100 bg-slate-50/50 px-6 py-4">
+        <CardFooter className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50/50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/frota")}
+            className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-5 h-9 text-xs shadow-xs transition-colors cursor-pointer w-fit"
+          >
+            <ArrowLeft className="h-4 w-4" /> Voltar
+          </Button>
           <Button
             type="submit"
             form="form-frota"

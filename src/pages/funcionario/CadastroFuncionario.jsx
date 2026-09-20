@@ -102,17 +102,19 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
     try {
       if (isEdicao) {
         await FuncionarioService.update(id, payload);
-        toast.success("Usuário atualizado com sucesso!");
+        toast.success("Colaborador atualizado com sucesso!");
       } else {
         await FuncionarioService.create(payload);
-        toast.success("Usuário cadastrado com sucesso!");
+        toast.success("Colaborador cadastrado com sucesso!");
       }
       setTimeout(() => {
         navigate("/funcionario");
       }, 1000);
     } catch (error) {
       toast.error(
-        isEdicao ? "Erro ao atualizar usuário" : "Erro ao cadastrar usuário",
+        isEdicao
+          ? "Erro ao atualizar colaborador"
+          : "Erro ao cadastrar colaborador",
         {
           description:
             error.response?.data?.message ||
@@ -137,16 +139,9 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
     <div className="space-y-4 font-sans">
       <div className="mb-4">
         <div className="flex items-start gap-4 flex-col">
-          <Button
-            variant="outline"
-            onClick={() => navigate("/funcionario")}
-            className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-6 h-10 shadow-xs transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </Button>
           <div>
             <h1 className="text-3xl font-bold text-[#062A45] pb-1 border-b-[3.5px] border-[#e31e24] inline-block">
-              {isEdicao ? "Edição" : "Cadastro"} de Usuário
+              {isEdicao ? "Edição" : "Cadastro"} do Colaborador
             </h1>
           </div>
         </div>
@@ -274,12 +269,19 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
             </div>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-end border-t border-slate-100 bg-slate-50/50 px-8 py-5">
+        <CardFooter className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50/50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <Button
-            className="bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 px-8 py-5 text-sm font-medium rounded-md normal-case tracking-normal cursor-pointer"
+            variant="outline"
+            onClick={() => navigate("/frota")}
+            className="gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold border border-slate-300 rounded-lg px-5 h-9 text-xs shadow-xs transition-colors cursor-pointer w-fit"
+          >
+            <ArrowLeft className="h-4 w-4" /> Voltar
+          </Button>
+          <Button
             type="submit"
-            form="form-funcionario"
+            form="form-frota"
             disabled={!isFormValid || isLoading}
+            className="bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 px-8 py-5 text-sm font-medium rounded-md normal-case tracking-normal cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
           >
             {isLoading ? (
               <>
@@ -289,7 +291,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
             ) : (
               <>
                 <Save className="mr-2 size-5" />
-                {isEdicao ? "Salvar Alterações" : "Salvar Usuário"}
+                {isEdicao ? "Salvar Alterações" : "Salvar Colaborador"}
               </>
             )}
           </Button>
