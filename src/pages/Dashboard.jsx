@@ -90,7 +90,7 @@ export default function Dashboard() {
           error={failed}
         />
         <MetricCard
-          title="Funcionários ativos"
+          title="Colaboradores ativos"
           value={metrics?.activeEmployees}
           icon={Users}
           loading={loading}
