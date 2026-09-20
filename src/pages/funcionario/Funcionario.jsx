@@ -66,7 +66,7 @@ export default function Funcionarios() {
       <div className="mb-8">
         <div>
           <h1 className="text-3xl font-bold text-[#062A45] pb-1 border-b-[3.5px] border-[#e31e24] inline-block">
-            Gestão de Colaboradores
+            Colaboradores
           </h1>
         </div>
       </div>
