@@ -136,11 +136,11 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
   }
 
   return (
-    <div className="space-y-4 font-sans">
-      <div className="mb-4">
-        <div className="flex items-start gap-4 flex-col">
+    <div className="bg-slate-50/50 font-sans">
+      <div className="mb-3">
+        <div className="flex items-start gap-2 flex-col-reverse">
           <div>
-            <h1 className="text-3xl font-bold text-[#062A45] pb-1 border-b-[3.5px] border-[#e31e24] inline-block">
+            <h1 className="text-xl font-semibold text-slate-700">
               {isEdicao ? "Edição" : "Cadastro"} do Colaborador
             </h1>
           </div>
