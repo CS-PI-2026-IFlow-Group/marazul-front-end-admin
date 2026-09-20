@@ -147,13 +147,14 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
         </div>
       </div>
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex border-b border-slate-100 px-8 py-5 items-center gap-3">
-          <User className="h-5 w-5 text-[#e31e24]" />
-          <h2 className="text-base font-medium text-[#062A45]">
+        <div className="flex border-b border-slate-100 px-6 py-3 items-center gap-3">
+          <User className="h-4 w-4 text-[#e31e24]" />
+          <h2 className="text-sm font-medium text-[#062A45]">
             Informações do colaborador
           </h2>
         </div>
-        <CardContent className="p-8">
+
+        <CardContent className="p-6">
           <form
             className="space-y-6"
             onSubmit={handleSubmit}
