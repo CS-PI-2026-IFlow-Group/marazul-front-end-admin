@@ -211,7 +211,7 @@ export default function CadastroFrota() {
         </div>
       </div>
 
-      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden py-1">
+      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden py-1 gap-0">
         <div className="flex border-b border-slate-100 px-6 py-3 items-center gap-3">
           <BusFront className="h-4 w-4 text-[#e31e24]" />
           <h2 className="text-sm font-medium text-[#062A45]">
