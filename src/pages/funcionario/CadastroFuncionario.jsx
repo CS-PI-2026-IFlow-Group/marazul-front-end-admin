@@ -146,7 +146,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
           </div>
         </div>
       </div>
-      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden py-1 gap-0">
         <div className="flex border-b border-slate-100 px-6 py-3 items-center gap-3">
           <User className="h-4 w-4 text-[#e31e24]" />
           <h2 className="text-sm font-medium text-[#062A45]">
@@ -154,9 +154,9 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
           </h2>
         </div>
 
-        <CardContent className="p-6">
+        <CardContent className="px-6 py-4">
           <form
-            className="space-y-6"
+            className="space-y-4"
             onSubmit={handleSubmit}
             id="form-funcionario"
           >
@@ -173,7 +173,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 value={nome}
               />
             </div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
               <div>
                 <GenericInput
                   id="admissao"
@@ -199,7 +199,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
               <div>
                 <GenericSelect
                   id="funcao"
@@ -224,7 +224,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
               </div>
             </div>
             {funcao === "DRIVER" && (
-              <div className="grid  grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="grid  grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
                 <div>
                   <GenericInput
                     id="cnh"

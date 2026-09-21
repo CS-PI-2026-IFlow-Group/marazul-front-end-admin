@@ -1,9 +1,4 @@
-import {
-  ArrowLeft,
-  BusFront,
-  Loader2,
-  Save,
-} from "lucide-react";
+import { ArrowLeft, BusFront, Loader2, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -216,7 +211,7 @@ export default function CadastroFrota() {
         </div>
       </div>
 
-      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden py-1">
         <div className="flex border-b border-slate-100 px-6 py-3 items-center gap-3">
           <BusFront className="h-4 w-4 text-[#e31e24]" />
           <h2 className="text-sm font-medium text-[#062A45]">
@@ -224,7 +219,7 @@ export default function CadastroFrota() {
           </h2>
         </div>
 
-        <CardContent className="p-6">
+        <CardContent className="px-6 py-4">
           <form id="form-frota" onSubmit={handleSubmit} className="space-y-3">
             <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
               <GenericInput
