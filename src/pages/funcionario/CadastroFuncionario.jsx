@@ -165,7 +165,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 id="nome"
                 placeholder="Nome do colaborador"
                 label="Nome"
-                labelColor="text-[#062A45]"
+                labelColor="#062A45"
                 icon={User}
                 type="text"
                 required
@@ -180,7 +180,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                   type="date"
                   max={dataAtual}
                   label="Admissão"
-                  labelColor="text-[#062A45]"
+                  labelColor="#062A45"
                   icon={Calendar1}
                   onChange={(e) => setAdmissao(e.target.value)}
                   value={admissao}
@@ -193,7 +193,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                   type="text"
                   icon={Phone}
                   placeholder="(44) 9 9999-9999"
-                  labelColor="text-[#062A45]"
+                  labelColor="#062A45"
                   onChange={(e) => setTelefone(e.target.value)}
                   value={telefone}
                 />
@@ -232,7 +232,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                     type="text"
                     icon={CreditCard}
                     placeholder="Número da Habilitação"
-                    labelColor="text-[#062A45]"
+                    labelColor="#062A45"
                     value={cnh}
                     onChange={(e) => setCnh(e.target.value)}
                     required
@@ -242,7 +242,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                   <GenericSelect
                     id="categoriaCNH"
                     label="Categoria"
-                    labelColor="text-[#062A45]"
+                    labelColor="#062A45"
                     placeholder="Tipo"
                     options={categoriasCnh}
                     value={categoria}
@@ -256,7 +256,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
               <GenericInput
                 id="email"
                 label="E-mail"
-                labelColor="text-[#062A45]"
+                labelColor="#062A45"
                 type="email"
                 icon={Mail}
                 placeholder="usuario@marazul.com.br"
@@ -270,28 +270,28 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
             </div>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-between border-t border-slate-100 bg-slate-50/50 px-8 py-5">
+        <CardFooter className="flex justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
           <Button
             variant="outline"
             onClick={() => navigate("/funcionario")}
-            className="h-10 gap-2 rounded-md border border-slate-200 bg-white px-6 font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer"
+            className="h-9 gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
           <Button
-            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-8 py-5 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer"
+            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer"
             type="submit"
             form="form-funcionario"
             disabled={!isFormValid || isLoading}
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 size-5 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin" />
                 Salvando...
               </>
             ) : (
               <>
-                <Save className="mr-2 size-5" />
+                <Save className="mr-2 size-4" />
                 {isEdicao ? "Salvar Alterações" : "Salvar Colaborador"}
               </>
             )}
