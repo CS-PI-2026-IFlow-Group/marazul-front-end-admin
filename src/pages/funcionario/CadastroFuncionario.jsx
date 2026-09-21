@@ -281,7 +281,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
           <Button
             className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-8 py-5 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer"
             type="submit"
-            form="form-frota"
+            form="form-funcionario"
             disabled={!isFormValid || isLoading}
           >
             {isLoading ? (
