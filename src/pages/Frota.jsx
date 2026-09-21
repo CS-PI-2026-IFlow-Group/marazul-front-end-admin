@@ -1,22 +1,22 @@
-import { useState, useEffect, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import {
-  Plus,
-  Search,
-  Pencil,
+  AlertCircle,
   Ban,
   Loader2,
-  Truck,
-  AlertCircle,
+  Pencil,
+  Plus,
   RefreshCw,
-  SlidersHorizontal,
   RotateCcw,
+  Search,
+  SlidersHorizontal,
+  Truck,
   X,
 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import Pagination from "../components/Pagination";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import Pagination from "../components/Pagination";
 import FrotaService from "../services/FrotaService";
 
 const STATUS_CONFIG = {
@@ -213,7 +213,9 @@ export default function Frota() {
   const stats = useMemo(() => {
     const total = vehicles.length;
     const active = vehicles.filter((v) => v.status === "ACTIVE").length;
-    const maintenance = vehicles.filter((v) => v.status === "UNDER_MAINTENANCE").length;
+    const maintenance = vehicles.filter(
+      (v) => v.status === "UNDER_MAINTENANCE",
+    ).length;
     const operationalRate = total > 0 ? Math.round((active / total) * 100) : 0;
     return { total, active, maintenance, operationalRate };
   }, [vehicles]);
@@ -249,8 +251,7 @@ export default function Frota() {
   const activeFilterCount =
     (statusFilter !== "ALL" ? 1 : 0) + (modelFilter !== "ALL" ? 1 : 0);
 
-  const hasActiveFilters =
-    Boolean(searchTerm.trim()) || activeFilterCount > 0;
+  const hasActiveFilters = Boolean(searchTerm.trim()) || activeFilterCount > 0;
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -300,9 +301,7 @@ export default function Frota() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-[#062A45] pb-1 border-b-[3.5px] border-[#e31e24] inline-block">
-            Frota
-          </h1>
+          <h1 className="text-2xl font-bold text-[#062A45]">Frota</h1>
         </div>
         <Button
           onClick={() => navigate("/frota/cadastro")}
@@ -407,7 +406,10 @@ export default function Frota() {
                           {[
                             { value: "ALL", label: "Todos" },
                             { value: "ACTIVE", label: "Ativo" },
-                            { value: "UNDER_MAINTENANCE", label: "Em manutenção" },
+                            {
+                              value: "UNDER_MAINTENANCE",
+                              label: "Em manutenção",
+                            },
                             { value: "INACTIVE", label: "Inativo" },
                           ].map((opt) => (
                             <button
