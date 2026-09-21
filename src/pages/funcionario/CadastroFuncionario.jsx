@@ -102,17 +102,19 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
     try {
       if (isEdicao) {
         await FuncionarioService.update(id, payload);
-        toast.success("Usuário atualizado com sucesso!");
+        toast.success("Colaborador atualizado com sucesso!");
       } else {
         await FuncionarioService.create(payload);
-        toast.success("Usuário cadastrado com sucesso!");
+        toast.success("Colaborador cadastrado com sucesso!");
       }
       setTimeout(() => {
         navigate("/funcionario");
       }, 1000);
     } catch (error) {
       toast.error(
-        isEdicao ? "Erro ao atualizar usuário" : "Erro ao cadastrar usuário",
+        isEdicao
+          ? "Erro ao atualizar colaborador"
+          : "Erro ao cadastrar colaborador",
         {
           description:
             error.response?.data?.message ||
@@ -126,7 +128,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
 
   if (isFetching) {
     return (
-      <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center font-sans text-slate-500 gap-3">
+      <div className="flex min-h-[calc(100svh-8rem)] flex-col items-center justify-center font-sans text-slate-500 gap-3">
         <Loader2 className="size-8 animate-spin text-[#062A45]" />
         <p>Carregando dados do colaborador...</p>
       </div>
@@ -134,26 +136,27 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 font-sans">
-      <div className="mb-4">
-        <div className="flex items-start gap-4 flex-col">
+    <div className="bg-slate-50/50 font-sans">
+      <div className="mb-3">
+        <div className="flex items-start gap-2 flex-col-reverse">
           <div>
-            <h1 className="text-3xl font-bold text-[#062A45] pb-1 border-b-[3.5px] border-[#e31e24] inline-block">
-              {isEdicao ? "Edição" : "Cadastro"} de Usuário
+            <h1 className="text-xl font-semibold text-slate-700">
+              {isEdicao ? "Edição" : "Cadastro"} do Colaborador
             </h1>
           </div>
         </div>
       </div>
-      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex border-b border-slate-100 px-8 py-5 items-center gap-3">
-          <User className="h-5 w-5 text-[#e31e24]" />
-          <h2 className="text-base font-medium text-[#062A45]">
+      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden py-1 gap-0">
+        <div className="flex border-b border-slate-100 px-6 py-3 items-center gap-3">
+          <User className="h-4 w-4 text-[#e31e24]" />
+          <h2 className="text-sm font-medium text-[#062A45]">
             Informações do colaborador
           </h2>
         </div>
-        <CardContent className="p-8">
+
+        <CardContent className="px-6 py-4">
           <form
-            className="space-y-6"
+            className="space-y-4"
             onSubmit={handleSubmit}
             id="form-funcionario"
           >
@@ -162,7 +165,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 id="nome"
                 placeholder="Nome do colaborador"
                 label="Nome"
-                labelColor="text-[#062A45]"
+                labelColor="#062A45"
                 icon={User}
                 type="text"
                 required
@@ -170,14 +173,14 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 value={nome}
               />
             </div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
               <div>
                 <GenericInput
                   id="admissao"
                   type="date"
                   max={dataAtual}
                   label="Admissão"
-                  labelColor="text-[#062A45]"
+                  labelColor="#062A45"
                   icon={Calendar1}
                   onChange={(e) => setAdmissao(e.target.value)}
                   value={admissao}
@@ -190,13 +193,13 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                   type="text"
                   icon={Phone}
                   placeholder="(44) 9 9999-9999"
-                  labelColor="text-[#062A45]"
+                  labelColor="#062A45"
                   onChange={(e) => setTelefone(e.target.value)}
                   value={telefone}
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
               <div>
                 <GenericSelect
                   id="funcao"
@@ -221,7 +224,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
               </div>
             </div>
             {funcao === "DRIVER" && (
-              <div className="grid  grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="grid  grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
                 <div>
                   <GenericInput
                     id="cnh"
@@ -229,7 +232,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                     type="text"
                     icon={CreditCard}
                     placeholder="Número da Habilitação"
-                    labelColor="text-[#062A45]"
+                    labelColor="#062A45"
                     value={cnh}
                     onChange={(e) => setCnh(e.target.value)}
                     required
@@ -239,7 +242,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                   <GenericSelect
                     id="categoriaCNH"
                     label="Categoria"
-                    labelColor="text-[#062A45]"
+                    labelColor="#062A45"
                     placeholder="Tipo"
                     options={categoriasCnh}
                     value={categoria}
@@ -253,7 +256,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
               <GenericInput
                 id="email"
                 label="E-mail"
-                labelColor="text-[#062A45]"
+                labelColor="#062A45"
                 type="email"
                 icon={Mail}
                 placeholder="usuario@marazul.com.br"
@@ -267,29 +270,29 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
             </div>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-between border-t border-slate-100 bg-slate-50/50 px-8 py-5">
+        <CardFooter className="flex justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
           <Button
             variant="outline"
             onClick={() => navigate("/funcionario")}
-            className="h-10 gap-2 rounded-md border border-slate-200 bg-white px-6 font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer"
+            className="h-9 gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
           <Button
-            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-8 py-5 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300"
+            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer"
             type="submit"
             form="form-funcionario"
             disabled={!isFormValid || isLoading}
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 size-5 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin" />
                 Salvando...
               </>
             ) : (
               <>
-                <Save className="mr-2 size-5" />
-                {isEdicao ? "Salvar Alterações" : "Salvar Usuário"}
+                <Save className="mr-2 size-4" />
+                {isEdicao ? "Salvar Alterações" : "Salvar Colaborador"}
               </>
             )}
           </Button>

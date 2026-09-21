@@ -18,7 +18,7 @@ export default function Funcionarios() {
       const response = await FuncionarioService.getAll();
       setFuncionarios(response);
     } catch (error) {
-      toast.error("Erro ao carregar funcionários", {
+      toast.error("Erro ao carregar colaboradores", {
         id: "erro-fetch-funcionarios",
         description:
           error.response?.data?.message ||
@@ -62,12 +62,10 @@ export default function Funcionarios() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 font-sans">
+    <div className="space-y-6 font-sans">
       <div className="mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-[#062A45] pb-1 border-b-[3.5px] border-[#e31e24] inline-block">
-            Gestão de Colaboradores
-          </h1>
+          <h1 className="text-2xl font-bold text-[#062A45]">Colaboradores</h1>
         </div>
       </div>
 
@@ -88,7 +86,7 @@ export default function Funcionarios() {
             className="w-full sm:w-auto bg-[#0A1A2F] text-white hover:bg-[#0A1A2F]/90 h-11 px-6 text-sm font-medium rounded-md normal-case tracking-normal cursor-pointer"
           >
             <Plus className="mr-2 size-4" />
-            Novo Funcionário
+            Novo Colaborador
           </Button>
         </div>
 
@@ -126,7 +124,7 @@ export default function Funcionarios() {
                   >
                     {searchTerm !== ""
                       ? "Nenhum colaborador encontrado com essa busca."
-                      : "Nenhum funcionário cadastrado ainda."}
+                      : "Nenhum colaborador cadastrado ainda."}
                   </td>
                 </tr>
               )}

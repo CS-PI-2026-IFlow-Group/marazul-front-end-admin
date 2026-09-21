@@ -1,5 +1,5 @@
+import { BarChart3, LayoutDashboard, Map, Truck, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Truck, Map, Users, BarChart3 } from "lucide-react";
 import logoMarazul from "../assets/logoMarazul.png";
 import { cn } from "../lib/utils";
 
@@ -7,7 +7,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/frota", label: "Frota", icon: Truck },
   { to: "/viagens", label: "Viagens", icon: Map },
-  { to: "/funcionario", label: "Funcionários", icon: Users },
+  { to: "/funcionario", label: "Colaboradores", icon: Users },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
 ];
 

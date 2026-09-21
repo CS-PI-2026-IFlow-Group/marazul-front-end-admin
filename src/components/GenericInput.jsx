@@ -1,18 +1,17 @@
-import { Mail } from "lucide-react";
+import { cn } from "../lib/utils";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { cn } from "../lib/utils";
 
 export default function GenericInput({
-  id = "email",
-  label = "EMAIL",
-  labelColor = "#e31e24",
-  icon: Icon = Mail,
-  type = "email",
+  id,
+  label,
+  labelColor = "#062A45",
+  icon: Icon,
+  type = "text",
   required = false,
   value,
   onChange,
-  placeholder = "nome@marazul.com.br",
+  placeholder = "",
   hasError = false,
   errorMessage = "",
   className,
@@ -48,7 +47,7 @@ export default function GenericInput({
             hasError
               ? "border-red-500 focus-visible:ring-red-500"
               : "border-slate-200 focus-visible:ring-slate-300",
-            className
+            className,
           )}
           {...props}
         />

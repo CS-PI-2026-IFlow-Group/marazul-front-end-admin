@@ -1,4 +1,4 @@
-import { LogIn } from "lucide-react";
+import { LogIn, Mail } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -61,6 +61,11 @@ export default function Login() {
       <CardContent>
         <form onSubmit={handleLogin} className="space-y-6">
           <GenericInput
+            id="email"
+            label="EMAIL"
+            type="email"
+            icon={Mail}
+            placeholder="nome@marazul.com.br"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />

@@ -1,9 +1,4 @@
-import {
-  ArrowLeft,
-  BusFront,
-  Loader2,
-  Save,
-} from "lucide-react";
+import { ArrowLeft, BusFront, Loader2, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -189,12 +184,15 @@ export default function CadastroFrota() {
             "Já existe um veículo cadastrado com esta placa.",
         });
       } else {
-        toast.error(isEditing ? "Erro ao atualizar veículo" : "Erro ao cadastrar veículo", {
-          description:
-            data?.message ||
-            data?.erro ||
-            "Ocorreu um problema ao salvar os dados. Tente novamente.",
-        });
+        toast.error(
+          isEditing ? "Erro ao atualizar veículo" : "Erro ao cadastrar veículo",
+          {
+            description:
+              data?.message ||
+              data?.erro ||
+              "Ocorreu um problema ao salvar os dados. Tente novamente.",
+          },
+        );
       }
     } finally {
       setIsLoading(false);
@@ -205,23 +203,23 @@ export default function CadastroFrota() {
     <div className="bg-slate-50/50 font-sans">
       <div className="mb-3">
         <div className="flex items-start gap-2 flex-col-reverse">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-700">
-            {isEditing ? "Edição de Frota" : "Cadastro de Frota"}
-          </h1>
-        </div>
+          <div>
+            <h1 className="text-xl font-semibold text-slate-700">
+              {isEditing ? "Edição de Frota" : "Cadastro de Frota"}
+            </h1>
+          </div>
         </div>
       </div>
 
-      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden py-1 gap-0">
         <div className="flex border-b border-slate-100 px-6 py-3 items-center gap-3">
           <BusFront className="h-4 w-4 text-[#e31e24]" />
-          <h2 className="text-sm font-medium text-slate-700">
+          <h2 className="text-sm font-medium text-[#062A45]">
             Informações do veículo
           </h2>
         </div>
 
-        <CardContent className="p-6">
+        <CardContent className="px-6 py-4">
           <form id="form-frota" onSubmit={handleSubmit} className="space-y-3">
             <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
               <GenericInput
@@ -341,7 +339,7 @@ export default function CadastroFrota() {
             type="submit"
             form="form-frota"
             disabled={!isFormValid || isLoading}
-            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300"
+            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer"
           >
             {isLoading ? (
               <>
