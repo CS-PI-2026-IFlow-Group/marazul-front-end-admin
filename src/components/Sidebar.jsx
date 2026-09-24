@@ -2,6 +2,7 @@ import { BarChart3, LayoutDashboard, Map, Truck, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import logoMarazul from "../assets/logoMarazul.png";
 import { cn } from "../lib/utils";
+import Rightbar from "./Rightbar";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -44,6 +45,7 @@ export default function Sidebar({ onNavigate }) {
             <span>{label}</span>
           </NavLink>
         ))}
+        <Rightbar onNavigate={onNavigate} />
       </nav>
     </div>
   );
