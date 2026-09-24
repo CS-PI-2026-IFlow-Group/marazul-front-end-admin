@@ -11,6 +11,8 @@ import Dashboard from "./pages/Dashboard";
 import Frota from "./pages/Frota";
 import CadastroFuncionario from "./pages/funcionario/CadastroFuncionario";
 import Funcionarios from "./pages/funcionario/Funcionario";
+import CadastroPerfil from "./pages/perfil/CadastroPerfil";
+import Perfis from "./pages/perfil/Perfis";
 import Relatorios from "./pages/Relatorios";
 import Viagens from "./pages/Viagens";
 
@@ -45,6 +47,13 @@ export default function App() {
           <Route
             path="/funcionario/editar/:id"
             element={<CadastroFuncionario isEdicao={true} />}
+          />
+
+          <Route path="/perfis" element={<Perfis />} />
+          <Route path="/perfis/cadastro" element={<CadastroPerfil />} />
+          <Route
+            path="/perfis/editar/:id"
+            element={<CadastroPerfil isEdicao={true} />}
           />
 
           <Route path="/relatorios" element={<Relatorios />} />
