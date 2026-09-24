@@ -26,6 +26,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
   const [cnh, setCnh] = useState("");
   const [categoria, setCategoria] = useState("");
   const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("ACTIVE");
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -57,6 +58,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
           setCnh(dados.cnhNumber || "");
           setCategoria(dados.cnhType || "");
           setEmail(dados.email || "");
+          setStatus(dados.status || "ACTIVE");
         }
       } catch (error) {
         toast.error(
@@ -92,6 +94,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
       cellphoneNumber: telefone,
       position: funcao,
       userRole: nivelAcesso,
+      status,
       ...(funcao === "DRIVER" && {
         cnhNumber: cnh.trim(),
         cnhType: categoria,
