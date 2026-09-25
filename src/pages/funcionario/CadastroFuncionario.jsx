@@ -17,6 +17,21 @@ import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardFooter } from "../../components/ui/card";
 import FuncionarioService from "../../services/FuncionarioService";
 
+// Celular: DDD (2 dígitos) + 9 + 8 dígitos
+const TELEFONE_REGEX = /^\d{2}9\d{8}$/;
+
+function formatTelefone(raw) {
+  const digits = String(raw ?? "")
+    .replace(/\D/g, "")
+    .slice(0, 11);
+
+  if (digits.length === 0) return "";
+  if (digits.length <= 2) return `(${digits}`;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
 const CadastroFuncionario = ({ isEdicao = false }) => {
   const [funcao, setFuncao] = useState("");
   const [nivelAcesso, setNivelAcesso] = useState("");
@@ -52,7 +67,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
           const dados = await FuncionarioService.getById(id);
           setNome(dados.name || "");
           setAdmissao(dados.admissionDate || "");
-          setTelefone(dados.cellphoneNumber || "");
+          setTelefone(formatTelefone(dados.cellphoneNumber));
           setFuncao(dados.position || "");
           setNivelAcesso(dados.userRole || "");
           setCnh(dados.cnhNumber || "");
@@ -74,8 +89,18 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
     carregarDadosIniciais();
   }, [isEdicao, id, navigate]);
 
+  const telefoneDigits = telefone.replace(/\D/g, "");
+  const telefoneValido =
+    telefoneDigits.length === 0 || TELEFONE_REGEX.test(telefoneDigits);
+  const telefoneTemErro = !telefoneValido;
+
+  const handleTelefoneChange = (e) => {
+    setTelefone(formatTelefone(e.target.value));
+  };
+
   const isFormValid =
     nome.trim() !== "" &&
+    telefoneValido &&
     funcao !== "" &&
     nivelAcesso !== "" &&
     (nivelAcesso === "ADMIN" ? email.trim() !== "" : true) &&
@@ -191,14 +216,19 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
               </div>
               <div>
                 <GenericInput
-                  label="telefone"
+                  label="Telefone"
                   id="telefone"
                   type="text"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  maxLength={15}
                   icon={Phone}
-                  placeholder="(44) 9 9999-9999"
+                  placeholder="(44) 99999-9999"
                   labelColor="#062A45"
-                  onChange={(e) => setTelefone(e.target.value)}
+                  onChange={handleTelefoneChange}
                   value={telefone}
+                  hasError={telefoneTemErro}
+                  errorMessage="Informe um celular válido no formato (XX) 9XXXX-XXXX"
                 />
               </div>
             </div>
