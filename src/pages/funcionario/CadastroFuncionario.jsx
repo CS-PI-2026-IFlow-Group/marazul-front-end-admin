@@ -15,6 +15,8 @@ import GenericInput from "../../components/GenericInput";
 import GenericSelect from "../../components/GenericSelect";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardFooter } from "../../components/ui/card";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Label } from "../../components/ui/label";
 import FuncionarioService from "../../services/FuncionarioService";
 
 // Celular: DDD (2 dígitos) + 9 + 8 dígitos
@@ -34,7 +36,7 @@ function formatTelefone(raw) {
 
 const CadastroFuncionario = ({ isEdicao = false }) => {
   const [funcao, setFuncao] = useState("");
-  const [nivelAcesso, setNivelAcesso] = useState("");
+  const [isUser, setIsUser] = useState(false);
   const [nome, setNome] = useState("");
   const [admissao, setAdmissao] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -50,7 +52,6 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
   const navigate = useNavigate();
 
   const [funcoes, setFuncoes] = useState([]);
-  const [niveisAcesso, setNiveisAcesso] = useState([]);
   const [categoriasCnh, setCategoriasCnh] = useState([]);
 
   const dataAtual = new Date().toLocaleDateString("en-CA");
@@ -60,7 +61,6 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
       try {
         const enums = await FuncionarioService.getEnums();
         setFuncoes(enums.positions);
-        setNiveisAcesso(enums.roles);
         setCategoriasCnh(enums.cnhCategories);
 
         if (isEdicao && id) {
@@ -69,7 +69,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
           setAdmissao(dados.admissionDate || "");
           setTelefone(formatTelefone(dados.cellphoneNumber));
           setFuncao(dados.position || "");
-          setNivelAcesso(dados.userRole || "");
+          setIsUser(dados.isUser === true);
           setCnh(dados.cnhNumber || "");
           setCategoria(dados.cnhType || "");
           setEmail(dados.email || "");
@@ -102,8 +102,6 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
     nome.trim() !== "" &&
     telefoneValido &&
     funcao !== "" &&
-    nivelAcesso !== "" &&
-    (nivelAcesso === "ADMIN" ? email.trim() !== "" : true) &&
     (funcao === "DRIVER" ? cnh.trim() !== "" && categoria !== "" : true);
 
   const handleSubmit = async (e) => {
@@ -118,7 +116,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
       admissionDate: admissao,
       cellphoneNumber: telefone,
       position: funcao,
-      userRole: nivelAcesso,
+      isUser,
       status,
       ...(funcao === "DRIVER" && {
         cnhNumber: cnh.trim(),
@@ -244,17 +242,6 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                   options={funcoes}
                 />
               </div>
-              <div>
-                <GenericSelect
-                  id="nivelAcesso"
-                  label="Nível de Acesso"
-                  required
-                  value={nivelAcesso}
-                  placeholder="Selecione o nível"
-                  onChange={setNivelAcesso}
-                  options={niveisAcesso}
-                />
-              </div>
             </div>
             {funcao === "DRIVER" && (
               <div className="grid  grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
@@ -285,6 +272,25 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 </div>
               </div>
             )}
+            <div className="flex items-start gap-3 rounded-md border border-slate-200 bg-[#F8FAFC] px-4 py-3">
+              <Checkbox
+                id="isUser"
+                checked={isUser}
+                onCheckedChange={(checked) => setIsUser(checked === true)}
+                className="mt-0.5 rounded-[4px] border-slate-300 bg-white cursor-pointer data-[state=checked]:border-[#062A45] data-[state=checked]:bg-[#062A45] data-[state=checked]:text-white"
+              />
+              <div className="space-y-1">
+                <Label
+                  htmlFor="isUser"
+                  className="cursor-pointer text-sm font-medium normal-case tracking-normal text-[#062A45]"
+                >
+                  Permitir acesso ao sistema?
+                </Label>
+                <p className="text-[13px] text-slate-500">
+                  Marque para que o colaborador possa fazer login no sistema.
+                </p>
+              </div>
+            </div>
             <div>
               <GenericInput
                 id="email"
@@ -293,13 +299,9 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 type="email"
                 icon={Mail}
                 placeholder="usuario@marazul.com.br"
-                required={nivelAcesso === "ADMIN"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <p className="mt-2 text-[13px] italic text-slate-500">
-                Obrigatório apenas para níveis administrativos.
-              </p>
             </div>
           </form>
         </CardContent>

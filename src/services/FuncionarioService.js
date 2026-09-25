@@ -6,10 +6,6 @@ const FALLBACK_ENUMS = {
     { value: "DRIVER", label: "Motorista" },
     { value: "OTHER", label: "Outros" },
   ],
-  roles: [
-    { value: "USER", label: "Comum" },
-    { value: "ADMIN", label: "Administrador (Admin)" },
-  ],
   cnhCategories: [
     { value: "A", label: "A" },
     { value: "B", label: "B" },
@@ -39,7 +35,6 @@ class FuncionarioService extends BaseService {
 
       return {
         positions: data.positions || FALLBACK_ENUMS.positions,
-        roles: data.roles || FALLBACK_ENUMS.roles,
         cnhCategories:
           data.cnhCategories || data.cnhTypes || FALLBACK_ENUMS.cnhCategories,
       };
@@ -55,7 +50,7 @@ class FuncionarioService extends BaseService {
       admissionDate: funcionario.admissionDate || "",
       cellphoneNumber: funcionario.cellphoneNumber || "",
       position: funcionario.position,
-      userRole: funcionario.userRole,
+      isUser: funcionario.isUser === true,
       ...(funcionario.position === "DRIVER" && {
         cnhNumber: funcionario.cnhNumber || "",
         cnhType: funcionario.cnhType || "",
