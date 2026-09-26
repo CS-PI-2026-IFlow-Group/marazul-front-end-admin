@@ -1,6 +1,8 @@
 import api from "../config/axiosConfig";
 import BaseService from "./BaseService";
 
+const PERFIL_FIELD = "profileId";
+
 const FALLBACK_ENUMS = {
   positions: [
     { value: "DRIVER", label: "Motorista" },
@@ -51,6 +53,7 @@ class FuncionarioService extends BaseService {
       cellphoneNumber: funcionario.cellphoneNumber || "",
       position: funcionario.position,
       isUser: funcionario.isUser === true,
+      ...this.buildPerfilPayload(this.getPerfilId(funcionario)),
       ...(funcionario.position === "DRIVER" && {
         cnhNumber: funcionario.cnhNumber || "",
         cnhType: funcionario.cnhType || "",
@@ -66,6 +69,21 @@ class FuncionarioService extends BaseService {
 
   async ativar(id) {
     return this.changeStatus(id, "ACTIVE");
+  }
+
+  getPerfilId(funcionario) {
+    const id =
+      funcionario?.[PERFIL_FIELD] ??
+      funcionario?.profile?.id ??
+      funcionario?.perfilId ??
+      funcionario?.perfil?.id;
+
+    return id !== undefined && id !== null ? String(id) : "";
+  }
+
+  // Monta o trecho do payload com o perfil (omitido se não houver perfil).
+  buildPerfilPayload(perfilId) {
+    return perfilId ? { [PERFIL_FIELD]: Number(perfilId) } : {};
   }
 
   getLabel(enumKey, value) {
