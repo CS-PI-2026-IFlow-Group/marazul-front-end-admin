@@ -1,14 +1,12 @@
 import api from "../config/axiosConfig";
 import BaseService from "./BaseService";
 
+const PERFIL_FIELD = "profileId";
+
 const FALLBACK_ENUMS = {
   positions: [
     { value: "DRIVER", label: "Motorista" },
     { value: "OTHER", label: "Outros" },
-  ],
-  roles: [
-    { value: "USER", label: "Comum" },
-    { value: "ADMIN", label: "Administrador (Admin)" },
   ],
   cnhCategories: [
     { value: "A", label: "A" },
@@ -39,7 +37,6 @@ class FuncionarioService extends BaseService {
 
       return {
         positions: data.positions || FALLBACK_ENUMS.positions,
-        roles: data.roles || FALLBACK_ENUMS.roles,
         cnhCategories:
           data.cnhCategories || data.cnhTypes || FALLBACK_ENUMS.cnhCategories,
       };
@@ -55,7 +52,8 @@ class FuncionarioService extends BaseService {
       admissionDate: funcionario.admissionDate || "",
       cellphoneNumber: funcionario.cellphoneNumber || "",
       position: funcionario.position,
-      userRole: funcionario.userRole,
+      isUser: funcionario.isUser === true,
+      ...this.buildPerfilPayload(this.getPerfilId(funcionario)),
       ...(funcionario.position === "DRIVER" && {
         cnhNumber: funcionario.cnhNumber || "",
         cnhType: funcionario.cnhType || "",
@@ -71,6 +69,16 @@ class FuncionarioService extends BaseService {
 
   async ativar(id) {
     return this.changeStatus(id, "ACTIVE");
+  }
+
+  getPerfilId(funcionario) {
+    const id = funcionario?.[PERFIL_FIELD] ?? funcionario?.profile?.id;
+
+    return id !== undefined && id !== null ? String(id) : "";
+  }
+
+  buildPerfilPayload(perfilId) {
+    return perfilId ? { [PERFIL_FIELD]: Number(perfilId) } : {};
   }
 
   getLabel(enumKey, value) {

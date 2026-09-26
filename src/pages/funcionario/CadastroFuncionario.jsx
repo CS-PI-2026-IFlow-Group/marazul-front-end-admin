@@ -6,6 +6,7 @@ import {
   Mail,
   Phone,
   Save,
+  ShieldCheck,
   User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -15,11 +16,30 @@ import GenericInput from "../../components/GenericInput";
 import GenericSelect from "../../components/GenericSelect";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardFooter } from "../../components/ui/card";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Label } from "../../components/ui/label";
 import FuncionarioService from "../../services/FuncionarioService";
+import PerfilService from "../../services/PerfilService";
+
+const TELEFONE_REGEX = /^\d{2}9\d{8}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function formatTelefone(raw) {
+  const digits = String(raw ?? "")
+    .replace(/\D/g, "")
+    .slice(0, 11);
+
+  if (digits.length === 0) return "";
+  if (digits.length <= 2) return `(${digits}`;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
 
 const CadastroFuncionario = ({ isEdicao = false }) => {
   const [funcao, setFuncao] = useState("");
-  const [nivelAcesso, setNivelAcesso] = useState("");
+  const [isUser, setIsUser] = useState(false);
+  const [perfilId, setPerfilId] = useState("");
   const [nome, setNome] = useState("");
   const [admissao, setAdmissao] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -35,26 +55,33 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
   const navigate = useNavigate();
 
   const [funcoes, setFuncoes] = useState([]);
-  const [niveisAcesso, setNiveisAcesso] = useState([]);
   const [categoriasCnh, setCategoriasCnh] = useState([]);
+  const [perfis, setPerfis] = useState([]);
 
   const dataAtual = new Date().toLocaleDateString("en-CA");
 
   useEffect(() => {
     const carregarDadosIniciais = async () => {
       try {
-        const enums = await FuncionarioService.getEnums();
+        const [enums, perfisOptions] = await Promise.all([
+          FuncionarioService.getEnums(),
+          PerfilService.getOptions().catch(() => {
+            toast.error("Não foi possível carregar os perfis de acesso.");
+            return [];
+          }),
+        ]);
         setFuncoes(enums.positions);
-        setNiveisAcesso(enums.roles);
         setCategoriasCnh(enums.cnhCategories);
+        setPerfis(perfisOptions);
 
         if (isEdicao && id) {
           const dados = await FuncionarioService.getById(id);
           setNome(dados.name || "");
           setAdmissao(dados.admissionDate || "");
-          setTelefone(dados.cellphoneNumber || "");
+          setTelefone(formatTelefone(dados.cellphoneNumber));
           setFuncao(dados.position || "");
-          setNivelAcesso(dados.userRole || "");
+          setIsUser(dados.isUser === true);
+          setPerfilId(FuncionarioService.getPerfilId(dados));
           setCnh(dados.cnhNumber || "");
           setCategoria(dados.cnhType || "");
           setEmail(dados.email || "");
@@ -74,11 +101,25 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
     carregarDadosIniciais();
   }, [isEdicao, id, navigate]);
 
+  const telefoneDigits = telefone.replace(/\D/g, "");
+  const telefoneValido =
+    telefoneDigits.length === 0 || TELEFONE_REGEX.test(telefoneDigits);
+  const telefoneTemErro = !telefoneValido;
+
+  const emailFormatoValido = EMAIL_REGEX.test(email.trim());
+  const emailValido = !isUser || emailFormatoValido;
+  const emailTemErro = isUser && email.trim() !== "" && !emailFormatoValido;
+
+  const handleTelefoneChange = (e) => {
+    setTelefone(formatTelefone(e.target.value));
+  };
+
   const isFormValid =
     nome.trim() !== "" &&
+    telefoneValido &&
     funcao !== "" &&
-    nivelAcesso !== "" &&
-    (nivelAcesso === "ADMIN" ? email.trim() !== "" : true) &&
+    perfilId !== "" &&
+    emailValido &&
     (funcao === "DRIVER" ? cnh.trim() !== "" && categoria !== "" : true);
 
   const handleSubmit = async (e) => {
@@ -93,13 +134,14 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
       admissionDate: admissao,
       cellphoneNumber: telefone,
       position: funcao,
-      userRole: nivelAcesso,
+      isUser,
+      ...FuncionarioService.buildPerfilPayload(perfilId),
       status,
       ...(funcao === "DRIVER" && {
         cnhNumber: cnh.trim(),
         cnhType: categoria,
       }),
-      ...(email && { email: email.trim() }),
+      ...(isUser && email.trim() && { email: email.trim() }),
     };
 
     try {
@@ -110,9 +152,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
         await FuncionarioService.create(payload);
         toast.success("Colaborador cadastrado com sucesso!");
       }
-      setTimeout(() => {
-        navigate("/funcionario");
-      }, 1000);
+      navigate("/funcionario");
     } catch (error) {
       toast.error(
         isEdicao
@@ -159,7 +199,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
 
         <CardContent className="px-6 py-4">
           <form
-            className="space-y-4"
+            className="space-y-3"
             onSubmit={handleSubmit}
             id="form-funcionario"
           >
@@ -176,7 +216,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 value={nome}
               />
             </div>
-            <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
               <div>
                 <GenericInput
                   id="admissao"
@@ -191,22 +231,28 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
               </div>
               <div>
                 <GenericInput
-                  label="telefone"
+                  label="Telefone"
                   id="telefone"
                   type="text"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  maxLength={15}
                   icon={Phone}
-                  placeholder="(44) 9 9999-9999"
+                  placeholder="(44) 99999-9999"
                   labelColor="#062A45"
-                  onChange={(e) => setTelefone(e.target.value)}
+                  onChange={handleTelefoneChange}
                   value={telefone}
+                  hasError={telefoneTemErro}
+                  errorMessage="Informe um celular válido no formato (XX) 9XXXX-XXXX"
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
               <div>
                 <GenericSelect
                   id="funcao"
                   label="Função"
+                  labelColor="#062A45"
                   required
                   value={funcao}
                   placeholder="Selecione uma função"
@@ -216,18 +262,24 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
               </div>
               <div>
                 <GenericSelect
-                  id="nivelAcesso"
-                  label="Nível de Acesso"
+                  id="perfil"
+                  label="Perfil de Acesso"
+                  labelColor="#062A45"
+                  icon={ShieldCheck}
                   required
-                  value={nivelAcesso}
-                  placeholder="Selecione o nível"
-                  onChange={setNivelAcesso}
-                  options={niveisAcesso}
+                  value={perfilId}
+                  placeholder={
+                    perfis.length > 0
+                      ? "Selecione um perfil"
+                      : "Nenhum perfil disponível"
+                  }
+                  onChange={setPerfilId}
+                  options={perfis}
                 />
               </div>
             </div>
             {funcao === "DRIVER" && (
-              <div className="grid  grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
                 <div>
                   <GenericInput
                     id="cnh"
@@ -255,6 +307,25 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 </div>
               </div>
             )}
+            <div className="flex items-start gap-3 rounded-md border border-slate-200 bg-[#F8FAFC] px-4 py-3">
+              <Checkbox
+                id="isUser"
+                checked={isUser}
+                onCheckedChange={(checked) => setIsUser(checked === true)}
+                className="mt-0.5 rounded-[4px] border-slate-300 bg-white cursor-pointer data-[state=checked]:border-[#062A45] data-[state=checked]:bg-[#062A45] data-[state=checked]:text-white"
+              />
+              <div className="space-y-1">
+                <Label
+                  htmlFor="isUser"
+                  className="cursor-pointer text-sm font-medium normal-case tracking-normal text-[#062A45]"
+                >
+                  Permitir acesso ao sistema?
+                </Label>
+                <p className="text-[13px] text-slate-500">
+                  Marque para que o colaborador possa fazer login no sistema.
+                </p>
+              </div>
+            </div>
             <div>
               <GenericInput
                 id="email"
@@ -263,13 +334,13 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 type="email"
                 icon={Mail}
                 placeholder="usuario@marazul.com.br"
-                required={nivelAcesso === "ADMIN"}
+                required={isUser}
+                disabled={!isUser}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                hasError={emailTemErro}
+                errorMessage="Informe um e-mail válido"
               />
-              <p className="mt-2 text-[13px] italic text-slate-500">
-                Obrigatório apenas para níveis administrativos.
-              </p>
             </div>
           </form>
         </CardContent>

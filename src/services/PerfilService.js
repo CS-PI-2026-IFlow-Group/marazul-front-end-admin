@@ -21,6 +21,16 @@ class PerfilService extends BaseService {
     }));
   }
 
+  async getOptions() {
+    const data = await this.getAll();
+    const lista = Array.isArray(data) ? data : [];
+
+    return lista.map((perfil) => ({
+      value: String(perfil.id),
+      label: perfil.nome ?? perfil.name ?? `Perfil ${perfil.id}`,
+    }));
+  }
+
   // Padroniza o contrato de envio: { nome, permissionsIds }.
   buildPayload(data) {
     return {
