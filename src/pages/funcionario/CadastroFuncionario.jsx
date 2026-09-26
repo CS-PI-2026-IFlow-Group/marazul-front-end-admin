@@ -21,7 +21,6 @@ import { Label } from "../../components/ui/label";
 import FuncionarioService from "../../services/FuncionarioService";
 import PerfilService from "../../services/PerfilService";
 
-// Celular: DDD (2 dígitos) + 9 + 8 dígitos
 const TELEFONE_REGEX = /^\d{2}9\d{8}$/;
 
 function formatTelefone(raw) {
@@ -148,9 +147,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
         await FuncionarioService.create(payload);
         toast.success("Colaborador cadastrado com sucesso!");
       }
-      setTimeout(() => {
-        navigate("/funcionario");
-      }, 1000);
+      navigate("/funcionario");
     } catch (error) {
       toast.error(
         isEdicao

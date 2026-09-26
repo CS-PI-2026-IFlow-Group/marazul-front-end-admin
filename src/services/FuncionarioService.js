@@ -81,7 +81,6 @@ class FuncionarioService extends BaseService {
     return id !== undefined && id !== null ? String(id) : "";
   }
 
-  // Monta o trecho do payload com o perfil (omitido se não houver perfil).
   buildPerfilPayload(perfilId) {
     return perfilId ? { [PERFIL_FIELD]: Number(perfilId) } : {};
   }
