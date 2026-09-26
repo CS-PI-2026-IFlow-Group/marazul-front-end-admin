@@ -22,6 +22,7 @@ import FuncionarioService from "../../services/FuncionarioService";
 import PerfilService from "../../services/PerfilService";
 
 const TELEFONE_REGEX = /^\d{2}9\d{8}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function formatTelefone(raw) {
   const digits = String(raw ?? "")
@@ -105,6 +106,10 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
     telefoneDigits.length === 0 || TELEFONE_REGEX.test(telefoneDigits);
   const telefoneTemErro = !telefoneValido;
 
+  const emailFormatoValido = EMAIL_REGEX.test(email.trim());
+  const emailValido = !isUser || emailFormatoValido;
+  const emailTemErro = isUser && email.trim() !== "" && !emailFormatoValido;
+
   const handleTelefoneChange = (e) => {
     setTelefone(formatTelefone(e.target.value));
   };
@@ -114,7 +119,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
     telefoneValido &&
     funcao !== "" &&
     perfilId !== "" &&
-    (isUser ? email.trim() !== "" : true) &&
+    emailValido &&
     (funcao === "DRIVER" ? cnh.trim() !== "" && categoria !== "" : true);
 
   const handleSubmit = async (e) => {
@@ -331,6 +336,8 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 disabled={!isUser}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                hasError={emailTemErro}
+                errorMessage="Informe um e-mail válido"
               />
             </div>
           </form>
