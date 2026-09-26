@@ -6,6 +6,7 @@ import {
   Mail,
   Phone,
   Save,
+  ShieldCheck,
   User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -18,6 +19,7 @@ import { Card, CardContent, CardFooter } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Label } from "../../components/ui/label";
 import FuncionarioService from "../../services/FuncionarioService";
+import PerfilService from "../../services/PerfilService";
 
 // Celular: DDD (2 dígitos) + 9 + 8 dígitos
 const TELEFONE_REGEX = /^\d{2}9\d{8}$/;
@@ -37,6 +39,7 @@ function formatTelefone(raw) {
 const CadastroFuncionario = ({ isEdicao = false }) => {
   const [funcao, setFuncao] = useState("");
   const [isUser, setIsUser] = useState(false);
+  const [perfilId, setPerfilId] = useState("");
   const [nome, setNome] = useState("");
   const [admissao, setAdmissao] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -53,15 +56,23 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
 
   const [funcoes, setFuncoes] = useState([]);
   const [categoriasCnh, setCategoriasCnh] = useState([]);
+  const [perfis, setPerfis] = useState([]);
 
   const dataAtual = new Date().toLocaleDateString("en-CA");
 
   useEffect(() => {
     const carregarDadosIniciais = async () => {
       try {
-        const enums = await FuncionarioService.getEnums();
+        const [enums, perfisOptions] = await Promise.all([
+          FuncionarioService.getEnums(),
+          PerfilService.getOptions().catch(() => {
+            toast.error("Não foi possível carregar os perfis de acesso.");
+            return [];
+          }),
+        ]);
         setFuncoes(enums.positions);
         setCategoriasCnh(enums.cnhCategories);
+        setPerfis(perfisOptions);
 
         if (isEdicao && id) {
           const dados = await FuncionarioService.getById(id);
@@ -70,6 +81,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
           setTelefone(formatTelefone(dados.cellphoneNumber));
           setFuncao(dados.position || "");
           setIsUser(dados.isUser === true);
+          setPerfilId(FuncionarioService.getPerfilId(dados));
           setCnh(dados.cnhNumber || "");
           setCategoria(dados.cnhType || "");
           setEmail(dados.email || "");
@@ -102,6 +114,8 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
     nome.trim() !== "" &&
     telefoneValido &&
     funcao !== "" &&
+    perfilId !== "" &&
+    (isUser ? email.trim() !== "" : true) &&
     (funcao === "DRIVER" ? cnh.trim() !== "" && categoria !== "" : true);
 
   const handleSubmit = async (e) => {
@@ -117,12 +131,13 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
       cellphoneNumber: telefone,
       position: funcao,
       isUser,
+      ...FuncionarioService.buildPerfilPayload(perfilId),
       status,
       ...(funcao === "DRIVER" && {
         cnhNumber: cnh.trim(),
         cnhType: categoria,
       }),
-      ...(email && { email: email.trim() }),
+      ...(isUser && email.trim() && { email: email.trim() }),
     };
 
     try {
@@ -242,6 +257,22 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                   options={funcoes}
                 />
               </div>
+              <div>
+                <GenericSelect
+                  id="perfil"
+                  label="Perfil de Acesso"
+                  icon={ShieldCheck}
+                  required
+                  value={perfilId}
+                  placeholder={
+                    perfis.length > 0
+                      ? "Selecione um perfil"
+                      : "Nenhum perfil disponível"
+                  }
+                  onChange={setPerfilId}
+                  options={perfis}
+                />
+              </div>
             </div>
             {funcao === "DRIVER" && (
               <div className="grid  grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
@@ -299,6 +330,8 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 type="email"
                 icon={Mail}
                 placeholder="usuario@marazul.com.br"
+                required={isUser}
+                disabled={!isUser}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
