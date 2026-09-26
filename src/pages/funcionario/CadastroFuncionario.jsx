@@ -199,7 +199,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
 
         <CardContent className="px-6 py-4">
           <form
-            className="space-y-4"
+            className="space-y-3"
             onSubmit={handleSubmit}
             id="form-funcionario"
           >
@@ -216,7 +216,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 value={nome}
               />
             </div>
-            <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
               <div>
                 <GenericInput
                   id="admissao"
@@ -247,11 +247,12 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
               <div>
                 <GenericSelect
                   id="funcao"
                   label="Função"
+                  labelColor="#062A45"
                   required
                   value={funcao}
                   placeholder="Selecione uma função"
@@ -263,6 +264,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
                 <GenericSelect
                   id="perfil"
                   label="Perfil de Acesso"
+                  labelColor="#062A45"
                   icon={ShieldCheck}
                   required
                   value={perfilId}
@@ -277,7 +279,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
               </div>
             </div>
             {funcao === "DRIVER" && (
-              <div className="grid  grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
                 <div>
                   <GenericInput
                     id="cnh"
