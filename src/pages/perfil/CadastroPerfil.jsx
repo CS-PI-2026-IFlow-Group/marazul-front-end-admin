@@ -132,7 +132,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden py-1 gap-0">
         <div className="flex border-b border-slate-100 px-6 py-3 items-center gap-3">
           <ShieldCheck className="h-4 w-4 text-[#e31e24]" />
-          <h2 className="text-sm font-medium text-[#062A45]">
+                  <h2 className="text-sm font-medium text-[#062A45]">
             Informações do perfil
           </h2>
         </div>
@@ -224,7 +224,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                               onCheckedChange={(checked) =>
                                 toggleModulo(permissoesDoModulo, checked === true)
                               }
-                              className="border-slate-300 data-[state=checked]:bg-[#062A45]"
+                              className="rounded-sm border-slate-300 data-[state=checked]:bg-slate-500"
                             />
                             <Label
                               htmlFor={`modulo-${modulo}`}
@@ -247,7 +247,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                                   onCheckedChange={() =>
                                     togglePermissao(permissao.id)
                                   }
-                                  className="border-slate-300 data-[state=checked]:bg-[#062A45]"
+                                  className="rounded-sm border-slate-300 data-[state=checked]:bg-slate-500"
                                 />
                                 <Label
                                   htmlFor={`permissao-${permissao.id}`}
