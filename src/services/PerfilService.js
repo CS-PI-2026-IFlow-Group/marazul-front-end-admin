@@ -23,7 +23,7 @@ class PerfilService extends BaseService {
 
   async getOptions() {
     const data = await this.getAll();
-    const lista = Array.isArray(data) ? data : (data?.content ?? []);
+    const lista = Array.isArray(data) ? data : [];
 
     return lista.map((perfil) => ({
       value: String(perfil.id),

@@ -72,11 +72,7 @@ class FuncionarioService extends BaseService {
   }
 
   getPerfilId(funcionario) {
-    const id =
-      funcionario?.[PERFIL_FIELD] ??
-      funcionario?.profile?.id ??
-      funcionario?.perfilId ??
-      funcionario?.perfil?.id;
+    const id = funcionario?.[PERFIL_FIELD] ?? funcionario?.profile?.id;
 
     return id !== undefined && id !== null ? String(id) : "";
   }
