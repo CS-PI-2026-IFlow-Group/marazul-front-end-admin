@@ -3,11 +3,13 @@ import {
   Loader2,
   Plus,
   RefreshCw,
+  Search,
   ShieldCheck,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
 import PerfilService from "../../services/PerfilService";
 
 export default function Perfis() {
@@ -15,6 +17,7 @@ export default function Perfis() {
   const [profiles, setProfiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
@@ -35,6 +38,17 @@ export default function Perfis() {
       active = false;
     };
   }, [retryCount]);
+
+  const normalizedSearch = searchTerm.trim().toLocaleLowerCase("pt-BR");
+  const filteredProfiles = useMemo(
+    () =>
+      profiles.filter((profile) =>
+        String(profile.name ?? profile.nome ?? "")
+          .toLocaleLowerCase("pt-BR")
+          .includes(normalizedSearch),
+      ),
+    [profiles, normalizedSearch],
+  );
 
   const handleRetry = () => {
     setIsLoading(true);
@@ -65,10 +79,23 @@ export default function Perfis() {
             </h2>
             {!isLoading && !error && (
               <span className="ml-1 rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
-                {profiles.length}
+                {filteredProfiles.length}
               </span>
             )}
           </div>
+          {!isLoading && !error && profiles.length > 0 && (
+            <div className="relative w-full sm:w-64">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                id="search-perfis"
+                aria-label="Buscar perfis pelo nome"
+                placeholder="Buscar perfil..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                className="h-9 rounded-lg border-slate-200 bg-white pl-9 text-xs shadow-none focus-visible:border-[#062A45] focus-visible:ring-[#062A45]/20"
+              />
+            </div>
+          )}
         </div>
 
         {isLoading && (
@@ -133,7 +160,19 @@ export default function Perfis() {
           </div>
         )}
 
-        {!isLoading && !error && profiles.length > 0 && (
+        {!isLoading &&
+          !error &&
+          profiles.length > 0 &&
+          filteredProfiles.length === 0 && (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 py-16">
+              <Search className="h-10 w-10 text-slate-200" />
+              <p className="text-sm font-semibold text-[#062A45]">
+                Nenhum perfil encontrado
+              </p>
+            </div>
+          )}
+
+        {!isLoading && !error && filteredProfiles.length > 0 && (
           <div className="flex-1 overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -152,7 +191,7 @@ export default function Perfis() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {profiles.map((profile, index) => {
+                {filteredProfiles.map((profile, index) => {
                   const name = profile.name ?? profile.nome ?? "Perfil sem nome";
                   const permissionCount = Array.isArray(profile.permissions)
                     ? profile.permissions.length
