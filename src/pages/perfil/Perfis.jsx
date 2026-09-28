@@ -1,6 +1,7 @@
 import {
   AlertCircle,
   Loader2,
+  Pencil,
   Plus,
   RefreshCw,
   Search,
@@ -69,7 +70,7 @@ export default function Perfis() {
     setRetryCount((count) => count + 1);
   };
 
-  const columns = ["Nome do Perfil", "Permissões"];
+  const columns = ["Nome do Perfil", "Permissões", "Ações"];
 
   return (
     <div className="space-y-6 font-sans">
@@ -239,6 +240,19 @@ export default function Perfis() {
                         <span className="text-slate-500">
                           {permissionCount === 1 ? "permissão" : "permissões"}
                         </span>
+                      </td>
+                      <td className="whitespace-nowrap px-5 py-3.5 pl-7">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigate(`/perfis/editar/${profile.id}`)
+                          }
+                          title="Editar perfil"
+                          aria-label={`Editar perfil ${name}`}
+                          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-all duration-150 hover:bg-[#062A45]/10 hover:text-[#062A45]"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   );
