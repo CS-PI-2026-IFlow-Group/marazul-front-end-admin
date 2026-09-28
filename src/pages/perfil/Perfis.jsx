@@ -6,15 +6,99 @@ import {
   RefreshCw,
   Search,
   ShieldCheck,
+  Trash2,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import Pagination from "../../components/Pagination";
 import PerfilService from "../../services/PerfilService";
 
 const ITEMS_PER_PAGE = 8;
+
+function ConfirmDeleteModal({ profile, isLoading, onConfirm, onCancel }) {
+  if (!profile) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <button
+        type="button"
+        aria-label="Fechar confirmação"
+        onClick={onCancel}
+        disabled={isLoading}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm disabled:cursor-not-allowed"
+      />
+      <section
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-delete-title"
+        className="relative z-10 mx-4 w-full max-w-lg rounded-xl border border-slate-100 bg-white p-8 shadow-2xl"
+      >
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={isLoading}
+          aria-label="Fechar confirmação"
+          className="absolute right-4 top-4 rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+            <Trash2 className="h-8 w-8 text-red-600" />
+          </div>
+          <div>
+            <h2
+              id="confirm-delete-title"
+              className="text-xl font-bold text-[#062A45]"
+            >
+              Excluir perfil
+            </h2>
+            <p className="mt-3 text-base text-slate-600">
+              Deseja realmente excluir o perfil{" "}
+              <span className="font-semibold text-[#062A45]">
+                {profile.name ?? profile.nome}
+              </span>
+              ?
+            </p>
+            <p className="mt-2 text-sm text-slate-500">
+              Esta ação não poderá ser desfeita.
+            </p>
+          </div>
+        </div>
+        <div className="mt-8 flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="h-12 flex-1 rounded-lg text-sm font-semibold"
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            onClick={onConfirm}
+            disabled={isLoading}
+            className="h-12 flex-1 cursor-pointer rounded-lg bg-red-600 text-sm font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Excluindo...
+              </>
+            ) : (
+              "Confirmar exclusão"
+            )}
+          </Button>
+        </div>
+      </section>
+    </div>
+  );
+}
 
 export default function Perfis() {
   const navigate = useNavigate();
@@ -24,6 +108,8 @@ export default function Perfis() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [retryCount, setRetryCount] = useState(0);
+  const [profileToDelete, setProfileToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -68,6 +154,35 @@ export default function Perfis() {
     setIsLoading(true);
     setError(null);
     setRetryCount((count) => count + 1);
+  };
+
+  const handleDelete = async () => {
+    if (!profileToDelete || isDeleting) return;
+
+    setIsDeleting(true);
+    try {
+      await PerfilService.delete(profileToDelete.id);
+      setProfiles((current) =>
+        current.filter((profile) => profile.id !== profileToDelete.id),
+      );
+      toast.success("Perfil excluído com sucesso!");
+    } catch (requestError) {
+      const status = requestError.response?.status;
+      const data = requestError.response?.data;
+
+      if (status === 400) {
+        toast.error(
+          data?.message || data?.erro || "Não foi possível excluir este perfil.",
+        );
+      } else {
+        toast.error("Erro ao excluir perfil", {
+          description: "Ocorreu um problema. Tente novamente.",
+        });
+      }
+    } finally {
+      setIsDeleting(false);
+      setProfileToDelete(null);
+    }
   };
 
   const columns = ["Nome do Perfil", "Permissões", "Ações"];
@@ -253,6 +368,20 @@ export default function Perfis() {
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => setProfileToDelete(profile)}
+                          disabled={isSystemProfile}
+                          title={
+                            isSystemProfile
+                              ? "O perfil padrão não pode ser excluído"
+                              : "Excluir perfil"
+                          }
+                          aria-label={`Excluir perfil ${name}`}
+                          className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-red-500 transition-all duration-150 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-red-500"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   );
@@ -277,6 +406,14 @@ export default function Perfis() {
         )}
 
       </section>
+      <ConfirmDeleteModal
+        profile={profileToDelete}
+        isLoading={isDeleting}
+        onConfirm={handleDelete}
+        onCancel={() => {
+          if (!isDeleting) setProfileToDelete(null);
+        }}
+      />
     </div>
   );
 }
