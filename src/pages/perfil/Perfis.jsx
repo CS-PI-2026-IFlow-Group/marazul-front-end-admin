@@ -10,7 +10,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
+import Pagination from "../../components/Pagination";
 import PerfilService from "../../services/PerfilService";
+
+const ITEMS_PER_PAGE = 8;
 
 export default function Perfis() {
   const navigate = useNavigate();
@@ -18,6 +21,7 @@ export default function Perfis() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
@@ -49,6 +53,15 @@ export default function Perfis() {
       ),
     [profiles, normalizedSearch],
   );
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProfiles.length / ITEMS_PER_PAGE),
+  );
+  const displayedPage = Math.min(currentPage, totalPages);
+  const paginatedProfiles = useMemo(() => {
+    const startIndex = (displayedPage - 1) * ITEMS_PER_PAGE;
+    return filteredProfiles.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredProfiles, displayedPage]);
 
   const handleRetry = () => {
     setIsLoading(true);
@@ -91,7 +104,10 @@ export default function Perfis() {
                 aria-label="Buscar perfis pelo nome"
                 placeholder="Buscar perfil..."
                 value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
+                onChange={(event) => {
+                  setSearchTerm(event.target.value);
+                  setCurrentPage(1);
+                }}
                 className="h-9 rounded-lg border-slate-200 bg-white pl-9 text-xs shadow-none focus-visible:border-[#062A45] focus-visible:ring-[#062A45]/20"
               />
             </div>
@@ -191,7 +207,7 @@ export default function Perfis() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredProfiles.map((profile, index) => {
+                {paginatedProfiles.map((profile, index) => {
                   const name = profile.name ?? profile.nome ?? "Perfil sem nome";
                   const permissionCount = Array.isArray(profile.permissions)
                     ? profile.permissions.length
@@ -229,6 +245,20 @@ export default function Perfis() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {!isLoading && !error && filteredProfiles.length > 0 && (
+          <div className="mt-auto">
+            <Pagination
+              currentPage={displayedPage}
+              totalPages={totalPages}
+              totalItems={filteredProfiles.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+              onPageChange={setCurrentPage}
+              itemName="perfil"
+              itemNamePlural="perfis"
+            />
           </div>
         )}
 
