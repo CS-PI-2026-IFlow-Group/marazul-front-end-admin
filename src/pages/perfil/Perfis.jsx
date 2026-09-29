@@ -29,7 +29,7 @@ function ConfirmDeleteModal({ profile, isLoading, onConfirm, onCancel }) {
         aria-label="Fechar confirmação"
         onClick={onCancel}
         disabled={isLoading}
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm disabled:cursor-not-allowed"
+        className="absolute inset-0 cursor-pointer bg-black/40 backdrop-blur-sm disabled:cursor-not-allowed"
       />
       <section
         role="alertdialog"
@@ -42,7 +42,7 @@ function ConfirmDeleteModal({ profile, isLoading, onConfirm, onCancel }) {
           onClick={onCancel}
           disabled={isLoading}
           aria-label="Fechar confirmação"
-          className="absolute right-4 top-4 rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
+          className="absolute right-4 top-4 cursor-pointer rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <X className="h-5 w-5" />
         </button>
@@ -75,7 +75,7 @@ function ConfirmDeleteModal({ profile, isLoading, onConfirm, onCancel }) {
             variant="outline"
             onClick={onCancel}
             disabled={isLoading}
-            className="h-12 flex-1 rounded-lg text-sm font-semibold"
+            className="h-12 flex-1 cursor-pointer rounded-lg text-sm font-semibold disabled:cursor-not-allowed"
           >
             Cancelar
           </Button>
@@ -194,7 +194,7 @@ export default function Perfis() {
         <Button
           type="button"
           onClick={() => navigate("/perfis/cadastro")}
-          className="h-11 gap-2 rounded-lg bg-[#062A45] px-6 font-bold text-white shadow-sm transition-all duration-200 hover:bg-[#0a1f35] hover:shadow-md"
+          className="h-11 cursor-pointer gap-2 rounded-lg bg-[#062A45] px-6 font-bold text-white shadow-sm transition-all duration-200 hover:bg-[#0a1f35] hover:shadow-md"
         >
           <Plus className="h-4 w-4" /> Novo Perfil
         </Button>
@@ -262,7 +262,7 @@ export default function Perfis() {
               type="button"
               variant="outline"
               onClick={handleRetry}
-              className="mt-1 gap-2 rounded-lg border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 hover:text-red-700"
+              className="mt-1 cursor-pointer gap-2 rounded-lg border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 hover:text-red-700"
             >
               <RefreshCw className="h-4 w-4" /> Tentar novamente
             </Button>
@@ -285,7 +285,7 @@ export default function Perfis() {
             <Button
               type="button"
               onClick={() => navigate("/perfis/cadastro")}
-              className="mt-1 gap-2 rounded-lg bg-[#062A45] font-bold text-white hover:bg-[#0a1f35]"
+              className="mt-1 cursor-pointer gap-2 rounded-lg bg-[#062A45] font-bold text-white hover:bg-[#0a1f35]"
             >
               <Plus className="h-4 w-4" /> Novo Perfil
             </Button>
