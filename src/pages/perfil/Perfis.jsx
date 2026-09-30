@@ -165,6 +165,12 @@ export default function Perfis() {
       setProfiles((current) =>
         current.filter((profile) => profile.id !== profileToDelete.id),
       );
+      const remainingProfiles = filteredProfiles.length - 1;
+      const remainingPages = Math.max(
+        1,
+        Math.ceil(remainingProfiles / ITEMS_PER_PAGE),
+      );
+      setCurrentPage((page) => Math.min(page, remainingPages));
       toast.success("Perfil excluído com sucesso!");
     } catch (requestError) {
       const status = requestError.response?.status;
@@ -174,6 +180,11 @@ export default function Perfis() {
         toast.error(
           data?.message || data?.erro || "Não foi possível excluir este perfil.",
         );
+      } else if (status === 404) {
+        toast.warning("Perfil não encontrado", {
+          description: "O perfil já foi removido. A listagem foi atualizada.",
+        });
+        handleRetry();
       } else {
         toast.error("Erro ao excluir perfil", {
           description: "Ocorreu um problema. Tente novamente.",
