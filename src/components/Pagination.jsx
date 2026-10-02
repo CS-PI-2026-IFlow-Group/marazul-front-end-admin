@@ -17,6 +17,7 @@ export default function Pagination({
   itemsPerPage = 10,
   onPageChange,
   itemName = "registro",
+  itemNamePlural,
 }) {
   if (totalItems === 0) return null;
 
@@ -72,7 +73,7 @@ export default function Pagination({
         </span>{" "}
         de{" "}
         <span className="font-semibold text-slate-700">{totalItems}</span>{" "}
-        {totalItems === 1 ? itemName : `${itemName}s`}
+        {totalItems === 1 ? itemName : itemNamePlural || `${itemName}s`}
       </p>
 
       {/* Controles de paginação */}
