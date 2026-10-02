@@ -1,6 +1,6 @@
 import { ArrowLeft, Loader2, RefreshCw, Save, ShieldCheck } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import GenericInput from "../../components/GenericInput";
 import { Button } from "../../components/ui/button";
@@ -11,6 +11,7 @@ import PerfilService from "../../services/PerfilService";
 
 const CadastroPerfil = ({ isEdicao = false }) => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [nome, setNome] = useState("");
   const [permissoes, setPermissoes] = useState([]);
   const [permissoesCarregadas, setPermissoesCarregadas] = useState(false);
@@ -20,10 +21,9 @@ const CadastroPerfil = ({ isEdicao = false }) => {
     () => new Set(),
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingPerfil, setIsLoadingPerfil] = useState(isEdicao);
 
   useEffect(() => {
-    if (isEdicao) return;
-
     let active = true;
 
     PerfilService.getPermissoes()
@@ -40,7 +40,34 @@ const CadastroPerfil = ({ isEdicao = false }) => {
     return () => {
       active = false;
     };
-  }, [isEdicao, tentativaCarregamento]);
+  }, [tentativaCarregamento]);
+
+  useEffect(() => {
+    if (!isEdicao) return;
+
+    let active = true;
+
+    PerfilService.getById(id)
+      .then((data) => {
+        if (!active) return;
+        const nomePerfil = data?.nome ?? data?.name ?? "";
+        const idsVinculados = (data?.permissions ?? []).map((permissao) =>
+          String(permissao.id),
+        );
+        setNome(nomePerfil);
+        setPermissoesSelecionadas(new Set(idsVinculados));
+        setIsLoadingPerfil(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        toast.error("Erro ao carregar dados do perfil.");
+        navigate("/perfis");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isEdicao, id, navigate]);
 
   const permissoesPorModulo = useMemo(
     () =>
@@ -59,6 +86,8 @@ const CadastroPerfil = ({ isEdicao = false }) => {
     permissoesSelecionadas.size > 0 &&
     permissoesCarregadas &&
     !erroPermissoes;
+
+  const camposBloqueados = isLoadingPerfil;
 
   const togglePermissao = (id) => {
     setPermissoesSelecionadas((atuais) => {
@@ -103,7 +132,8 @@ const CadastroPerfil = ({ isEdicao = false }) => {
         );
       } else {
         toast.error("Erro ao cadastrar perfil", {
-          description: "Ocorreu um problema ao salvar os dados. Tente novamente.",
+          description:
+            "Ocorreu um problema ao salvar os dados. Tente novamente.",
         });
       }
     } finally {
@@ -111,28 +141,18 @@ const CadastroPerfil = ({ isEdicao = false }) => {
     }
   };
 
-  if (isEdicao) {
-    return (
-      <div className="bg-slate-50/50 font-sans">
-        <div className="mb-3">
-          <h1 className="text-xl font-semibold text-slate-700">Edição do Perfil</h1>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-slate-50/50 font-sans">
       <div className="mb-3">
         <h1 className="text-xl font-semibold text-slate-700">
-          {isEdicao ? "Edição" : "Cadastro"} do Perfil
+          {isEdicao ? "Editar Perfil" : "Cadastro do Perfil"}
         </h1>
       </div>
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden py-1 gap-0">
         <div className="flex border-b border-slate-100 px-6 py-3 items-center gap-3">
           <ShieldCheck className="h-4 w-4 text-[#e31e24]" />
-                  <h2 className="text-sm font-medium text-[#062A45]">
+          <h2 className="text-sm font-medium text-[#062A45]">
             Informações do perfil
           </h2>
         </div>
@@ -148,6 +168,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
               required
               value={nome}
               onChange={(event) => setNome(event.target.value)}
+              disabled={camposBloqueados}
             />
 
             <section aria-labelledby="permissoes-heading" className="space-y-3">
@@ -163,13 +184,15 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                 </p>
               </div>
 
-              {!permissoesCarregadas ? (
+              {!permissoesCarregadas || isLoadingPerfil ? (
                 <div
                   className="flex min-h-24 items-center justify-center gap-2 rounded-md border border-slate-200 bg-[#F8FAFC] text-sm text-slate-500"
                   role="status"
                 >
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Carregando permissões...
+                  {isLoadingPerfil
+                    ? "Carregando dados do perfil..."
+                    : "Carregando permissões..."}
                 </div>
               ) : erroPermissoes ? (
                 <div className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-md border border-red-200 bg-red-50 px-4 text-center">
@@ -222,8 +245,12 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                                     : false
                               }
                               onCheckedChange={(checked) =>
-                                toggleModulo(permissoesDoModulo, checked === true)
+                                toggleModulo(
+                                  permissoesDoModulo,
+                                  checked === true,
+                                )
                               }
+                              disabled={camposBloqueados}
                               className="rounded-sm border-slate-300 data-[state=checked]:bg-slate-500"
                             />
                             <Label
@@ -247,6 +274,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                                   onCheckedChange={() =>
                                     togglePermissao(permissao.id)
                                   }
+                                  disabled={camposBloqueados}
                                   className="rounded-sm border-slate-300 data-[state=checked]:bg-slate-500"
                                 />
                                 <Label
