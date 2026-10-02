@@ -371,7 +371,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
             type="button"
             variant="outline"
             onClick={() => navigate("/perfis")}
-            className="h-9 cursor-pointer gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer"
+            className="h-9 cursor-pointer gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
@@ -380,7 +380,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
               type="submit"
               form="form-perfil"
               disabled={!podeSalvar}
-              className="flex cursor-pointer items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer"
+              className="flex cursor-pointer items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300"
             >
               {isSaving ? (
                 <>
