@@ -1,4 +1,11 @@
-import { ArrowLeft, Loader2, RefreshCw, Save, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  Info,
+  Loader2,
+  RefreshCw,
+  Save,
+  ShieldCheck,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -8,6 +15,8 @@ import { Card, CardContent, CardFooter } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Label } from "../../components/ui/label";
 import PerfilService from "../../services/PerfilService";
+
+const PERFIL_PADRAO = "administrador";
 
 const CadastroPerfil = ({ isEdicao = false }) => {
   const navigate = useNavigate();
@@ -94,7 +103,9 @@ const CadastroPerfil = ({ isEdicao = false }) => {
     permissoesCarregadas &&
     !erroPermissoes;
 
-  const camposBloqueados = isLoadingPerfil;
+  const isPerfilPadrao =
+    isEdicao && perfilOriginal?.nome.trim().toLowerCase() === PERFIL_PADRAO;
+  const camposBloqueados = isLoadingPerfil || isPerfilPadrao;
 
   const houveAlteracao = useMemo(() => {
     if (!perfilOriginal) return false;
@@ -192,6 +203,19 @@ const CadastroPerfil = ({ isEdicao = false }) => {
 
         <CardContent className="px-6 py-4">
           <form id="form-perfil" onSubmit={handleSubmit} className="space-y-5">
+            {isPerfilPadrao && (
+              <div
+                className="flex items-start gap-2 rounded-md border border-slate-200 bg-[#F8FAFC] px-4 py-3 text-xs text-slate-600"
+                role="note"
+              >
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#062A45]" />
+                <p>
+                  Este é o perfil padrão do sistema. O nome e as permissões não
+                  podem ser alterados.
+                </p>
+              </div>
+            )}
+
             <GenericInput
               id="nome-perfil"
               label="NOME DO PERFIL"
@@ -338,23 +362,25 @@ const CadastroPerfil = ({ isEdicao = false }) => {
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
-          <Button
-            type="submit"
-            form="form-perfil"
-            disabled={!podeSalvar}
-            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 size-4" /> Salvar
-              </>
-            )}
-          </Button>
+          {!isPerfilPadrao && (
+            <Button
+              type="submit"
+              form="form-perfil"
+              disabled={!podeSalvar}
+              className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 size-4" /> Salvar
+                </>
+              )}
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </div>
