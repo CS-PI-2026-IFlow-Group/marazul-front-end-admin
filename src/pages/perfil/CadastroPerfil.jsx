@@ -18,6 +18,21 @@ import PerfilService from "../../services/PerfilService";
 
 const PERFIL_PADRAO = "administrador";
 
+const ROTULOS_MODULO = {
+  dashboard: "Dashboard",
+  funcionario: "Colaboradores",
+  frota: "Frota",
+  perfis: "Perfis de Acesso",
+  permissoes: "Permissões",
+};
+
+const ROTULOS_FUNCIONALIDADE = {
+  create: "Criar",
+  view: "Visualizar",
+  edit: "Editar",
+  delete: "Excluir",
+};
+
 const CadastroPerfil = ({ isEdicao = false }) => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -302,7 +317,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                           className="rounded-md border border-slate-200 px-4 py-3"
                         >
                           <legend className="px-1 text-sm font-semibold text-[#062A45]">
-                            {modulo}
+                            {ROTULOS_MODULO[modulo] ?? modulo}
                           </legend>
                           <div className="grid grid-cols-1 gap-x-6 gap-y-3 pb-3 sm:grid-cols-2">
                             {permissoesDoModulo.map((permissao) => (
@@ -325,7 +340,9 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                                   htmlFor={`permissao-${permissao.id}`}
                                   className="cursor-pointer text-sm font-normal text-slate-600"
                                 >
-                                  {permissao.funcionalidade}
+                                  {ROTULOS_FUNCIONALIDADE[
+                                    permissao.funcionalidade
+                                  ] ?? permissao.funcionalidade}
                                 </Label>
                               </div>
                             ))}
