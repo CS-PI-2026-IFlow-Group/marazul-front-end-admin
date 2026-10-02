@@ -241,6 +241,19 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                 </p>
               </div>
 
+              {isEdicao && !isLoadingPerfil && !isPerfilPadrao && (
+                <div
+                  className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800"
+                  role="note"
+                >
+                  <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>
+                    As alterações de permissões passam a valer para os
+                    colaboradores vinculados a partir do próximo login.
+                  </p>
+                </div>
+              )}
+
               {!permissoesCarregadas || isLoadingPerfil ? (
                 <div
                   className="flex min-h-24 items-center justify-center gap-2 rounded-md border border-slate-200 bg-[#F8FAFC] text-sm text-slate-500"
