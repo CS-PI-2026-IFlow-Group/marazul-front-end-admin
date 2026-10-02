@@ -58,9 +58,14 @@ const CadastroPerfil = ({ isEdicao = false }) => {
         setPermissoesSelecionadas(new Set(idsVinculados));
         setIsLoadingPerfil(false);
       })
-      .catch(() => {
+      .catch((error) => {
         if (!active) return;
-        toast.error("Erro ao carregar dados do perfil.");
+        const status = error.response?.status;
+        toast.error(
+          status === 404 || status === 400
+            ? "Perfil não encontrado."
+            : "Erro ao carregar dados do perfil.",
+        );
         navigate("/perfis");
       });
 
