@@ -22,6 +22,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingPerfil, setIsLoadingPerfil] = useState(isEdicao);
+  const [perfilOriginal, setPerfilOriginal] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -56,6 +57,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
         );
         setNome(nomePerfil);
         setPermissoesSelecionadas(new Set(idsVinculados));
+        setPerfilOriginal({ nome: nomePerfil, permissoes: idsVinculados });
         setIsLoadingPerfil(false);
       })
       .catch((error) => {
@@ -94,6 +96,21 @@ const CadastroPerfil = ({ isEdicao = false }) => {
 
   const camposBloqueados = isLoadingPerfil;
 
+  const houveAlteracao = useMemo(() => {
+    if (!perfilOriginal) return false;
+    if (nome.trim() !== perfilOriginal.nome.trim()) return true;
+    if (permissoesSelecionadas.size !== perfilOriginal.permissoes.length)
+      return true;
+    return perfilOriginal.permissoes.some(
+      (permissaoId) => !permissoesSelecionadas.has(permissaoId),
+    );
+  }, [nome, perfilOriginal, permissoesSelecionadas]);
+
+  const podeSalvar =
+    isFormValid &&
+    !isSaving &&
+    (!isEdicao || (houveAlteracao && !camposBloqueados));
+
   const togglePermissao = (id) => {
     setPermissoesSelecionadas((atuais) => {
       const atualizadas = new Set(atuais);
@@ -117,15 +134,21 @@ const CadastroPerfil = ({ isEdicao = false }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (isEdicao || !isFormValid || isSaving) return;
+    if (!podeSalvar) return;
 
     setIsSaving(true);
     try {
-      await PerfilService.create({
+      const payload = {
         nome: nome.trim(),
         permissionsIds: Array.from(permissoesSelecionadas),
-      });
-      toast.success("Perfil cadastrado com sucesso!");
+      };
+      if (isEdicao) {
+        await PerfilService.update(id, payload);
+        toast.success("Perfil atualizado com sucesso!");
+      } else {
+        await PerfilService.create(payload);
+        toast.success("Perfil cadastrado com sucesso!");
+      }
       navigate("/perfis");
     } catch (error) {
       const status = error.response?.status;
@@ -133,10 +156,15 @@ const CadastroPerfil = ({ isEdicao = false }) => {
 
       if (status === 400) {
         toast.error(
-          data?.message || data?.erro || "Não foi possível cadastrar o perfil.",
+          data?.message ||
+            data?.erro ||
+            `Não foi possível ${isEdicao ? "atualizar" : "cadastrar"} o perfil.`,
         );
+      } else if (isEdicao && status === 404) {
+        toast.error("Perfil não encontrado.");
+        navigate("/perfis");
       } else {
-        toast.error("Erro ao cadastrar perfil", {
+        toast.error(`Erro ao ${isEdicao ? "atualizar" : "cadastrar"} perfil`, {
           description:
             "Ocorreu um problema ao salvar os dados. Tente novamente.",
         });
@@ -313,7 +341,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
           <Button
             type="submit"
             form="form-perfil"
-            disabled={!isFormValid || isSaving}
+            disabled={!podeSalvar}
             className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300"
           >
             {isSaving ? (
