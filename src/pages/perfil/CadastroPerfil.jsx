@@ -202,10 +202,10 @@ const CadastroPerfil = ({ isEdicao = false }) => {
         </div>
 
         <CardContent className="px-6 py-4">
-          <form id="form-perfil" onSubmit={handleSubmit} className="space-y-5">
+          <form id="form-perfil" onSubmit={handleSubmit} className="space-y-3">
             {isPerfilPadrao && (
               <div
-                className="flex items-start gap-2 rounded-md border border-slate-200 bg-[#F8FAFC] px-4 py-3 text-xs text-slate-600"
+                className="flex items-start gap-3 rounded-md border border-slate-200 bg-[#F8FAFC] px-4 py-3 text-[13px] text-slate-500"
                 role="note"
               >
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#062A45]" />
@@ -243,7 +243,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
 
               {isEdicao && !isLoadingPerfil && !isPerfilPadrao && (
                 <div
-                  className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800"
+                  className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-700"
                   role="note"
                 >
                   <Info className="mt-0.5 h-4 w-4 shrink-0" />
@@ -304,7 +304,33 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                           <legend className="px-1 text-sm font-semibold text-[#062A45]">
                             {modulo}
                           </legend>
-                          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+                          <div className="grid grid-cols-1 gap-x-6 gap-y-3 pb-3 sm:grid-cols-2">
+                            {permissoesDoModulo.map((permissao) => (
+                              <div
+                                key={permissao.id}
+                                className="flex items-center gap-2"
+                              >
+                                <Checkbox
+                                  id={`permissao-${permissao.id}`}
+                                  checked={permissoesSelecionadas.has(
+                                    String(permissao.id),
+                                  )}
+                                  onCheckedChange={() =>
+                                    togglePermissao(permissao.id)
+                                  }
+                                  disabled={camposBloqueados}
+                                  className="rounded-[4px] border-slate-300 bg-white cursor-pointer data-[state=checked]:border-[#062A45] data-[state=checked]:bg-[#062A45] data-[state=checked]:text-white"
+                                />
+                                <Label
+                                  htmlFor={`permissao-${permissao.id}`}
+                                  className="cursor-pointer text-sm font-normal text-slate-600"
+                                >
+                                  {permissao.funcionalidade}
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex items-center gap-2 border-t border-slate-100 pt-3">
                             <Checkbox
                               id={`modulo-${modulo}`}
                               checked={
@@ -321,7 +347,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                                 )
                               }
                               disabled={camposBloqueados}
-                              className="rounded-sm border-slate-300 data-[state=checked]:bg-slate-500"
+                              className="rounded-[4px] border-slate-300 bg-white cursor-pointer data-[state=checked]:border-[#062A45] data-[state=checked]:bg-[#062A45] data-[state=checked]:text-white"
                             />
                             <Label
                               htmlFor={`modulo-${modulo}`}
@@ -329,32 +355,6 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                             >
                               Selecionar todas
                             </Label>
-                          </div>
-                          <div className="grid grid-cols-1 gap-x-6 gap-y-3 pt-3 sm:grid-cols-2">
-                            {permissoesDoModulo.map((permissao) => (
-                              <div
-                                key={permissao.id}
-                                className="flex items-center gap-2"
-                              >
-                                <Checkbox
-                                  id={`permissao-${permissao.id}`}
-                                  checked={permissoesSelecionadas.has(
-                                    String(permissao.id),
-                                  )}
-                                  onCheckedChange={() =>
-                                    togglePermissao(permissao.id)
-                                  }
-                                  disabled={camposBloqueados}
-                                  className="rounded-sm border-slate-300 data-[state=checked]:bg-slate-500"
-                                />
-                                <Label
-                                  htmlFor={`permissao-${permissao.id}`}
-                                  className="cursor-pointer text-sm font-normal text-slate-600"
-                                >
-                                  {permissao.funcionalidade}
-                                </Label>
-                              </div>
-                            ))}
                           </div>
                         </fieldset>
                       );
