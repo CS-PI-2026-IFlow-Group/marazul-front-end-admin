@@ -1,6 +1,13 @@
-import { ArrowLeft, Loader2, RefreshCw, Save, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  Info,
+  Loader2,
+  RefreshCw,
+  Save,
+  ShieldCheck,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import GenericInput from "../../components/GenericInput";
 import { Button } from "../../components/ui/button";
@@ -9,8 +16,26 @@ import { Checkbox } from "../../components/ui/checkbox";
 import { Label } from "../../components/ui/label";
 import PerfilService from "../../services/PerfilService";
 
+const PERFIL_PADRAO = "administrador";
+
+const ROTULOS_MODULO = {
+  dashboard: "Dashboard",
+  funcionario: "Colaboradores",
+  frota: "Frota",
+  perfis: "Perfis de Acesso",
+  permissoes: "Permissões",
+};
+
+const ROTULOS_FUNCIONALIDADE = {
+  create: "Criar",
+  view: "Visualizar",
+  edit: "Editar",
+  delete: "Excluir",
+};
+
 const CadastroPerfil = ({ isEdicao = false }) => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [nome, setNome] = useState("");
   const [permissoes, setPermissoes] = useState([]);
   const [permissoesCarregadas, setPermissoesCarregadas] = useState(false);
@@ -20,10 +45,10 @@ const CadastroPerfil = ({ isEdicao = false }) => {
     () => new Set(),
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingPerfil, setIsLoadingPerfil] = useState(isEdicao);
+  const [perfilOriginal, setPerfilOriginal] = useState(null);
 
   useEffect(() => {
-    if (isEdicao) return;
-
     let active = true;
 
     PerfilService.getPermissoes()
@@ -40,7 +65,40 @@ const CadastroPerfil = ({ isEdicao = false }) => {
     return () => {
       active = false;
     };
-  }, [isEdicao, tentativaCarregamento]);
+  }, [tentativaCarregamento]);
+
+  useEffect(() => {
+    if (!isEdicao) return;
+
+    let active = true;
+
+    PerfilService.getById(id)
+      .then((data) => {
+        if (!active) return;
+        const nomePerfil = data?.nome ?? data?.name ?? "";
+        const idsVinculados = (data?.permissions ?? []).map((permissao) =>
+          String(permissao.id),
+        );
+        setNome(nomePerfil);
+        setPermissoesSelecionadas(new Set(idsVinculados));
+        setPerfilOriginal({ nome: nomePerfil, permissoes: idsVinculados });
+        setIsLoadingPerfil(false);
+      })
+      .catch((error) => {
+        if (!active) return;
+        const status = error.response?.status;
+        toast.error(
+          status === 404 || status === 400
+            ? "Perfil não encontrado."
+            : "Erro ao carregar dados do perfil.",
+        );
+        navigate("/perfis");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isEdicao, id, navigate]);
 
   const permissoesPorModulo = useMemo(
     () =>
@@ -59,6 +117,25 @@ const CadastroPerfil = ({ isEdicao = false }) => {
     permissoesSelecionadas.size > 0 &&
     permissoesCarregadas &&
     !erroPermissoes;
+
+  const isPerfilPadrao =
+    isEdicao && perfilOriginal?.nome.trim().toLowerCase() === PERFIL_PADRAO;
+  const camposBloqueados = isLoadingPerfil || isPerfilPadrao;
+
+  const houveAlteracao = useMemo(() => {
+    if (!perfilOriginal) return false;
+    if (nome.trim() !== perfilOriginal.nome.trim()) return true;
+    if (permissoesSelecionadas.size !== perfilOriginal.permissoes.length)
+      return true;
+    return perfilOriginal.permissoes.some(
+      (permissaoId) => !permissoesSelecionadas.has(permissaoId),
+    );
+  }, [nome, perfilOriginal, permissoesSelecionadas]);
+
+  const podeSalvar =
+    isFormValid &&
+    !isSaving &&
+    (!isEdicao || (houveAlteracao && !camposBloqueados));
 
   const togglePermissao = (id) => {
     setPermissoesSelecionadas((atuais) => {
@@ -83,15 +160,21 @@ const CadastroPerfil = ({ isEdicao = false }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (isEdicao || !isFormValid || isSaving) return;
+    if (!podeSalvar) return;
 
     setIsSaving(true);
     try {
-      await PerfilService.create({
+      const payload = {
         nome: nome.trim(),
         permissionsIds: Array.from(permissoesSelecionadas),
-      });
-      toast.success("Perfil cadastrado com sucesso!");
+      };
+      if (isEdicao) {
+        await PerfilService.update(id, payload);
+        toast.success("Perfil atualizado com sucesso!");
+      } else {
+        await PerfilService.create(payload);
+        toast.success("Perfil cadastrado com sucesso!");
+      }
       navigate("/perfis");
     } catch (error) {
       const status = error.response?.status;
@@ -99,11 +182,17 @@ const CadastroPerfil = ({ isEdicao = false }) => {
 
       if (status === 400) {
         toast.error(
-          data?.message || data?.erro || "Não foi possível cadastrar o perfil.",
+          data?.message ||
+            data?.erro ||
+            `Não foi possível ${isEdicao ? "atualizar" : "cadastrar"} o perfil.`,
         );
+      } else if (isEdicao && status === 404) {
+        toast.error("Perfil não encontrado.");
+        navigate("/perfis");
       } else {
-        toast.error("Erro ao cadastrar perfil", {
-          description: "Ocorreu um problema ao salvar os dados. Tente novamente.",
+        toast.error(`Erro ao ${isEdicao ? "atualizar" : "cadastrar"} perfil`, {
+          description:
+            "Ocorreu um problema ao salvar os dados. Tente novamente.",
         });
       }
     } finally {
@@ -111,34 +200,37 @@ const CadastroPerfil = ({ isEdicao = false }) => {
     }
   };
 
-  if (isEdicao) {
-    return (
-      <div className="bg-slate-50/50 font-sans">
-        <div className="mb-3">
-          <h1 className="text-xl font-semibold text-slate-700">Edição do Perfil</h1>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-slate-50/50 font-sans">
       <div className="mb-3">
         <h1 className="text-xl font-semibold text-slate-700">
-          {isEdicao ? "Edição" : "Cadastro"} do Perfil
+          {isEdicao ? "Editar Perfil" : "Cadastro do Perfil"}
         </h1>
       </div>
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden py-1 gap-0">
         <div className="flex border-b border-slate-100 px-6 py-3 items-center gap-3">
           <ShieldCheck className="h-4 w-4 text-[#e31e24]" />
-                  <h2 className="text-sm font-medium text-[#062A45]">
+          <h2 className="text-sm font-medium text-[#062A45]">
             Informações do perfil
           </h2>
         </div>
 
         <CardContent className="px-6 py-4">
-          <form id="form-perfil" onSubmit={handleSubmit} className="space-y-5">
+          <form id="form-perfil" onSubmit={handleSubmit} className="space-y-3">
+            {isPerfilPadrao && (
+              <div
+                className="flex items-start gap-3 rounded-md border border-slate-200 bg-[#F8FAFC] px-4 py-3 text-[13px] text-slate-500"
+                role="note"
+              >
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#062A45]" />
+                <p>
+                  Este é o perfil padrão do sistema. O nome e as permissões não
+                  podem ser alterados.
+                </p>
+              </div>
+            )}
+
             <GenericInput
               id="nome-perfil"
               label="NOME DO PERFIL"
@@ -148,6 +240,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
               required
               value={nome}
               onChange={(event) => setNome(event.target.value)}
+              disabled={camposBloqueados}
             />
 
             <section aria-labelledby="permissoes-heading" className="space-y-3">
@@ -163,13 +256,28 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                 </p>
               </div>
 
-              {!permissoesCarregadas ? (
+              {isEdicao && !isLoadingPerfil && !isPerfilPadrao && (
+                <div
+                  className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-700"
+                  role="note"
+                >
+                  <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>
+                    As alterações de permissões passam a valer para os
+                    colaboradores vinculados a partir do próximo login.
+                  </p>
+                </div>
+              )}
+
+              {!permissoesCarregadas || isLoadingPerfil ? (
                 <div
                   className="flex min-h-24 items-center justify-center gap-2 rounded-md border border-slate-200 bg-[#F8FAFC] text-sm text-slate-500"
                   role="status"
                 >
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Carregando permissões...
+                  {isLoadingPerfil
+                    ? "Carregando dados do perfil..."
+                    : "Carregando permissões..."}
                 </div>
               ) : erroPermissoes ? (
                 <div className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-md border border-red-200 bg-red-50 px-4 text-center">
@@ -209,31 +317,9 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                           className="rounded-md border border-slate-200 px-4 py-3"
                         >
                           <legend className="px-1 text-sm font-semibold text-[#062A45]">
-                            {modulo}
+                            {ROTULOS_MODULO[modulo] ?? modulo}
                           </legend>
-                          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                            <Checkbox
-                              id={`modulo-${modulo}`}
-                              checked={
-                                todasSelecionadas
-                                  ? true
-                                  : selecionadasNoModulo > 0
-                                    ? "indeterminate"
-                                    : false
-                              }
-                              onCheckedChange={(checked) =>
-                                toggleModulo(permissoesDoModulo, checked === true)
-                              }
-                              className="rounded-sm border-slate-300 data-[state=checked]:bg-slate-500"
-                            />
-                            <Label
-                              htmlFor={`modulo-${modulo}`}
-                              className="cursor-pointer text-sm font-medium text-slate-700"
-                            >
-                              Selecionar todas
-                            </Label>
-                          </div>
-                          <div className="grid grid-cols-1 gap-x-6 gap-y-3 pt-3 sm:grid-cols-2">
+                          <div className="grid grid-cols-1 gap-x-6 gap-y-3 pb-3 sm:grid-cols-2">
                             {permissoesDoModulo.map((permissao) => (
                               <div
                                 key={permissao.id}
@@ -247,16 +333,45 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                                   onCheckedChange={() =>
                                     togglePermissao(permissao.id)
                                   }
-                                  className="rounded-sm border-slate-300 data-[state=checked]:bg-slate-500"
+                                  disabled={camposBloqueados}
+                                  className="rounded-[4px] border-slate-300 bg-white cursor-pointer data-[state=checked]:border-[#062A45] data-[state=checked]:bg-[#062A45] data-[state=checked]:text-white"
                                 />
                                 <Label
                                   htmlFor={`permissao-${permissao.id}`}
                                   className="cursor-pointer text-sm font-normal text-slate-600"
                                 >
-                                  {permissao.funcionalidade}
+                                  {ROTULOS_FUNCIONALIDADE[
+                                    permissao.funcionalidade
+                                  ] ?? permissao.funcionalidade}
                                 </Label>
                               </div>
                             ))}
+                          </div>
+                          <div className="flex items-center gap-2 border-t border-slate-100 pt-3">
+                            <Checkbox
+                              id={`modulo-${modulo}`}
+                              checked={
+                                todasSelecionadas
+                                  ? true
+                                  : selecionadasNoModulo > 0
+                                    ? "indeterminate"
+                                    : false
+                              }
+                              onCheckedChange={(checked) =>
+                                toggleModulo(
+                                  permissoesDoModulo,
+                                  checked === true,
+                                )
+                              }
+                              disabled={camposBloqueados}
+                              className="rounded-[4px] border-slate-300 bg-white cursor-pointer data-[state=checked]:border-[#062A45] data-[state=checked]:bg-[#062A45] data-[state=checked]:text-white"
+                            />
+                            <Label
+                              htmlFor={`modulo-${modulo}`}
+                              className="cursor-pointer text-sm font-medium text-slate-700"
+                            >
+                              Selecionar todas
+                            </Label>
                           </div>
                         </fieldset>
                       );
@@ -277,23 +392,25 @@ const CadastroPerfil = ({ isEdicao = false }) => {
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
-          <Button
-            type="submit"
-            form="form-perfil"
-            disabled={!isFormValid || isSaving}
-            className="flex cursor-pointer items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 size-4" /> Salvar
-              </>
-            )}
-          </Button>
+          {!isPerfilPadrao && (
+            <Button
+              type="submit"
+              form="form-perfil"
+              disabled={!podeSalvar}
+              className="flex cursor-pointer items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 size-4" /> Salvar
+                </>
+              )}
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </div>
