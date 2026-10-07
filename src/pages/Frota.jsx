@@ -202,7 +202,13 @@ export default function Frota() {
   };
 
   useEffect(() => {
-    fetchVehicles();
+    FrotaService.getAll()
+      .then((data) => setVehicles(Array.isArray(data) ? data : []))
+      .catch(() => {
+        setError("Não foi possível carregar a lista de veículos.");
+        setVehicles([]);
+      })
+      .finally(() => setIsLoading(false));
     FrotaService.getEnums().then((data) => {
       if (data?.models) {
         setModelOptions(data.models);
@@ -236,10 +242,6 @@ export default function Frota() {
       return matchesSearch && matchesStatus && matchesModel;
     });
   }, [vehicles, searchTerm, statusFilter, modelFilter]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, statusFilter, modelFilter]);
 
   const totalPages = Math.ceil(filteredVehicles.length / ITEMS_PER_PAGE) || 1;
 
@@ -352,7 +354,10 @@ export default function Frota() {
                   id="search-frota"
                   placeholder="Buscar prefixo, placa ou modelo..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="pl-9 h-9 bg-white border-slate-200 text-xs shadow-none focus-visible:border-[#062A45] focus-visible:ring-[#062A45]/20 rounded-lg"
                 />
               </div>
@@ -389,6 +394,7 @@ export default function Frota() {
                           onClick={() => {
                             setStatusFilter("ALL");
                             setModelFilter("ALL");
+                            setCurrentPage(1);
                           }}
                           className="text-[11px] font-medium text-red-500 hover:underline cursor-pointer"
                         >
@@ -415,7 +421,10 @@ export default function Frota() {
                             <button
                               key={opt.value}
                               type="button"
-                              onClick={() => setStatusFilter(opt.value)}
+                              onClick={() => {
+                                setStatusFilter(opt.value);
+                                setCurrentPage(1);
+                              }}
                               className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors text-left cursor-pointer ${
                                 statusFilter === opt.value
                                   ? "bg-[#062A45] text-white font-semibold shadow-xs"
@@ -435,7 +444,10 @@ export default function Frota() {
                         <div className="grid grid-cols-2 gap-1.5">
                           <button
                             type="button"
-                            onClick={() => setModelFilter("ALL")}
+                            onClick={() => {
+                              setModelFilter("ALL");
+                              setCurrentPage(1);
+                            }}
                             className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors text-left cursor-pointer ${
                               modelFilter === "ALL"
                                 ? "bg-[#062A45] text-white font-semibold shadow-xs"
@@ -448,7 +460,10 @@ export default function Frota() {
                             <button
                               key={opt.value}
                               type="button"
-                              onClick={() => setModelFilter(opt.value)}
+                              onClick={() => {
+                                setModelFilter(opt.value);
+                                setCurrentPage(1);
+                              }}
                               className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors text-left cursor-pointer ${
                                 modelFilter === opt.value
                                   ? "bg-[#062A45] text-white font-semibold shadow-xs"

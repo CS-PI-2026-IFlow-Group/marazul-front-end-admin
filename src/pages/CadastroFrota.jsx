@@ -28,7 +28,7 @@ export default function CadastroFrota() {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = Boolean(id);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(Boolean(id));
 
   const [enums, setEnums] = useState({
     models: [],
@@ -80,7 +80,6 @@ export default function CadastroFrota() {
 
   useEffect(() => {
     if (id) {
-      setIsLoading(true);
       FrotaService.getById(id)
         .then((data) => {
           if (data) {
