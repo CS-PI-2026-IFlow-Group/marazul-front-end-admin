@@ -13,6 +13,8 @@ import CadastroFuncionario from "./pages/funcionario/CadastroFuncionario";
 import Funcionarios from "./pages/funcionario/Funcionario";
 import CadastroCliente from "./pages/cliente/CadastroCliente";
 import Clientes from "./pages/cliente/Clientes";
+import CadastroPassageiro from "./pages/passageiro/CadastroPassageiro";
+import Passageiros from "./pages/passageiro/Passageiros";
 import CadastroPerfil from "./pages/perfil/CadastroPerfil";
 import Perfis from "./pages/perfil/Perfis";
 import Relatorios from "./pages/Relatorios";
@@ -40,6 +42,13 @@ export default function App() {
           <Route path="/frota/cadastro" element={<CadastroFrota />} />
           <Route path="/frota/editar/:id" element={<CadastroFrota />} />
           <Route path="/viagens" element={<Viagens />} />
+
+          <Route path="/passageiros" element={<Passageiros />} />
+          <Route path="/passageiros/cadastro" element={<CadastroPassageiro />} />
+          <Route
+            path="/passageiros/editar/:id"
+            element={<CadastroPassageiro isEdicao={true} />}
+          />
 
           <Route path="/funcionario" element={<Funcionarios />} />
           <Route path="/clientes" element={<Clientes />} />
