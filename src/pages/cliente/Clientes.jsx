@@ -2,13 +2,17 @@ import {
   AlertCircle,
   Contact,
   Loader2,
+  Pencil,
   Plus,
   RefreshCw,
   RotateCcw,
   Search,
+  Trash2,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import Pagination from "../../components/Pagination";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -69,6 +73,79 @@ function PersonTypeBadge({ type }) {
   );
 }
 
+function ConfirmModal({ client, isLoading, onConfirm, onCancel }) {
+  if (!client) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        onClick={isLoading ? undefined : onCancel}
+      />
+
+      <div className="relative z-10 w-full max-w-lg rounded-xl bg-white p-8 shadow-2xl mx-4 border border-slate-100">
+        <button
+          onClick={onCancel}
+          disabled={isLoading}
+          className="absolute top-4 right-4 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        <div className="flex flex-col items-center text-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+            <Trash2 className="h-8 w-8 text-red-600" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-[#062A45]">
+              Excluir Cliente
+            </h3>
+            <p className="mt-3 text-base text-slate-600">
+              Deseja realmente excluir o cliente{" "}
+              <span className="font-semibold text-[#062A45]">
+                {client.name}
+              </span>{" "}
+              com documento{" "}
+              <span className="font-semibold text-[#062A45]">
+                {formatDocument(client)}
+              </span>
+              ?
+            </p>
+            <p className="mt-2 text-sm text-slate-500">
+              Esta ação não poderá ser desfeita.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 flex gap-3">
+          <Button
+            variant="outline"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="flex-1 rounded-lg h-12 text-sm cursor-pointer font-semibold"
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={onConfirm}
+            disabled={isLoading}
+            className="flex-1 rounded-lg h-12 bg-red-600 text-sm text-white hover:bg-red-700 cursor-pointer font-semibold"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Excluindo...
+              </>
+            ) : (
+              "Confirmar Exclusão"
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Clientes() {
   const navigate = useNavigate();
 
@@ -78,6 +155,9 @@ export default function Clientes() {
   const [retryCount, setRetryCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [confirmClient, setConfirmClient] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -135,7 +215,40 @@ export default function Clientes() {
     setCurrentPage(1);
   };
 
-  const columns = ["Nome", "Documento", "Cidade/UF"];
+  const handleDelete = async () => {
+    if (!confirmClient || isDeleting) return;
+    setIsDeleting(true);
+
+    try {
+      await ClienteService.delete(confirmClient.id);
+      setClients((prev) => prev.filter((c) => c.id !== confirmClient.id));
+      toast.success("Cliente excluído com sucesso!", {
+        description: `${confirmClient.name} foi removido da base.`,
+      });
+    } catch (requestError) {
+      const status = requestError.response?.status;
+
+      if (status === 404) {
+        toast.warning("Cliente não encontrado", {
+          description: "O cliente já foi removido. A listagem foi atualizada.",
+        });
+        fetchClients();
+      } else if (status === 409) {
+        toast.error("Não foi possível excluir o cliente", {
+          description: "O cliente possui registros vinculados no sistema.",
+        });
+      } else {
+        toast.error("Erro ao excluir cliente", {
+          description: "Ocorreu um problema. Tente novamente.",
+        });
+      }
+    } finally {
+      setIsDeleting(false);
+      setConfirmClient(null);
+    }
+  };
+
+  const columns = ["Nome", "Documento", "Cidade/UF", "Ações"];
 
   return (
     <div className="space-y-6">
@@ -277,7 +390,9 @@ export default function Clientes() {
                   {columns.map((col) => (
                     <th
                       key={col}
-                      className="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-widest text-slate-400"
+                      className={`py-3.5 text-left text-[11px] font-bold uppercase tracking-widest text-slate-400 ${
+                        col === "Ações" ? "px-5 pl-7" : "px-5"
+                      }`}
                     >
                       {col}
                     </th>
@@ -309,6 +424,27 @@ export default function Clientes() {
                     <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
                       {formatLocation(client)}
                     </td>
+                    <td className="whitespace-nowrap px-5 pl-7 py-3.5">
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() =>
+                            navigate(`/clientes/editar/${client.id}`)
+                          }
+                          title="Editar cliente"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-all duration-150 hover:bg-[#062A45]/10 hover:text-[#062A45] cursor-pointer"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+
+                        <button
+                          onClick={() => setConfirmClient(client)}
+                          title="Excluir cliente"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition-all duration-150 hover:bg-red-50 hover:text-red-600 cursor-pointer"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -329,6 +465,13 @@ export default function Clientes() {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        client={confirmClient}
+        isLoading={isDeleting}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmClient(null)}
+      />
     </div>
   );
 }
