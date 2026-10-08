@@ -1,6 +1,7 @@
-import { ArrowLeft, Contact } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Contact, MapPin } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import GenericInput from "../../components/GenericInput";
 import GenericSelect from "../../components/GenericSelect";
 import { Button } from "../../components/ui/button";
@@ -11,6 +12,7 @@ import {
   isValidCnpj,
   isValidCpf,
 } from "../../lib/documentMasks";
+import LocalidadeService from "../../services/LocalidadeService";
 
 const PERSON_TYPE_OPTIONS = [
   { value: "PF", label: "Pessoa Física" },
@@ -43,7 +45,39 @@ export default function CadastroCliente({ isEdicao = false }) {
     name: "",
     personType: "PF",
     document: "",
+    street: "",
+    number: "",
+    complement: "",
+    stateId: "",
+    cityId: "",
   });
+
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
+  const selectedStateRef = useRef("");
+
+  useEffect(() => {
+    let active = true;
+
+    LocalidadeService.getEstados()
+      .then((data) => {
+        if (!active) return;
+        setStates(
+          (Array.isArray(data) ? data : []).map((state) => ({
+            value: String(state.id),
+            label: `${state.name} (${state.acronym})`,
+          })),
+        );
+      })
+      .catch(() => {
+        if (active) toast.error("Não foi possível carregar os estados.");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -62,6 +96,37 @@ export default function CadastroCliente({ isEdicao = false }) {
     setForm((prev) => ({ ...prev, document: format(e.target.value) }));
   };
 
+  const handleStateChange = (value) => {
+    if (value === form.stateId) return;
+
+    selectedStateRef.current = value;
+    setForm((prev) => ({ ...prev, stateId: value, cityId: "" }));
+    setCities([]);
+    setIsLoadingCities(true);
+
+    LocalidadeService.getCidades(value)
+      .then((data) => {
+        if (selectedStateRef.current !== value) return;
+        setCities(
+          (Array.isArray(data) ? data : []).map((city) => ({
+            value: String(city.id),
+            label: city.name,
+          })),
+        );
+      })
+      .catch(() => {
+        if (selectedStateRef.current !== value) return;
+        toast.error("Não foi possível carregar as cidades do estado.");
+      })
+      .finally(() => {
+        if (selectedStateRef.current === value) setIsLoadingCities(false);
+      });
+  };
+
+  const handleCityChange = (value) => {
+    setForm((prev) => ({ ...prev, cityId: value }));
+  };
+
   const documentConfig = DOCUMENT_CONFIG[form.personType];
 
   const nomeValido = form.name.trim().length > 0;
@@ -70,6 +135,18 @@ export default function CadastroCliente({ isEdicao = false }) {
   const documentoValido = documentConfig.validate(form.document);
   const documentoCompleto = form.document.length === documentConfig.maxLength;
   const documentoTemErro = documentoCompleto && !documentoValido;
+
+  const ruaValida = form.street.trim().length > 0;
+  const ruaTemErro = form.street.length > 0 && !ruaValida;
+
+  const numeroValido = form.number.trim().length > 0;
+  const numeroTemErro = form.number.length > 0 && !numeroValido;
+
+  const getCityPlaceholder = () => {
+    if (!form.stateId) return "Selecione um estado primeiro";
+    if (isLoadingCities) return "Carregando cidades...";
+    return "Selecione a cidade";
+  };
 
   return (
     <div className="bg-slate-50/50 font-sans">
@@ -133,6 +210,77 @@ export default function CadastroCliente({ isEdicao = false }) {
                 onChange={handleDocumentChange}
                 hasError={documentoTemErro}
                 errorMessage={documentConfig.errorMessage}
+              />
+            </div>
+          </CardContent>
+
+          <div className="flex border-y border-slate-100 px-6 py-3 items-center gap-3">
+            <MapPin className="h-4 w-4 text-[#e31e24]" />
+            <h2 className="text-sm font-medium text-[#062A45]">Endereço</h2>
+          </div>
+
+          <CardContent className="px-6 py-4">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
+              <GenericInput
+                id="street"
+                label="RUA"
+                labelColor="#062A45"
+                type="text"
+                placeholder="Ex: Rua das Gaivotas"
+                required
+                value={form.street}
+                onChange={handleChange("street")}
+                hasError={ruaTemErro}
+                errorMessage="A rua não pode conter apenas espaços"
+              />
+
+              <GenericInput
+                id="number"
+                label="NÚMERO"
+                labelColor="#062A45"
+                type="text"
+                placeholder="Ex: 120"
+                maxLength={10}
+                required
+                value={form.number}
+                onChange={handleChange("number")}
+                hasError={numeroTemErro}
+                errorMessage="O número não pode conter apenas espaços"
+              />
+
+              <div className="md:col-span-2">
+                <GenericInput
+                  id="complement"
+                  label="COMPLEMENTO"
+                  labelColor="#062A45"
+                  type="text"
+                  placeholder="Ex: Sala 2, Bloco B"
+                  value={form.complement}
+                  onChange={handleChange("complement")}
+                />
+              </div>
+
+              <GenericSelect
+                id="state"
+                label="ESTADO"
+                labelColor="#062A45"
+                required
+                value={form.stateId}
+                onChange={handleStateChange}
+                options={states}
+                placeholder="Selecione o estado"
+              />
+
+              <GenericSelect
+                id="city"
+                label="CIDADE"
+                labelColor="#062A45"
+                required
+                disabled={!form.stateId || isLoadingCities}
+                value={form.cityId}
+                onChange={handleCityChange}
+                options={cities}
+                placeholder={getCityPlaceholder()}
               />
             </div>
           </CardContent>
