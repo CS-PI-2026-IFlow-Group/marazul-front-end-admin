@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Pagination from "../../components/Pagination";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { formatCnpj, formatCpf, onlyDigits } from "../../lib/documentMasks";
@@ -30,6 +31,8 @@ const PERSON_TYPE_CONFIG = {
     border: "border-violet-200",
   },
 };
+
+const ITEMS_PER_PAGE = 8;
 
 function normalizeText(value) {
   return String(value ?? "")
@@ -74,6 +77,7 @@ export default function Clientes() {
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     let active = true;
@@ -118,8 +122,17 @@ export default function Clientes() {
     });
   }, [clients, searchTerm]);
 
+  const totalPages = Math.ceil(filteredClients.length / ITEMS_PER_PAGE) || 1;
+  const displayedPage = Math.min(currentPage, totalPages);
+
+  const paginatedClients = useMemo(() => {
+    const startIndex = (displayedPage - 1) * ITEMS_PER_PAGE;
+    return filteredClients.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredClients, displayedPage]);
+
   const clearSearch = () => {
     setSearchTerm("");
+    setCurrentPage(1);
   };
 
   const columns = ["Nome", "Documento", "Cidade/UF"];
@@ -161,6 +174,7 @@ export default function Clientes() {
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
+                    setCurrentPage(1);
                   }}
                   className="pl-9 h-9 bg-white border-slate-200 text-xs shadow-none focus-visible:border-[#062A45] focus-visible:ring-[#062A45]/20 rounded-lg"
                 />
@@ -272,7 +286,7 @@ export default function Clientes() {
               </thead>
 
               <tbody className="divide-y divide-slate-50">
-                {filteredClients.map((client, idx) => (
+                {paginatedClients.map((client, idx) => (
                   <tr
                     key={client.id}
                     className={`transition-colors duration-150 hover:bg-blue-50/30 ${
@@ -302,6 +316,18 @@ export default function Clientes() {
           </div>
         )}
 
+        {!isLoading && !error && filteredClients.length > 0 && (
+          <div className="mt-auto">
+            <Pagination
+              currentPage={displayedPage}
+              totalPages={totalPages}
+              totalItems={filteredClients.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+              onPageChange={setCurrentPage}
+              itemName="cliente"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
