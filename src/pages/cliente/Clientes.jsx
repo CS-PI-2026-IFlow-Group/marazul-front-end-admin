@@ -1,7 +1,16 @@
-import { AlertCircle, Contact, Loader2, Plus, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  AlertCircle,
+  Contact,
+  Loader2,
+  Plus,
+  RefreshCw,
+  RotateCcw,
+  Search,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
 import { formatCnpj, formatCpf, onlyDigits } from "../../lib/documentMasks";
 import ClienteService from "../../services/ClienteService";
 
@@ -21,6 +30,14 @@ const PERSON_TYPE_CONFIG = {
     border: "border-violet-200",
   },
 };
+
+function normalizeText(value) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLocaleLowerCase("pt-BR")
+    .trim();
+}
 
 function getPersonType(client) {
   return onlyDigits(client.cnpj) ? "PJ" : "PF";
@@ -56,6 +73,7 @@ export default function Clientes() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -84,6 +102,26 @@ export default function Clientes() {
     setRetryCount((count) => count + 1);
   };
 
+  const filteredClients = useMemo(() => {
+    const term = normalizeText(searchTerm);
+    const termDigits = onlyDigits(searchTerm);
+
+    if (!term) return clients;
+
+    return clients.filter((client) => {
+      const matchesName = normalizeText(client.name).includes(term);
+      const documentDigits = onlyDigits(client.cpf) + onlyDigits(client.cnpj);
+      const matchesDocument =
+        termDigits.length > 0 && documentDigits.includes(termDigits);
+
+      return matchesName || matchesDocument;
+    });
+  }, [clients, searchTerm]);
+
+  const clearSearch = () => {
+    setSearchTerm("");
+  };
+
   const columns = ["Nome", "Documento", "Cidade/UF"];
 
   return (
@@ -108,11 +146,27 @@ export default function Clientes() {
             </h2>
             {!isLoading && !error && (
               <span className="ml-1 rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
-                {clients.length}
+                {filteredClients.length}
               </span>
             )}
           </div>
 
+          {!isLoading && !error && clients.length > 0 && (
+            <div className="flex items-center gap-2">
+              <div className="relative w-full sm:w-72">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <Input
+                  id="search-clientes"
+                  placeholder="Buscar nome, CPF ou CNPJ..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                  }}
+                  className="pl-9 h-9 bg-white border-slate-200 text-xs shadow-none focus-visible:border-[#062A45] focus-visible:ring-[#062A45]/20 rounded-lg"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {isLoading && (
@@ -176,7 +230,32 @@ export default function Clientes() {
           </div>
         )}
 
-        {!isLoading && !error && clients.length > 0 && (
+        {!isLoading &&
+          !error &&
+          clients.length > 0 &&
+          filteredClients.length === 0 && (
+            <div className="flex-1 flex flex-col items-center justify-center py-16 gap-3">
+              <Search className="h-10 w-10 text-slate-200" />
+              <div className="text-center">
+                <p className="text-base font-semibold text-[#062A45]">
+                  Nenhum cliente encontrado
+                </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  Nenhum cliente corresponde à busca realizada.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearSearch}
+                className="mt-2 gap-1.5 text-xs rounded-lg cursor-pointer border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold"
+              >
+                <RotateCcw className="h-3.5 w-3.5" /> Limpar busca
+              </Button>
+            </div>
+          )}
+
+        {!isLoading && !error && filteredClients.length > 0 && (
           <div className="flex-1 overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -193,7 +272,7 @@ export default function Clientes() {
               </thead>
 
               <tbody className="divide-y divide-slate-50">
-                {clients.map((client, idx) => (
+                {filteredClients.map((client, idx) => (
                   <tr
                     key={client.id}
                     className={`transition-colors duration-150 hover:bg-blue-50/30 ${
