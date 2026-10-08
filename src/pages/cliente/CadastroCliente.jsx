@@ -1,4 +1,4 @@
-import { ArrowLeft, Contact, MapPin } from "lucide-react";
+import { ArrowLeft, Contact, Loader2, MapPin, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -11,7 +11,9 @@ import {
   formatCpf,
   isValidCnpj,
   isValidCpf,
+  onlyDigits,
 } from "../../lib/documentMasks";
+import ClienteService from "../../services/ClienteService";
 import LocalidadeService from "../../services/LocalidadeService";
 
 const PERSON_TYPE_OPTIONS = [
@@ -40,6 +42,7 @@ const DOCUMENT_CONFIG = {
 
 export default function CadastroCliente({ isEdicao = false }) {
   const navigate = useNavigate();
+  const [isSaving, setIsSaving] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -142,10 +145,57 @@ export default function CadastroCliente({ isEdicao = false }) {
   const numeroValido = form.number.trim().length > 0;
   const numeroTemErro = form.number.length > 0 && !numeroValido;
 
+  const isFormValid =
+    nomeValido &&
+    documentoValido &&
+    ruaValida &&
+    numeroValido &&
+    form.stateId !== "" &&
+    form.cityId !== "";
+
   const getCityPlaceholder = () => {
     if (!form.stateId) return "Selecione um estado primeiro";
     if (isLoadingCities) return "Carregando cidades...";
     return "Selecione a cidade";
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!isFormValid || isSaving) return;
+
+    setIsSaving(true);
+
+    const document = onlyDigits(form.document);
+    const payload = {
+      name: form.name.trim(),
+      cpf: form.personType === "PF" ? document : "",
+      cnpj: form.personType === "PJ" ? document : "",
+      address: {
+        street: form.street,
+        number: form.number,
+        complement: form.complement,
+        cityId: form.cityId,
+      },
+    };
+
+    try {
+      await ClienteService.create(payload);
+      toast.success("Cliente cadastrado com sucesso!");
+      navigate("/clientes");
+    } catch (error) {
+      const status = error.response?.status;
+      const data = error.response?.data;
+      const backendMessage =
+        status === 400 || status === 409 ? data?.message || data?.erro : null;
+
+      toast.error("Erro ao cadastrar cliente", {
+        description:
+          backendMessage ||
+          "Ocorreu um problema ao salvar os dados. Tente novamente.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -168,7 +218,7 @@ export default function CadastroCliente({ isEdicao = false }) {
           </h2>
         </div>
 
-        <form id="form-cliente">
+        <form id="form-cliente" onSubmit={handleSubmit}>
           <CardContent className="px-6 py-4">
             <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
               <div className="md:col-span-2">
@@ -293,6 +343,24 @@ export default function CadastroCliente({ isEdicao = false }) {
             className="h-9 gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
+          </Button>
+          <Button
+            type="submit"
+            form="form-cliente"
+            disabled={!isFormValid || isSaving}
+            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 size-4" />
+                Salvar Cliente
+              </>
+            )}
           </Button>
         </CardFooter>
       </Card>
