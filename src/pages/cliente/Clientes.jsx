@@ -19,21 +19,9 @@ import { Input } from "../../components/ui/input";
 import { formatCnpj, formatCpf, onlyDigits } from "../../lib/documentMasks";
 import ClienteService from "../../services/ClienteService";
 
-const PERSON_TYPE_CONFIG = {
-  PF: {
-    label: "Pessoa Física",
-    bg: "bg-sky-50",
-    text: "text-sky-700",
-    dot: "bg-sky-500",
-    border: "border-sky-200",
-  },
-  PJ: {
-    label: "Pessoa Jurídica",
-    bg: "bg-violet-50",
-    text: "text-violet-700",
-    dot: "bg-violet-500",
-    border: "border-violet-200",
-  },
+const PERSON_TYPE_LABELS = {
+  PF: "Pessoa Física",
+  PJ: "Pessoa Jurídica",
 };
 
 const ITEMS_PER_PAGE = 8;
@@ -59,18 +47,6 @@ function formatDocument(client) {
 function formatLocation(client) {
   if (client.city && client.state) return `${client.city}/${client.state}`;
   return client.city || client.state || "—";
-}
-
-function PersonTypeBadge({ type }) {
-  const config = PERSON_TYPE_CONFIG[type] || PERSON_TYPE_CONFIG.PF;
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${config.bg} ${config.text} ${config.border}`}
-    >
-      <span className={`inline-block h-2 w-2 rounded-full ${config.dot}`} />
-      {config.label}
-    </span>
-  );
 }
 
 function ConfirmModal({ client, isLoading, onConfirm, onCancel }) {
@@ -426,7 +402,9 @@ export default function Clientes() {
                         <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs font-semibold text-slate-700 tracking-wider">
                           {formatDocument(client)}
                         </span>
-                        <PersonTypeBadge type={getPersonType(client)} />
+                        <span className="text-slate-600">
+                          {PERSON_TYPE_LABELS[getPersonType(client)]}
+                        </span>
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
