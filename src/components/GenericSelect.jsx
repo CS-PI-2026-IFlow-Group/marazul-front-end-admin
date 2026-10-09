@@ -13,6 +13,7 @@ export default function GenericSelect({
   labelColor = "#062A45",
   icon: Icon,
   required = false,
+  disabled = false,
   value,
   onChange,
   options = [],
@@ -40,7 +41,12 @@ export default function GenericSelect({
           />
         )}
 
-        <Select required={required} value={value} onValueChange={onChange}>
+        <Select
+          required={required}
+          disabled={disabled}
+          value={value}
+          onValueChange={onChange}
+        >
           <SelectTrigger
             id={id}
             className={`w-full bg-[#F8FAFC] h-11 text-sm transition-colors border rounded-md ${
