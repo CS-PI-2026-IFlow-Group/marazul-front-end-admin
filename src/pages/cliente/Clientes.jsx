@@ -228,9 +228,7 @@ export default function Clientes() {
         Math.ceil((filteredClients.length - 1) / ITEMS_PER_PAGE),
       );
       setCurrentPage((page) => Math.min(page, remainingPages));
-      toast.success("Cliente excluído com sucesso!", {
-        description: `${confirmClient.name} foi removido da base.`,
-      });
+      toast.success("Cliente excluído com sucesso!");
     } catch (requestError) {
       const status = requestError.response?.status;
       const data = requestError.response?.data;
