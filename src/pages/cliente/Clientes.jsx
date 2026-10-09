@@ -19,21 +19,9 @@ import { Input } from "../../components/ui/input";
 import { formatCnpj, formatCpf, onlyDigits } from "../../lib/documentMasks";
 import ClienteService from "../../services/ClienteService";
 
-const PERSON_TYPE_CONFIG = {
-  PF: {
-    label: "Pessoa Física",
-    bg: "bg-sky-50",
-    text: "text-sky-700",
-    dot: "bg-sky-500",
-    border: "border-sky-200",
-  },
-  PJ: {
-    label: "Pessoa Jurídica",
-    bg: "bg-violet-50",
-    text: "text-violet-700",
-    dot: "bg-violet-500",
-    border: "border-violet-200",
-  },
+const PERSON_TYPE_LABELS = {
+  PF: "Pessoa Física",
+  PJ: "Pessoa Jurídica",
 };
 
 const ITEMS_PER_PAGE = 8;
@@ -59,18 +47,6 @@ function formatDocument(client) {
 function formatLocation(client) {
   if (client.city && client.state) return `${client.city}/${client.state}`;
   return client.city || client.state || "—";
-}
-
-function PersonTypeBadge({ type }) {
-  const config = PERSON_TYPE_CONFIG[type] || PERSON_TYPE_CONFIG.PF;
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${config.bg} ${config.text} ${config.border}`}
-    >
-      <span className={`inline-block h-2 w-2 rounded-full ${config.dot}`} />
-      {config.label}
-    </span>
-  );
 }
 
 function ConfirmModal({ client, isLoading, onConfirm, onCancel }) {
@@ -112,7 +88,8 @@ function ConfirmModal({ client, isLoading, onConfirm, onCancel }) {
               ?
             </p>
             <p className="mt-2 text-sm text-slate-500">
-              Esta ação não poderá ser desfeita.
+              Esta ação não poderá ser desfeita e o endereço vinculado ao
+              cliente também será excluído.
             </p>
           </div>
         </div>
@@ -222,20 +199,27 @@ export default function Clientes() {
     try {
       await ClienteService.delete(confirmClient.id);
       setClients((prev) => prev.filter((c) => c.id !== confirmClient.id));
-      toast.success("Cliente excluído com sucesso!", {
-        description: `${confirmClient.name} foi removido da base.`,
-      });
+      const remainingPages = Math.max(
+        1,
+        Math.ceil((filteredClients.length - 1) / ITEMS_PER_PAGE),
+      );
+      setCurrentPage((page) => Math.min(page, remainingPages));
+      toast.success("Cliente excluído com sucesso!");
     } catch (requestError) {
       const status = requestError.response?.status;
+      const data = requestError.response?.data;
 
       if (status === 404) {
         toast.warning("Cliente não encontrado", {
           description: "O cliente já foi removido. A listagem foi atualizada.",
         });
         fetchClients();
-      } else if (status === 409) {
+      } else if (status === 400 || status === 409) {
         toast.error("Não foi possível excluir o cliente", {
-          description: "O cliente possui registros vinculados no sistema.",
+          description:
+            data?.message ||
+            data?.erro ||
+            "A exclusão foi bloqueada por uma regra do sistema.",
         });
       } else {
         toast.error("Erro ao excluir cliente", {
@@ -248,7 +232,7 @@ export default function Clientes() {
     }
   };
 
-  const columns = ["Nome", "Documento", "Cidade/UF", "Ações"];
+  const columns = ["Nome", "Documento", "Tipo", "Cidade/UF", "Ações"];
 
   return (
     <div className="space-y-6">
@@ -414,12 +398,12 @@ export default function Clientes() {
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-5 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs font-semibold text-slate-700 tracking-wider">
-                          {formatDocument(client)}
-                        </span>
-                        <PersonTypeBadge type={getPersonType(client)} />
-                      </div>
+                      <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs font-semibold text-slate-700 tracking-wider">
+                        {formatDocument(client)}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
+                      {PERSON_TYPE_LABELS[getPersonType(client)]}
                     </td>
                     <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
                       {formatLocation(client)}
