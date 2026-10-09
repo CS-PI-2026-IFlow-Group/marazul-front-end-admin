@@ -112,7 +112,8 @@ function ConfirmModal({ client, isLoading, onConfirm, onCancel }) {
               ?
             </p>
             <p className="mt-2 text-sm text-slate-500">
-              Esta ação não poderá ser desfeita.
+              Esta ação não poderá ser desfeita e o endereço vinculado ao
+              cliente também será excluído.
             </p>
           </div>
         </div>
