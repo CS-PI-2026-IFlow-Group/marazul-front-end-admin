@@ -223,6 +223,11 @@ export default function Clientes() {
     try {
       await ClienteService.delete(confirmClient.id);
       setClients((prev) => prev.filter((c) => c.id !== confirmClient.id));
+      const remainingPages = Math.max(
+        1,
+        Math.ceil((filteredClients.length - 1) / ITEMS_PER_PAGE),
+      );
+      setCurrentPage((page) => Math.min(page, remainingPages));
       toast.success("Cliente excluído com sucesso!", {
         description: `${confirmClient.name} foi removido da base.`,
       });
