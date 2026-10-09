@@ -228,15 +228,19 @@ export default function Clientes() {
       });
     } catch (requestError) {
       const status = requestError.response?.status;
+      const data = requestError.response?.data;
 
       if (status === 404) {
         toast.warning("Cliente não encontrado", {
           description: "O cliente já foi removido. A listagem foi atualizada.",
         });
         fetchClients();
-      } else if (status === 409) {
+      } else if (status === 400 || status === 409) {
         toast.error("Não foi possível excluir o cliente", {
-          description: "O cliente possui registros vinculados no sistema.",
+          description:
+            data?.message ||
+            data?.erro ||
+            "A exclusão foi bloqueada por uma regra do sistema.",
         });
       } else {
         toast.error("Erro ao excluir cliente", {
