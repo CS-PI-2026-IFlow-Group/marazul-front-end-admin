@@ -239,16 +239,28 @@ export default function CadastroCliente({ isEdicao = false }) {
     };
 
     try {
-      await ClienteService.create(payload);
-      toast.success("Cliente cadastrado com sucesso!");
+      if (isEdicao) {
+        await ClienteService.update(id, payload);
+        toast.success("Cliente atualizado com sucesso!");
+      } else {
+        await ClienteService.create(payload);
+        toast.success("Cliente cadastrado com sucesso!");
+      }
       navigate("/clientes");
     } catch (error) {
       const status = error.response?.status;
       const data = error.response?.data;
+
+      if (isEdicao && status === 404) {
+        toast.error("Cliente não encontrado.");
+        navigate("/clientes");
+        return;
+      }
+
       const backendMessage =
         status === 400 || status === 409 ? data?.message || data?.erro : null;
 
-      toast.error("Erro ao cadastrar cliente", {
+      toast.error(`Erro ao ${isEdicao ? "atualizar" : "cadastrar"} cliente`, {
         description:
           backendMessage ||
           "Ocorreu um problema ao salvar os dados. Tente novamente.",
