@@ -232,7 +232,7 @@ export default function Clientes() {
     }
   };
 
-  const columns = ["Nome", "Documento", "Cidade/UF", "Ações"];
+  const columns = ["Nome", "Documento", "Tipo", "Cidade/UF", "Ações"];
 
   return (
     <div className="space-y-6">
@@ -398,14 +398,12 @@ export default function Clientes() {
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-5 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs font-semibold text-slate-700 tracking-wider">
-                          {formatDocument(client)}
-                        </span>
-                        <span className="text-slate-600">
-                          {PERSON_TYPE_LABELS[getPersonType(client)]}
-                        </span>
-                      </div>
+                      <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs font-semibold text-slate-700 tracking-wider">
+                        {formatDocument(client)}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
+                      {PERSON_TYPE_LABELS[getPersonType(client)]}
                     </td>
                     <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
                       {formatLocation(client)}
