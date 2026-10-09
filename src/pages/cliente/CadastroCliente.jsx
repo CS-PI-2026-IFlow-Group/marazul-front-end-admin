@@ -1,6 +1,6 @@
 import { ArrowLeft, Contact, Loader2, MapPin, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import GenericInput from "../../components/GenericInput";
 import GenericSelect from "../../components/GenericSelect";
@@ -40,9 +40,18 @@ const DOCUMENT_CONFIG = {
   },
 };
 
+function toCityOptions(data) {
+  return (Array.isArray(data) ? data : []).map((city) => ({
+    value: String(city.id),
+    label: city.name,
+  }));
+}
+
 export default function CadastroCliente({ isEdicao = false }) {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingClient, setIsLoadingClient] = useState(isEdicao);
 
   const [form, setForm] = useState({
     name: "",
@@ -82,6 +91,59 @@ export default function CadastroCliente({ isEdicao = false }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isEdicao) return;
+
+    let active = true;
+
+    ClienteService.getById(id)
+      .then(async (client) => {
+        const address = client?.address ?? {};
+        const city = address.cityId
+          ? await LocalidadeService.getCidadeById(address.cityId)
+          : null;
+        const stateId = city?.stateId ? String(city.stateId) : "";
+        const cityList = stateId
+          ? await LocalidadeService.getCidades(stateId)
+          : [];
+
+        if (!active) return;
+
+        const personType = onlyDigits(client?.cnpj) ? "PJ" : "PF";
+        const loadedForm = {
+          name: client?.name ?? "",
+          personType,
+          document: DOCUMENT_CONFIG[personType].format(
+            personType === "PJ" ? client.cnpj : client?.cpf,
+          ),
+          street: address.street ?? "",
+          number: address.number ?? "",
+          complement: address.complement ?? "",
+          stateId,
+          cityId: address.cityId ? String(address.cityId) : "",
+        };
+
+        selectedStateRef.current = stateId;
+        setCities(toCityOptions(cityList));
+        setForm(loadedForm);
+        setIsLoadingClient(false);
+      })
+      .catch((error) => {
+        if (!active) return;
+        const status = error.response?.status;
+        toast.error(
+          status === 404 || status === 400
+            ? "Cliente não encontrado."
+            : "Erro ao carregar dados do cliente.",
+        );
+        navigate("/clientes");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isEdicao, id, navigate]);
+
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
@@ -100,7 +162,7 @@ export default function CadastroCliente({ isEdicao = false }) {
   };
 
   const handleStateChange = (value) => {
-    if (value === form.stateId) return;
+    if (!value || value === form.stateId) return;
 
     selectedStateRef.current = value;
     setForm((prev) => ({ ...prev, stateId: value, cityId: "" }));
@@ -110,12 +172,7 @@ export default function CadastroCliente({ isEdicao = false }) {
     LocalidadeService.getCidades(value)
       .then((data) => {
         if (selectedStateRef.current !== value) return;
-        setCities(
-          (Array.isArray(data) ? data : []).map((city) => ({
-            value: String(city.id),
-            label: city.name,
-          })),
-        );
+        setCities(toCityOptions(data));
       })
       .catch(() => {
         if (selectedStateRef.current !== value) return;
@@ -127,6 +184,7 @@ export default function CadastroCliente({ isEdicao = false }) {
   };
 
   const handleCityChange = (value) => {
+    if (!value) return;
     setForm((prev) => ({ ...prev, cityId: value }));
   };
 
@@ -153,6 +211,8 @@ export default function CadastroCliente({ isEdicao = false }) {
     form.stateId !== "" &&
     form.cityId !== "";
 
+  const podeSalvar = isFormValid && !isSaving && !isLoadingClient;
+
   const getCityPlaceholder = () => {
     if (!form.stateId) return "Selecione um estado primeiro";
     if (isLoadingCities) return "Carregando cidades...";
@@ -161,7 +221,7 @@ export default function CadastroCliente({ isEdicao = false }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isFormValid || isSaving) return;
+    if (!podeSalvar) return;
 
     setIsSaving(true);
 
@@ -204,7 +264,7 @@ export default function CadastroCliente({ isEdicao = false }) {
         <div className="flex items-start gap-2 flex-col-reverse">
           <div>
             <h1 className="text-xl font-semibold text-slate-700">
-              {isEdicao ? "Edição de Cliente" : "Cadastro de Cliente"}
+              {isEdicao ? "Editar Cliente" : "Cadastro de Cliente"}
             </h1>
           </div>
         </div>
@@ -229,6 +289,7 @@ export default function CadastroCliente({ isEdicao = false }) {
                   type="text"
                   placeholder="Ex: Maria da Silva"
                   required
+                  disabled={isLoadingClient}
                   value={form.name}
                   onChange={handleChange("name")}
                   hasError={nomeTemErro}
@@ -241,6 +302,7 @@ export default function CadastroCliente({ isEdicao = false }) {
                 label="TIPO DE PESSOA"
                 labelColor="#062A45"
                 required
+                disabled={isLoadingClient}
                 value={form.personType}
                 onChange={handlePersonTypeChange}
                 options={PERSON_TYPE_OPTIONS}
@@ -256,6 +318,7 @@ export default function CadastroCliente({ isEdicao = false }) {
                 placeholder={documentConfig.placeholder}
                 maxLength={documentConfig.maxLength}
                 required
+                disabled={isLoadingClient}
                 value={form.document}
                 onChange={handleDocumentChange}
                 hasError={documentoTemErro}
@@ -278,6 +341,7 @@ export default function CadastroCliente({ isEdicao = false }) {
                 type="text"
                 placeholder="Ex: Rua das Gaivotas"
                 required
+                disabled={isLoadingClient}
                 value={form.street}
                 onChange={handleChange("street")}
                 hasError={ruaTemErro}
@@ -292,6 +356,7 @@ export default function CadastroCliente({ isEdicao = false }) {
                 placeholder="Ex: 120"
                 maxLength={10}
                 required
+                disabled={isLoadingClient}
                 value={form.number}
                 onChange={handleChange("number")}
                 hasError={numeroTemErro}
@@ -305,6 +370,7 @@ export default function CadastroCliente({ isEdicao = false }) {
                   labelColor="#062A45"
                   type="text"
                   placeholder="Ex: Sala 2, Bloco B"
+                  disabled={isLoadingClient}
                   value={form.complement}
                   onChange={handleChange("complement")}
                 />
@@ -315,6 +381,7 @@ export default function CadastroCliente({ isEdicao = false }) {
                 label="ESTADO"
                 labelColor="#062A45"
                 required
+                disabled={isLoadingClient}
                 value={form.stateId}
                 onChange={handleStateChange}
                 options={states}
@@ -326,7 +393,7 @@ export default function CadastroCliente({ isEdicao = false }) {
                 label="CIDADE"
                 labelColor="#062A45"
                 required
-                disabled={!form.stateId || isLoadingCities}
+                disabled={isLoadingClient || !form.stateId || isLoadingCities}
                 value={form.cityId}
                 onChange={handleCityChange}
                 options={cities}
@@ -347,7 +414,7 @@ export default function CadastroCliente({ isEdicao = false }) {
           <Button
             type="submit"
             form="form-cliente"
-            disabled={!isFormValid || isSaving}
+            disabled={!podeSalvar}
             className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer"
           >
             {isSaving ? (
