@@ -52,6 +52,7 @@ export default function CadastroCliente({ isEdicao = false }) {
   const { id } = useParams();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingClient, setIsLoadingClient] = useState(isEdicao);
+  const [initialForm, setInitialForm] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -126,6 +127,7 @@ export default function CadastroCliente({ isEdicao = false }) {
         selectedStateRef.current = stateId;
         setCities(toCityOptions(cityList));
         setForm(loadedForm);
+        setInitialForm(loadedForm);
         setIsLoadingClient(false);
       })
       .catch((error) => {
@@ -211,7 +213,13 @@ export default function CadastroCliente({ isEdicao = false }) {
     form.stateId !== "" &&
     form.cityId !== "";
 
-  const podeSalvar = isFormValid && !isSaving && !isLoadingClient;
+  const houveAlteracao =
+    !isEdicao ||
+    (initialForm !== null &&
+      Object.keys(form).some((field) => form[field] !== initialForm[field]));
+
+  const podeSalvar =
+    isFormValid && houveAlteracao && !isSaving && !isLoadingClient;
 
   const getCityPlaceholder = () => {
     if (!form.stateId) return "Selecione um estado primeiro";
