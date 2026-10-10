@@ -17,9 +17,9 @@ function ConfirmDeleteModal({ passenger, isLoading, onConfirm, onCancel }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={onCancel} />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={isLoading ? undefined : onCancel} />
       <div role="dialog" aria-modal="true" aria-labelledby="delete-passenger-title" className="relative z-10 w-full max-w-lg rounded-xl bg-white p-8 shadow-2xl mx-4 border border-slate-100">
-        <button type="button" onClick={onCancel} disabled={isLoading} aria-label="Fechar" className="absolute top-4 right-4 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer">
+        <button type="button" onClick={onCancel} disabled={isLoading} aria-label="Fechar" className="absolute top-4 right-4 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50">
           <X className="h-5 w-5" />
         </button>
         <div className="flex flex-col items-center text-center gap-4">
@@ -29,8 +29,9 @@ function ConfirmDeleteModal({ passenger, isLoading, onConfirm, onCancel }) {
           <div>
             <h3 id="delete-passenger-title" className="text-xl font-bold text-[#062A45]">Excluir Passageiro</h3>
             <p className="mt-3 text-base text-slate-600">
-              Deseja realmente excluir o passageiro <span className="font-semibold text-[#062A45]">{passenger.name}</span>?
+              Deseja realmente excluir o passageiro <span className="font-semibold text-[#062A45]">{passenger.name}</span> com documento <span className="font-semibold text-[#062A45]">{formatCpf(passenger.cpf)}</span>?
             </p>
+            <p className="mt-2 text-sm text-slate-500">Esta ação não poderá ser desfeita.</p>
           </div>
         </div>
         <div className="mt-8 flex gap-3">
@@ -78,9 +79,10 @@ export default function Passageiros() {
     [passengers, searchTerm],
   );
   const totalPages = Math.max(1, Math.ceil(filteredPassengers.length / ITEMS_PER_PAGE));
+  const displayedPage = Math.min(currentPage, totalPages);
   const paginatedPassengers = filteredPassengers.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
+    (displayedPage - 1) * ITEMS_PER_PAGE,
+    displayedPage * ITEMS_PER_PAGE,
   );
 
   const retry = () => {
@@ -94,16 +96,24 @@ export default function Passageiros() {
     setIsDeleting(true);
     try {
       await PassageiroService.delete(confirmPassenger.id);
-      const remaining = passengers.filter((passenger) => passenger.id !== confirmPassenger.id);
-      setPassengers(remaining);
-      const remainingFiltered = remaining.filter((passenger) => matchesPassenger(passenger, searchTerm));
-      setCurrentPage((page) => Math.min(page, Math.max(1, Math.ceil(remainingFiltered.length / ITEMS_PER_PAGE))));
-      setConfirmPassenger(null);
+      setPassengers((previous) => previous.filter((passenger) => passenger.id !== confirmPassenger.id));
+      const remainingPages = Math.max(1, Math.ceil((filteredPassengers.length - 1) / ITEMS_PER_PAGE));
+      setCurrentPage((page) => Math.min(page, remainingPages));
       toast.success("Passageiro excluído com sucesso!");
     } catch (requestError) {
-      toast.error(requestError.response?.data?.message || "Não foi possível excluir o passageiro.");
+      const status = requestError.response?.status;
+      const data = requestError.response?.data;
+      if (status === 400 || status === 409) {
+        toast.error(data?.message || data?.erro || "A exclusão foi bloqueada por uma regra do sistema.");
+      } else if (status === 404) {
+        toast.warning("Passageiro não encontrado. A listagem será atualizada.");
+        retry();
+      } else {
+        toast.error("Não foi possível excluir o passageiro. Tente novamente.");
+      }
     } finally {
       setIsDeleting(false);
+      setConfirmPassenger(null);
     }
   };
 
@@ -163,7 +173,7 @@ export default function Passageiros() {
           </table>
         </div>}
 
-        {!isLoading && !error && filteredPassengers.length > 0 && <div className="mt-auto"><Pagination currentPage={currentPage} totalPages={totalPages} totalItems={filteredPassengers.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} itemName="passageiro" /></div>}
+        {!isLoading && !error && filteredPassengers.length > 0 && <div className="mt-auto"><Pagination currentPage={displayedPage} totalPages={totalPages} totalItems={filteredPassengers.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} itemName="passageiro" /></div>}
       </div>
 
       <ConfirmDeleteModal passenger={confirmPassenger} isLoading={isDeleting} onConfirm={handleDelete} onCancel={() => { if (!isDeleting) setConfirmPassenger(null); }} />
