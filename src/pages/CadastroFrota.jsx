@@ -1,0 +1,359 @@
+import { ArrowLeft, BusFront, Loader2, Save } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import GenericInput from "../components/GenericInput";
+import GenericSelect from "../components/GenericSelect";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardFooter } from "../components/ui/card";
+import FrotaService from "../services/FrotaService";
+
+const PLACA_REGEX = /^[A-Z]{3}-?\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$/;
+const PREFIX_REGEX = /^[A-Za-z0-9]+$/;
+
+function formatPlaca(raw) {
+  const clean = raw
+    .replace(/[^A-Za-z0-9]/g, "")
+    .toUpperCase()
+    .slice(0, 7);
+
+  if (clean.length > 3 && /^[A-Z]{3}\d+$/.test(clean)) {
+    return clean.slice(0, 3) + "-" + clean.slice(3);
+  }
+
+  return clean;
+}
+
+export default function CadastroFrota() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditing = Boolean(id);
+  const [isLoading, setIsLoading] = useState(Boolean(id));
+
+  const [enums, setEnums] = useState({
+    models: [],
+    types: [],
+    statuses: [],
+  });
+
+  const [form, setForm] = useState({
+    prefix: "",
+    licensePlate: "",
+    model: "MARCOPOLO",
+    year: "",
+    type: "DD",
+    seats: "",
+    status: "ACTIVE",
+    inspectionDate: "",
+  });
+
+  useEffect(() => {
+    let active = true;
+    FrotaService.getEnums().then((data) => {
+      if (active && data) {
+        setEnums(data);
+        if (!isEditing) {
+          setForm((prev) => ({
+            ...prev,
+            model:
+              prev.model && data.models?.some((m) => m.value === prev.model)
+                ? prev.model
+                : data.models?.[0]?.value || "MARCOPOLO",
+            type:
+              prev.type && data.types?.some((t) => t.value === prev.type)
+                ? prev.type
+                : data.types?.[0]?.value || "DD",
+            status:
+              prev.status && data.statuses?.some((s) => s.value === prev.status)
+                ? prev.status
+                : data.statuses?.find((s) => s.value === "ACTIVE")?.value ||
+                  data.statuses?.[0]?.value ||
+                  "ACTIVE",
+          }));
+        }
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (id) {
+      FrotaService.getById(id)
+        .then((data) => {
+          if (data) {
+            setForm({
+              prefix: data.prefix || "",
+              licensePlate: formatPlaca(data.licensePlate || ""),
+              model: data.model || "MARCOPOLO",
+              year: data.year ? String(data.year) : "",
+              type: data.type || "DD",
+              seats: data.seats ? String(data.seats) : "",
+              status: data.status || "ACTIVE",
+              inspectionDate: data.inspectionDate || "",
+            });
+          }
+        })
+        .catch(() => {
+          toast.error("Erro ao carregar dados do veículo.");
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, [id]);
+
+  const handleChange = (field) => (e) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handlePlacaChange = (e) => {
+    setForm((prev) => ({ ...prev, licensePlate: formatPlaca(e.target.value) }));
+  };
+
+  const handleNumeroChange = (field, maxLen) => (e) => {
+    const numericValue = e.target.value.replace(/\D/g, "").slice(0, maxLen);
+    setForm((prev) => ({ ...prev, [field]: numericValue }));
+  };
+
+  const handleSelectChange = (field) => (value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const placaValida = PLACA_REGEX.test(form.licensePlate.replace("-", ""));
+  const placaTemErro = form.licensePlate.length > 0 && !placaValida;
+
+  const prefixValido = PREFIX_REGEX.test(form.prefix.trim());
+  const prefixTemErro = form.prefix.length > 0 && !prefixValido;
+
+  const anoValido = form.year.length === 4 && Number(form.year) >= 1950;
+  const anoTemErro = form.year.length > 0 && !anoValido;
+
+  const assentosValidos = form.seats.length > 0 && Number(form.seats) > 0;
+  const assentosTemErro = form.seats.length > 0 && !assentosValidos;
+
+  const dataVistoriaValida = form.inspectionDate.trim() !== "";
+
+  const isFormValid =
+    prefixValido &&
+    placaValida &&
+    anoValido &&
+    assentosValidos &&
+    form.model !== "" &&
+    form.type !== "" &&
+    form.status !== "" &&
+    dataVistoriaValida;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!isFormValid || isLoading) return;
+
+    setIsLoading(true);
+
+    const payload = {
+      prefix: form.prefix.trim(),
+      licensePlate: form.licensePlate.trim().toUpperCase(),
+      model: form.model,
+      type: form.type,
+      year: Number(form.year),
+      seats: Number(form.seats),
+      status: form.status,
+      inspectionDate: form.inspectionDate.trim(),
+    };
+
+    try {
+      if (isEditing) {
+        await FrotaService.update(id, payload);
+        toast.success("Veículo atualizado com sucesso!");
+      } else {
+        await FrotaService.create(payload);
+        toast.success("Veículo cadastrado com sucesso!");
+      }
+      navigate("/frota");
+    } catch (error) {
+      const status = error.response?.status;
+      const data = error.response?.data;
+
+      if (status === 409) {
+        toast.error("Conflito de cadastro", {
+          description:
+            data?.message ||
+            data?.erro ||
+            "Já existe um veículo cadastrado com esta placa.",
+        });
+      } else {
+        toast.error(
+          isEditing ? "Erro ao atualizar veículo" : "Erro ao cadastrar veículo",
+          {
+            description:
+              data?.message ||
+              data?.erro ||
+              "Ocorreu um problema ao salvar os dados. Tente novamente.",
+          },
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-slate-50/50 font-sans">
+      <div className="mb-3">
+        <div className="flex items-start gap-2 flex-col-reverse">
+          <div>
+            <h1 className="text-xl font-semibold text-slate-700">
+              {isEditing ? "Edição de Frota" : "Cadastro de Frota"}
+            </h1>
+          </div>
+        </div>
+      </div>
+
+      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden py-1 gap-0">
+        <div className="flex border-b border-slate-100 px-6 py-3 items-center gap-3">
+          <BusFront className="h-4 w-4 text-[#e31e24]" />
+          <h2 className="text-sm font-medium text-[#062A45]">
+            Informações do veículo
+          </h2>
+        </div>
+
+        <CardContent className="px-6 py-4">
+          <form id="form-frota" onSubmit={handleSubmit} className="space-y-3">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
+              <GenericInput
+                id="prefix"
+                label="PREFIXO"
+                labelColor="#062A45"
+                type="text"
+                placeholder="Ex: 18001"
+                pattern="[A-Za-z0-9]+"
+                required
+                value={form.prefix}
+                onChange={handleChange("prefix")}
+                hasError={prefixTemErro}
+                errorMessage="Informe apenas letras e numeros"
+              />
+
+              <GenericInput
+                id="licensePlate"
+                label="PLACA"
+                labelColor="#062A45"
+                type="text"
+                placeholder="ABC-1234 ou ABC1D23"
+                maxLength={8}
+                required
+                value={form.licensePlate}
+                onChange={handlePlacaChange}
+                hasError={placaTemErro}
+                errorMessage="Formato inválido. Use ABC-1234 ou ABC1D23"
+                className="uppercase"
+              />
+
+              <GenericSelect
+                id="model"
+                label="MARCA"
+                labelColor="#062A45"
+                required
+                value={form.model}
+                onChange={handleSelectChange("model")}
+                options={enums.models}
+                placeholder="Selecione a marca"
+              />
+
+              <GenericSelect
+                id="type"
+                label="TIPO"
+                labelColor="#062A45"
+                required
+                value={form.type}
+                onChange={handleSelectChange("type")}
+                options={enums.types}
+                placeholder="Selecione o tipo"
+              />
+
+              <GenericInput
+                id="year"
+                label="ANO DE FABRICAÇÃO"
+                labelColor="#062A45"
+                type="text"
+                inputMode="numeric"
+                placeholder="Ex: 2024"
+                maxLength={4}
+                required
+                value={form.year}
+                onChange={handleNumeroChange("year", 4)}
+                hasError={anoTemErro}
+                errorMessage="Informe um ano válido com 4 dígitos (mínimo 1950)"
+              />
+
+              <GenericInput
+                id="seats"
+                label="QUANTIDADE DE ASSENTOS"
+                labelColor="#062A45"
+                type="text"
+                inputMode="numeric"
+                placeholder="Ex: 46"
+                maxLength={3}
+                required
+                value={form.seats}
+                onChange={handleNumeroChange("seats", 3)}
+                hasError={assentosTemErro}
+                errorMessage="Informe uma quantidade válida de assentos"
+              />
+
+              <GenericSelect
+                id="status"
+                label="STATUS"
+                labelColor="#062A45"
+                required
+                value={form.status}
+                onChange={handleSelectChange("status")}
+                options={enums.statuses}
+                placeholder="Selecione o status"
+              />
+
+              <GenericInput
+                id="inspectionDate"
+                label="DATA DE VISTORIA"
+                labelColor="#062A45"
+                type="date"
+                required
+                value={form.inspectionDate}
+                onChange={handleChange("inspectionDate")}
+              />
+            </div>
+          </form>
+        </CardContent>
+
+        <CardFooter className="flex justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/frota")}
+            className="h-9 gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer"
+          >
+            <ArrowLeft className="h-4 w-4" /> Voltar
+          </Button>
+          <Button
+            type="submit"
+            form="form-frota"
+            disabled={!isFormValid || isLoading}
+            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 size-4" />
+                Salvar Veículo
+              </>
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}

@@ -1,0 +1,81 @@
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import DashboardLayout from "./components/DashboardLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { Toaster } from "./components/ui/sonner";
+import AuthProvider from "./context/AuthProvider";
+import Login from "./pages/auth/Login";
+import RecuperarSenha from "./pages/auth/RecuperarSenha";
+import RedefinirSenha from "./pages/auth/RedefinirSenha";
+import CadastroFrota from "./pages/CadastroFrota";
+import Dashboard from "./pages/Dashboard";
+import Frota from "./pages/Frota";
+import CadastroFuncionario from "./pages/funcionario/CadastroFuncionario";
+import Funcionarios from "./pages/funcionario/Funcionario";
+import CadastroCliente from "./pages/cliente/CadastroCliente";
+import Clientes from "./pages/cliente/Clientes";
+import CadastroPassageiro from "./pages/passageiro/CadastroPassageiro";
+import Passageiros from "./pages/passageiro/Passageiros";
+import CadastroPerfil from "./pages/perfil/CadastroPerfil";
+import Perfis from "./pages/perfil/Perfis";
+import Relatorios from "./pages/Relatorios";
+import Viagens from "./pages/Viagens";
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+        <Route path="/redefinir-senha" element={<RedefinirSenha />} />
+
+        <Route
+          element={
+            <ProtectedRoute>
+              <AuthProvider>
+                <DashboardLayout />
+              </AuthProvider>
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/frota" element={<Frota />} />
+          <Route path="/frota/cadastro" element={<CadastroFrota />} />
+          <Route path="/frota/editar/:id" element={<CadastroFrota />} />
+          <Route path="/viagens" element={<Viagens />} />
+
+          <Route path="/passageiros" element={<Passageiros />} />
+          <Route path="/passageiros/cadastro" element={<CadastroPassageiro />} />
+          <Route
+            path="/passageiros/editar/:id"
+            element={<CadastroPassageiro isEdicao={true} />}
+          />
+
+          <Route path="/funcionario" element={<Funcionarios />} />
+          <Route path="/clientes" element={<Clientes />} />
+          <Route path="/clientes/cadastro" element={<CadastroCliente />} />
+          <Route path="/clientes/editar/:id" element={<CadastroCliente isEdicao={true} />} />
+          <Route
+            path="/funcionario/cadastro"
+            element={<CadastroFuncionario />}
+          />
+          <Route
+            path="/funcionario/editar/:id"
+            element={<CadastroFuncionario isEdicao={true} />}
+          />
+
+          <Route path="/perfis" element={<Perfis />} />
+          <Route path="/perfis/cadastro" element={<CadastroPerfil />} />
+          <Route
+            path="/perfis/editar/:id"
+            element={<CadastroPerfil isEdicao={true} />}
+          />
+
+          <Route path="/relatorios" element={<Relatorios />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+      <Toaster position="top-center" />
+    </BrowserRouter>
+  );
+}
