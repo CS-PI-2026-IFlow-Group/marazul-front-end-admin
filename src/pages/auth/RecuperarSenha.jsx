@@ -8,8 +8,10 @@ import GenericInput from "../../components/GenericInput";
 import SubmitButton from "../../components/SubmitButton";
 import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
 import api from "../../config/axiosConfig";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 export default function RecuperarSenha() {
+  usePageTitle("Recuperar Senha");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);

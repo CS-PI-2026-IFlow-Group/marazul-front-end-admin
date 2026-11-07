@@ -1,4 +1,8 @@
+import { usePageTitle } from "../hooks/usePageTitle";
+
 export default function Viagens() {
+  usePageTitle("Viagens");
+
   return (
     <div className="space-y-2">
       <h1 className="text-2xl font-bold text-[#062A45]">Viagens</h1>

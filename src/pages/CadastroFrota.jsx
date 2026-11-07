@@ -7,6 +7,7 @@ import GenericSelect from "../components/GenericSelect";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardFooter } from "../components/ui/card";
 import FrotaService from "../services/FrotaService";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 const PLACA_REGEX = /^[A-Z]{3}-?\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$/;
 const PREFIX_REGEX = /^[A-Za-z0-9]+$/;
@@ -28,6 +29,7 @@ export default function CadastroFrota() {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = Boolean(id);
+  usePageTitle(isEditing ? "Edição de Frota" : "Cadastro de Frota");
   const [isLoading, setIsLoading] = useState(Boolean(id));
 
   const [enums, setEnums] = useState({
