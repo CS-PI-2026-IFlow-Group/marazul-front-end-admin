@@ -15,6 +15,7 @@ import { Card, CardContent, CardFooter } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Label } from "../../components/ui/label";
 import PerfilService from "../../services/PerfilService";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 const PERFIL_PADRAO = "administrador";
 
@@ -36,6 +37,7 @@ const ROTULOS_FUNCIONALIDADE = {
 const CadastroPerfil = ({ isEdicao = false }) => {
   const navigate = useNavigate();
   const { id } = useParams();
+  usePageTitle(isEdicao ? "Edição de Perfil" : "Cadastro de Perfil");
   const [nome, setNome] = useState("");
   const [permissoes, setPermissoes] = useState([]);
   const [permissoesCarregadas, setPermissoesCarregadas] = useState(false);

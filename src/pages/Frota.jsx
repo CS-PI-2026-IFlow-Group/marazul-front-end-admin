@@ -18,6 +18,7 @@ import Pagination from "../components/Pagination";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import FrotaService from "../services/FrotaService";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 const STATUS_CONFIG = {
   ACTIVE: {
@@ -157,6 +158,7 @@ function ConfirmModal({ vehicle, isLoading, onConfirm, onCancel }) {
 const ITEMS_PER_PAGE = 8;
 
 export default function Frota() {
+  usePageTitle("Frota");
   const navigate = useNavigate();
 
   const [vehicles, setVehicles] = useState([]);

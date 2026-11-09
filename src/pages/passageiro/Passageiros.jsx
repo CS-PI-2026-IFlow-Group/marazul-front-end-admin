@@ -8,6 +8,7 @@ import { Input } from "../../components/ui/input";
 import { formatCpf } from "../../lib/documentMasks";
 import { formatPassengerPhone, matchesPassenger } from "../../lib/passengerList";
 import PassageiroService from "../../services/PassageiroService";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 const ITEMS_PER_PAGE = 8;
 const COLUMNS = ["Nome", "CPF", "Telefone", "Ações"];
@@ -46,6 +47,7 @@ function ConfirmDeleteModal({ passenger, isLoading, onConfirm, onCancel }) {
 }
 
 export default function Passageiros() {
+  usePageTitle("Passageiros");
   const navigate = useNavigate();
   const [passengers, setPassengers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
