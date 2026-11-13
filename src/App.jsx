@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import DashboardLayout from "./components/DashboardLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "./components/ui/sonner";
@@ -19,6 +19,7 @@ import CadastroPerfil from "./pages/perfil/CadastroPerfil";
 import Perfis from "./pages/perfil/Perfis";
 import Relatorios from "./pages/Relatorios";
 import Viagens from "./pages/Viagens";
+import NotFound from "./pages/NotFound";
 
 export default function App() {
   return (
@@ -73,7 +74,7 @@ export default function App() {
           <Route path="/relatorios" element={<Relatorios />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster position="top-center" />
     </BrowserRouter>

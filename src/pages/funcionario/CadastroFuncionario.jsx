@@ -20,6 +20,7 @@ import { Checkbox } from "../../components/ui/checkbox";
 import { Label } from "../../components/ui/label";
 import FuncionarioService from "../../services/FuncionarioService";
 import PerfilService from "../../services/PerfilService";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 const TELEFONE_REGEX = /^\d{2}9\d{8}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -37,6 +38,7 @@ function formatTelefone(raw) {
 }
 
 const CadastroFuncionario = ({ isEdicao = false }) => {
+  usePageTitle(isEdicao ? "Edição de Colaborador" : "Cadastro de Colaborador");
   const [funcao, setFuncao] = useState("");
   const [isUser, setIsUser] = useState(false);
   const [perfilId, setPerfilId] = useState("");

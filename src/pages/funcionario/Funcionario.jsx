@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "../../components/ui/button";
 import FuncionarioService from "../../services/FuncionarioService";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 function AccessBadge({ isUser }) {
   const hasAccess = isUser === true;
@@ -192,6 +193,7 @@ function ConfirmActivateModal({ colaborador, isLoading, onConfirm, onCancel }) {
 }
 
 export default function Funcionarios() {
+  usePageTitle("Colaboradores");
   const navigate = useNavigate();
 
   const [funcionarios, setFuncionarios] = useState([]);

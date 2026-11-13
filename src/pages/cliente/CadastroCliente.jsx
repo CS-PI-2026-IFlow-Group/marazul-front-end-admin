@@ -15,6 +15,7 @@ import {
 } from "../../lib/documentMasks";
 import ClienteService from "../../services/ClienteService";
 import LocalidadeService from "../../services/LocalidadeService";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 const PERSON_TYPE_OPTIONS = [
   { value: "PF", label: "Pessoa Física" },
@@ -48,6 +49,7 @@ function toCityOptions(data) {
 }
 
 export default function CadastroCliente({ isEdicao = false }) {
+  usePageTitle(isEdicao ? "Edição de Cliente" : "Cadastro de Cliente");
   const navigate = useNavigate();
   const { id } = useParams();
   const [isSaving, setIsSaving] = useState(false);

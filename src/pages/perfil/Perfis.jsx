@@ -16,6 +16,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import Pagination from "../../components/Pagination";
 import PerfilService from "../../services/PerfilService";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -101,6 +102,7 @@ function ConfirmDeleteModal({ profile, isLoading, onConfirm, onCancel }) {
 }
 
 export default function Perfis() {
+  usePageTitle("Perfis de Acesso");
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);

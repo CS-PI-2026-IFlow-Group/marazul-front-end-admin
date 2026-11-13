@@ -18,6 +18,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { formatCnpj, formatCpf, onlyDigits } from "../../lib/documentMasks";
 import ClienteService from "../../services/ClienteService";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 const PERSON_TYPE_LABELS = {
   PF: "Pessoa Física",
@@ -124,6 +125,7 @@ function ConfirmModal({ client, isLoading, onConfirm, onCancel }) {
 }
 
 export default function Clientes() {
+  usePageTitle("Clientes");
   const navigate = useNavigate();
 
   const [clients, setClients] = useState([]);

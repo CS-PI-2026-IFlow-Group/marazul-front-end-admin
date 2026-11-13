@@ -4,8 +4,10 @@ import MetricCard from "../components/MetricCard";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
 import dashboardService from "../services/DashboardService";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 export default function Dashboard() {
+  usePageTitle("Dashboard");
   const {
     profile,
     loading: profileLoading,

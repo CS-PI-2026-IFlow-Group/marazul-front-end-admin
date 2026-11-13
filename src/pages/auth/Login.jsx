@@ -11,8 +11,10 @@ import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Label } from "../../components/ui/label";
 import api from "../../config/axiosConfig";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 export default function Login() {
+  usePageTitle("Login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);

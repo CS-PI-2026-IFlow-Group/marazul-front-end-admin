@@ -8,10 +8,12 @@ import { Card, CardContent, CardFooter } from "../../components/ui/card";
 import { formatCpf, isValidCpf, onlyDigits } from "../../lib/documentMasks";
 import { formatPhone } from "../../lib/phoneMasks";
 import PassageiroService from "../../services/PassageiroService";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 const backButtonClass = "h-9 gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer";
 
 export default function CadastroPassageiro({ isEdicao = false }) {
+  usePageTitle(isEdicao ? "Edição de Passageiro" : "Cadastro de Passageiro");
   const navigate = useNavigate();
   const { id } = useParams();
   const [name, setName] = useState("");
