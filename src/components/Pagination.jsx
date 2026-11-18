@@ -98,7 +98,7 @@ export default function Pagination({
                 return (
                   <span
                     key={`ellipsis-${index}`}
-                    className="flex h-8 w-8 items-center justify-center text-xs text-slate-400 select-none"
+                    className="hidden h-8 w-8 items-center justify-center text-xs text-slate-400 select-none sm:flex"
                   >
                     ...
                   </span>
