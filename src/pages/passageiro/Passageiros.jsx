@@ -1,8 +1,10 @@
-import { AlertCircle, Loader2, Pencil, Plus, RefreshCw, Search, Trash2, UserRound, X } from "lucide-react";
+import { AlertCircle, Pencil, Plus, RefreshCw, Search, Trash2, UserRound, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Pagination from "../../components/Pagination";
+import LoadingIndicator from "../../components/LoadingIndicator";
+import EmptyState from "../../components/EmptyState";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { formatCpf } from "../../lib/documentMasks";
@@ -17,9 +19,9 @@ function ConfirmDeleteModal({ passenger, isLoading, onConfirm, onCancel }) {
   if (!passenger) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={isLoading ? undefined : onCancel} />
-      <div role="dialog" aria-modal="true" aria-labelledby="delete-passenger-title" className="relative z-10 w-full max-w-lg rounded-xl bg-white p-8 shadow-2xl mx-4 border border-slate-100">
+      <div role="dialog" aria-modal="true" aria-labelledby="delete-passenger-title" className="relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-100 bg-white p-5 shadow-2xl sm:p-8">
         <button type="button" onClick={onCancel} disabled={isLoading} aria-label="Fechar" className="absolute top-4 right-4 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50">
           <X className="h-5 w-5" />
         </button>
@@ -35,10 +37,10 @@ function ConfirmDeleteModal({ passenger, isLoading, onConfirm, onCancel }) {
             <p className="mt-2 text-sm text-slate-500">Esta ação não poderá ser desfeita.</p>
           </div>
         </div>
-        <div className="mt-8 flex gap-3">
-          <Button variant="outline" onClick={onCancel} disabled={isLoading} className="flex-1 rounded-lg h-12 text-sm cursor-pointer font-semibold">Cancelar</Button>
-          <Button onClick={onConfirm} disabled={isLoading} className="flex-1 rounded-lg h-12 bg-red-600 text-sm text-white hover:bg-red-700 cursor-pointer font-semibold">
-            {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Excluindo...</> : "Confirmar Exclusão"}
+        <div className="mt-8 flex flex-col gap-3 md:flex-row">
+          <Button variant="outline" onClick={onCancel} disabled={isLoading} className="h-12 w-full flex-1 rounded-lg text-sm cursor-pointer font-semibold md:w-auto">Cancelar</Button>
+          <Button onClick={onConfirm} disabled={isLoading} className="h-12 w-full flex-1 rounded-lg bg-red-600 text-sm text-white hover:bg-red-700 cursor-pointer font-semibold md:w-auto">
+            {isLoading ? <LoadingIndicator variant="button" label="Excluindo..." /> : "Confirmar Exclusão"}
           </Button>
         </div>
       </div>
@@ -121,20 +123,20 @@ export default function Passageiros() {
 
   return (
     <div className="space-y-6 font-sans">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold text-[#062A45]">Passageiros</h1>
-        <Button onClick={() => navigate("/passageiros/cadastro")} className="gap-2 bg-[#062A45] hover:bg-[#0a1f35] text-white font-bold cursor-pointer rounded-lg h-11 px-6 shadow-sm transition-all duration-200 hover:shadow-md">
+        <Button onClick={() => navigate("/passageiros/cadastro")} className="h-11 w-full gap-2 bg-[#062A45] hover:bg-[#0a1f35] text-white font-bold cursor-pointer rounded-lg px-6 shadow-sm transition-all duration-200 hover:shadow-md md:w-auto">
           <Plus className="h-4 w-4" /> Novo Passageiro
         </Button>
       </div>
 
       <div className="relative flex flex-col min-h-[480px] rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between rounded-t-xl">
+        <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/60 px-4 py-4 md:flex-row md:items-center md:justify-between rounded-t-xl sm:px-5">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-[#062A45]">Listagem de Passageiros</h2>
             {!isLoading && !error && <span className="ml-1 rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">{filteredPassengers.length}</span>}
           </div>
-          <div className="relative w-full sm:w-64">
+          <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <Input id="search-passengers" aria-label="Buscar passageiro por nome ou CPF" placeholder="Buscar nome ou CPF..." value={searchTerm}
               onChange={(event) => { setSearchTerm(event.target.value); setCurrentPage(1); }}
@@ -142,7 +144,7 @@ export default function Passageiros() {
           </div>
         </div>
 
-        {isLoading && <div className="flex flex-col items-center justify-center py-24 gap-4"><Loader2 className="h-10 w-10 animate-spin text-[#062A45]" /><p className="text-sm font-medium text-slate-700">Carregando passageiros...</p></div>}
+        {isLoading && <LoadingIndicator label="Carregando passageiros..." />}
 
         {!isLoading && error && <div className="flex flex-col items-center justify-center py-24 gap-4" role="alert">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100"><AlertCircle className="h-8 w-8 text-red-500" /></div>
@@ -150,17 +152,11 @@ export default function Passageiros() {
           <Button variant="outline" onClick={retry} className="mt-1 gap-2 rounded-lg cursor-pointer border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-semibold text-xs"><RefreshCw className="h-4 w-4" /> Tentar novamente</Button>
         </div>}
 
-        {!isLoading && !error && passengers.length === 0 && <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100"><UserRound className="h-8 w-8 text-slate-300" /></div>
-          <p className="text-sm font-semibold text-slate-700">Nenhum passageiro cadastrado ainda</p>
-        </div>}
+        {!isLoading && !error && passengers.length === 0 && <EmptyState icon={UserRound} title="Nenhum passageiro cadastrado ainda" description="Cadastre o primeiro passageiro." action={<Button onClick={() => navigate("/passageiros/cadastro")}><Plus className="mr-2 size-4" />Cadastrar passageiro</Button>} />}
 
-        {!isLoading && !error && passengers.length > 0 && filteredPassengers.length === 0 && <div className="flex-1 flex flex-col items-center justify-center py-16 gap-3">
-          <Search className="h-10 w-10 text-slate-200" />
-          <p className="text-base font-semibold text-[#062A45]">Nenhum passageiro encontrado</p>
-        </div>}
+        {!isLoading && !error && passengers.length > 0 && filteredPassengers.length === 0 && <EmptyState title="Nenhum passageiro encontrado" description="Tente ajustar ou limpar a busca." action={<Button variant="outline" onClick={() => setSearchTerm("")}>Limpar busca</Button>} />}
 
-        {!isLoading && !error && filteredPassengers.length > 0 && <div className="flex-1 overflow-x-auto">
+        {!isLoading && !error && filteredPassengers.length > 0 && <div className="hidden flex-1 overflow-x-auto md:block">
           <table className="w-full min-w-[640px] text-sm">
             <thead><tr className="border-b border-slate-100 bg-slate-50/40">{COLUMNS.map((column) => <th key={column} className={`py-3.5 text-left text-[11px] font-bold uppercase tracking-widest text-slate-400 ${column === "Ações" ? "px-5 pl-7" : "px-5"}`}>{column}</th>)}</tr></thead>
             <tbody className="divide-y divide-slate-50">{paginatedPassengers.map((passenger, index) => <tr key={passenger.id} className={`transition-colors duration-150 hover:bg-blue-50/30 ${index % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}>
@@ -174,6 +170,8 @@ export default function Passageiros() {
             </tr>)}</tbody>
           </table>
         </div>}
+
+        {!isLoading && !error && filteredPassengers.length > 0 && <div className="space-y-3 p-4 md:hidden">{paginatedPassengers.map((passenger) => <article key={passenger.id} className="rounded-lg border border-slate-200 p-4"><h3 className="break-words font-semibold text-[#062A45]">{passenger.name}</h3><dl className="mt-2 grid grid-cols-2 gap-2 text-sm"><div><dt className="text-xs text-slate-500">CPF</dt><dd>{formatCpf(passenger.cpf)}</dd></div><div><dt className="text-xs text-slate-500">Telefone</dt><dd>{formatPassengerPhone(passenger.phone)}</dd></div></dl><div className="mt-3 flex items-center gap-1"><button type="button" title="Editar passageiro" aria-label="Editar passageiro" onClick={() => navigate("/passageiros/editar/" + passenger.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-all duration-150 hover:bg-[#062A45]/10 hover:text-[#062A45]"><Pencil className="h-4 w-4" /></button><button type="button" title="Excluir passageiro" aria-label="Excluir passageiro" onClick={() => setConfirmPassenger(passenger)} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition-all duration-150 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button></div></article>)}</div>}
 
         {!isLoading && !error && filteredPassengers.length > 0 && <div className="mt-auto"><Pagination currentPage={displayedPage} totalPages={totalPages} totalItems={filteredPassengers.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} itemName="passageiro" /></div>}
       </div>
