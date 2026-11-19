@@ -1,4 +1,4 @@
-import { Loader2 } from "lucide-react";
+import LoadingIndicator from "./LoadingIndicator";
 import { Button } from "./ui/button";
 
 export default function SubmitButton({
@@ -15,9 +15,7 @@ export default function SubmitButton({
       className="w-full bg-[#062A45] hover:bg-[#0f172a] text-white h-12 font-bold flex items-center justify-center gap-2 mt-2 cursor-pointer rounded-md"
     >
       {isLoading ? (
-        <>
-          {loadingText} <Loader2 className="h-4 w-4 animate-spin" />
-        </>
+        <LoadingIndicator variant="button" label={loadingText} />
       ) : (
         <>
           {children} {Icon && <Icon className="h-4 w-4 font-bold" />}

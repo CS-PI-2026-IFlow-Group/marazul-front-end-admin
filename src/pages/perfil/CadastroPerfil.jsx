@@ -1,11 +1,11 @@
 import {
   ArrowLeft,
   Info,
-  Loader2,
   RefreshCw,
   Save,
   ShieldCheck,
 } from "lucide-react";
+import LoadingIndicator from "../../components/LoadingIndicator";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -218,7 +218,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
           </h2>
         </div>
 
-        <CardContent className="px-6 py-4">
+        <CardContent className="px-4 py-4 sm:px-6">
           <form id="form-perfil" onSubmit={handleSubmit} className="space-y-3">
             {isPerfilPadrao && (
               <div
@@ -276,7 +276,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                   className="flex min-h-24 items-center justify-center gap-2 rounded-md border border-slate-200 bg-[#F8FAFC] text-sm text-slate-500"
                   role="status"
                 >
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <LoadingIndicator label="" />
                   {isLoadingPerfil
                     ? "Carregando dados do perfil..."
                     : "Carregando permissões..."}
@@ -321,7 +321,7 @@ const CadastroPerfil = ({ isEdicao = false }) => {
                           <legend className="px-1 text-sm font-semibold text-[#062A45]">
                             {ROTULOS_MODULO[modulo] ?? modulo}
                           </legend>
-                          <div className="grid grid-cols-1 gap-x-6 gap-y-3 pb-3 sm:grid-cols-2">
+                          <div className="grid grid-cols-1 gap-x-6 gap-y-3 pb-3 md:grid-cols-2">
                             {permissoesDoModulo.map((permissao) => (
                               <div
                                 key={permissao.id}
@@ -385,12 +385,12 @@ const CadastroPerfil = ({ isEdicao = false }) => {
           </form>
         </CardContent>
 
-        <CardFooter className="flex justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
+        <CardFooter className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3 sm:px-6 md:flex-row md:justify-between">
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate("/perfis")}
-            className="h-9 cursor-pointer gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
+            className="h-11 w-full cursor-pointer gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 md:w-auto"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
@@ -399,12 +399,11 @@ const CadastroPerfil = ({ isEdicao = false }) => {
               type="submit"
               form="form-perfil"
               disabled={!podeSalvar}
-              className="flex cursor-pointer items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300"
+              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 md:w-auto"
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  Salvando...
+                  <LoadingIndicator variant="button" label="Salvando..." />
                 </>
               ) : (
                 <>

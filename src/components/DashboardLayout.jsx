@@ -50,7 +50,7 @@ export default function DashboardLayout() {
       <div className="min-h-screen md:pl-64">
         <TopHeader onOpenMenu={() => setMobileOpen(true)} />
         <main>
-          <div className="mx-auto max-w-7xl p-6 lg:p-8">
+          <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
             <Outlet />
           </div>
         </main>

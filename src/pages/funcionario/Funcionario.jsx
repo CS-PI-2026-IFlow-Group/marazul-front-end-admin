@@ -1,7 +1,9 @@
-import { Ban, Loader2, Pencil, Plus, RotateCcw, Search, X } from "lucide-react";
+import { Ban, Pencil, Plus, RotateCcw, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import LoadingIndicator from "../../components/LoadingIndicator";
+import EmptyState from "../../components/EmptyState";
 import { Button } from "../../components/ui/button";
 import FuncionarioService from "../../services/FuncionarioService";
 import { usePageTitle } from "../../hooks/usePageTitle";
@@ -66,13 +68,13 @@ function ConfirmInactivateModal({
   if (!colaborador) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
         onClick={onCancel}
       />
 
-      <div className="relative z-10 w-full max-w-lg rounded-xl bg-white p-8 shadow-2xl mx-4 border border-slate-100">
+      <div className="relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-100 bg-white p-5 shadow-2xl sm:p-8">
         <button
           onClick={onCancel}
           className="absolute top-4 right-4 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
@@ -98,24 +100,23 @@ function ConfirmInactivateModal({
           </div>
         </div>
 
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex flex-col gap-3 md:flex-row">
           <Button
             variant="outline"
             onClick={onCancel}
             disabled={isLoading}
-            className="flex-1 rounded-lg h-12 text-sm cursor-pointer font-semibold"
+            className="h-12 w-full flex-1 rounded-lg text-sm cursor-pointer font-semibold md:w-auto"
           >
             Cancelar
           </Button>
           <Button
             onClick={onConfirm}
             disabled={isLoading}
-            className="flex-1 rounded-lg h-12 bg-red-600 text-sm text-white hover:bg-red-700 cursor-pointer font-semibold"
+            className="h-12 w-full flex-1 bg-red-600 text-sm text-white hover:bg-red-700 cursor-pointer font-semibold md:w-auto"
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Inativando...
+                <LoadingIndicator variant="button" label="Inativando..." />
               </>
             ) : (
               "Confirmar Inativação"
@@ -131,13 +132,13 @@ function ConfirmActivateModal({ colaborador, isLoading, onConfirm, onCancel }) {
   if (!colaborador) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
         onClick={onCancel}
       />
 
-      <div className="relative z-10 w-full max-w-lg rounded-xl bg-white p-8 shadow-2xl mx-4 border border-slate-100">
+      <div className="relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-100 bg-white p-5 shadow-2xl sm:p-8">
         <button
           onClick={onCancel}
           className="absolute top-4 right-4 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
@@ -163,24 +164,23 @@ function ConfirmActivateModal({ colaborador, isLoading, onConfirm, onCancel }) {
           </div>
         </div>
 
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex flex-col gap-3 md:flex-row">
           <Button
             variant="outline"
             onClick={onCancel}
             disabled={isLoading}
-            className="flex-1 rounded-lg h-12 text-sm cursor-pointer font-semibold"
+            className="h-12 w-full flex-1 rounded-lg text-sm cursor-pointer font-semibold md:w-auto"
           >
             Cancelar
           </Button>
           <Button
             onClick={onConfirm}
             disabled={isLoading}
-            className="flex-1 rounded-lg h-12 bg-emerald-600 text-sm text-white hover:bg-emerald-700 cursor-pointer font-semibold"
+            className="h-12 w-full flex-1 bg-emerald-600 text-sm text-white hover:bg-emerald-700 cursor-pointer font-semibold md:w-auto"
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Reativando...
+                <LoadingIndicator variant="button" label="Reativando..." />
               </>
             ) : (
               "Confirmar Reativação"
@@ -198,6 +198,7 @@ export default function Funcionarios() {
 
   const [funcionarios, setFuncionarios] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [confirmFuncionario, setConfirmFuncionario] = useState(null);
   const [confirmActivationFuncionario, setConfirmActivationFuncionario] =
@@ -206,10 +207,12 @@ export default function Funcionarios() {
   const [isActivating, setIsActivating] = useState(false);
 
   const fetchFuncionarios = async () => {
+    setError(null);
     try {
       const response = await FuncionarioService.getAll();
       setFuncionarios(response);
     } catch (error) {
+      setError("Não foi possível carregar a lista de colaboradores.");
       toast.error("Erro ao carregar colaborador", {
         id: "erro-fetch-funcionarios",
         description:
@@ -232,6 +235,11 @@ export default function Funcionarios() {
   const funcionariosFiltrados = funcionarios.filter((func) =>
     (func.name || "").toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  const retry = () => {
+    setIsLoading(true);
+    fetchFuncionarios();
+  };
 
   const handleInativar = async () => {
     if (!confirmFuncionario) return;
@@ -292,33 +300,33 @@ export default function Funcionarios() {
 
   return (
     <div className="space-y-6 font-sans">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[#062A45]">Colaboradores</h1>
         </div>
         <Button
           onClick={() => navigate("/funcionario/cadastro")}
-          className="gap-2 bg-[#062A45] hover:bg-[#0a1f35] text-white font-bold cursor-pointer rounded-lg h-11 px-6 shadow-sm transition-all duration-200 hover:shadow-md"
+          className="h-11 w-full gap-2 bg-[#062A45] hover:bg-[#0a1f35] text-white font-bold cursor-pointer rounded-lg px-6 shadow-sm transition-all duration-200 hover:shadow-md md:w-auto"
         >
           <Plus className="h-4 w-4" /> Novo Colaborador
         </Button>
       </div>
 
       <div className="relative flex flex-col min-h-[480px] rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between rounded-t-xl">
+        <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/60 px-4 py-4 md:flex-row md:items-center md:justify-between rounded-t-xl sm:px-5">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-[#062A45]">
               Listagem de Colaboradores
             </h2>
 
-            {!isLoading && (
+            {!isLoading && !error && (
               <span className="ml-1 rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
                 {funcionariosFiltrados.length}
               </span>
             )}
           </div>
 
-          <div className="relative w-full sm:w-64">
+          <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="text"
@@ -330,7 +338,7 @@ export default function Funcionarios() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className={error ? "hidden" : "hidden overflow-x-auto md:block"}>
           <table className="w-full text-sm text-left text-slate-700">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/40">
@@ -354,8 +362,7 @@ export default function Funcionarios() {
                     className="px-6 py-12 text-center text-slate-500"
                   >
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Loader2 className="size-6 animate-spin text-[#062A45]" />
-                      <p>Carregando colaboradores...</p>
+                      <LoadingIndicator label="Carregando colaboradores..." className="py-6" />
                     </div>
                   </td>
                 </tr>
@@ -366,9 +373,12 @@ export default function Funcionarios() {
                     colSpan={8}
                     className="px-6 py-12 text-center text-slate-500"
                   >
-                    {searchTerm !== ""
-                      ? "Nenhum colaborador encontrado com essa busca."
-                      : "Nenhum colaborador cadastrado ainda."}
+                    <EmptyState
+                      className="py-6"
+                      title={funcionarios.length > 0 && searchTerm.trim() ? "Nenhum colaborador encontrado" : "Nenhum colaborador cadastrado ainda"}
+                      description={funcionarios.length > 0 && searchTerm.trim() ? "Tente ajustar ou limpar a busca." : "Cadastre o primeiro colaborador."}
+                      action={funcionarios.length > 0 && searchTerm.trim() ? <Button variant="outline" onClick={() => setSearchTerm("")}>Limpar busca</Button> : <Button onClick={() => navigate("/funcionario/cadastro")}>Cadastrar colaborador</Button>}
+                    />
                   </td>
                 </tr>
               )}
@@ -456,6 +466,8 @@ export default function Funcionarios() {
             </tbody>
           </table>
         </div>
+        {!isLoading && error && <div className="hidden flex-col items-center gap-3 py-10 text-center md:flex" role="alert"><p className="text-sm text-red-700">{error}</p><Button variant="outline" onClick={retry}>Tentar novamente</Button></div>}
+        <div className="space-y-3 p-4 md:hidden">{isLoading && <LoadingIndicator label="Carregando colaboradores..."/>}{!isLoading && error && <div className="py-8 text-center" role="alert"><p className="mb-3 text-sm text-red-700">{error}</p><Button variant="outline" onClick={retry}>Tentar novamente</Button></div>}{!isLoading && !error && funcionariosFiltrados.length === 0 && <EmptyState title={funcionarios.length > 0 && searchTerm.trim() ? "Nenhum colaborador encontrado" : "Nenhum colaborador cadastrado ainda"} description={funcionarios.length > 0 && searchTerm.trim() ? "Tente ajustar ou limpar a busca." : "Cadastre o primeiro colaborador."} action={funcionarios.length > 0 && searchTerm.trim() ? <Button variant="outline" onClick={() => setSearchTerm("")}>Limpar busca</Button> : <Button onClick={() => navigate("/funcionario/cadastro")}>Cadastrar colaborador</Button>} />}{!isLoading && !error && funcionariosFiltrados.map((func) => { const isDriver = func.position === "DRIVER" || (func.position || "").toLowerCase() === "motorista"; const inactive = func.status === "INACTIVE"; return <article key={func.id} className="rounded-lg border border-slate-200 p-4"><div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="break-words font-bold text-[#062A45]">{func.name}</h3><p className="text-sm text-slate-600">{func.cellphoneNumber}</p></div><StatusBadge status={func.status}/></div><p className="mt-2 text-sm">{FuncionarioService.getLabel("positions", func.position)}</p><div className="mt-2 flex flex-wrap gap-2"><AccessBadge isUser={func.isUser}/>{isDriver && func.cnhNumber && <span className="text-xs text-slate-600">CNH {func.cnhNumber} · {func.cnhType}</span>}</div><div className="mt-3 flex items-center gap-1"><button type="button" title="Editar colaborador" aria-label="Editar colaborador" onClick={() => navigate("/funcionario/editar/" + func.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-all duration-150 hover:bg-[#062A45]/10 hover:text-[#062A45]"><Pencil className="h-4 w-4" /></button><button type="button" title={inactive ? "Reativar colaborador" : "Inativar colaborador"} aria-label={inactive ? "Reativar colaborador" : "Inativar colaborador"} onClick={() => inactive ? setConfirmActivationFuncionario(func) : setConfirmFuncionario(func)} className={inactive ? "inline-flex h-8 w-8 items-center justify-center rounded-lg text-emerald-600 transition-all duration-150 hover:bg-emerald-50 hover:text-emerald-700" : "inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition-all duration-150 hover:bg-red-50 hover:text-red-600"}>{inactive ? <RotateCcw className="h-4 w-4" /> : <Ban className="h-4 w-4" />}</button></div></article>; })}</div>
       </div>
 
       <ConfirmInactivateModal

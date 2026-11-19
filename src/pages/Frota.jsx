@@ -1,7 +1,6 @@
 import {
   AlertCircle,
   Ban,
-  Loader2,
   Pencil,
   Plus,
   RefreshCw,
@@ -15,6 +14,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Pagination from "../components/Pagination";
+import LoadingIndicator from "../components/LoadingIndicator";
+import EmptyState from "../components/EmptyState";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import FrotaService from "../services/FrotaService";
@@ -86,13 +87,13 @@ function ConfirmModal({ vehicle, isLoading, onConfirm, onCancel }) {
   if (!vehicle) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
         onClick={onCancel}
       />
 
-      <div className="relative z-10 w-full max-w-lg rounded-xl bg-white p-8 shadow-2xl mx-4 border border-slate-100">
+      <div className="relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-100 bg-white p-5 shadow-2xl sm:p-8">
         <button
           onClick={onCancel}
           className="absolute top-4 right-4 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
@@ -126,25 +127,22 @@ function ConfirmModal({ vehicle, isLoading, onConfirm, onCancel }) {
           </div>
         </div>
 
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex flex-col gap-3 md:flex-row">
           <Button
             variant="outline"
             onClick={onCancel}
             disabled={isLoading}
-            className="flex-1 rounded-lg h-12 text-sm cursor-pointer font-semibold"
+            className="h-12 w-full flex-1 cursor-pointer rounded-lg text-sm font-semibold md:w-auto"
           >
             Cancelar
           </Button>
           <Button
             onClick={onConfirm}
             disabled={isLoading}
-            className="flex-1 rounded-lg h-12 bg-red-600 text-sm text-white hover:bg-red-700 cursor-pointer font-semibold"
+            className="h-12 w-full flex-1 cursor-pointer rounded-lg bg-red-600 text-sm font-semibold text-white hover:bg-red-700 md:w-auto"
           >
             {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Inativando...
-              </>
+              <LoadingIndicator variant="button" label="Inativando..." />
             ) : (
               "Confirmar Inativação"
             )}
@@ -255,8 +253,6 @@ export default function Frota() {
   const activeFilterCount =
     (statusFilter !== "ALL" ? 1 : 0) + (modelFilter !== "ALL" ? 1 : 0);
 
-  const hasActiveFilters = Boolean(searchTerm.trim()) || activeFilterCount > 0;
-
   const clearFilters = () => {
     setSearchTerm("");
     setStatusFilter("ALL");
@@ -303,13 +299,13 @@ export default function Frota() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[#062A45]">Frota</h1>
         </div>
         <Button
           onClick={() => navigate("/frota/cadastro")}
-          className="gap-2 bg-[#062A45] hover:bg-[#0a1f35] text-white font-bold cursor-pointer rounded-lg h-11 px-6 shadow-sm transition-all duration-200 hover:shadow-md"
+          className="h-11 w-full gap-2 rounded-lg bg-[#062A45] px-6 font-bold text-white shadow-sm transition-all duration-200 hover:bg-[#0a1f35] hover:shadow-md md:w-auto"
         >
           <Plus className="h-4 w-4" /> Novo Veículo
         </Button>
@@ -336,7 +332,7 @@ export default function Frota() {
       )}
 
       <div className="relative flex flex-col min-h-[480px] rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between rounded-t-xl">
+        <div className="flex flex-col gap-3 rounded-t-xl border-b border-slate-100 bg-slate-50/60 px-4 py-4 md:flex-row md:items-center md:justify-between sm:px-5">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-[#062A45]">
               Listagem de Veículos
@@ -349,8 +345,8 @@ export default function Frota() {
           </div>
 
           {!isLoading && !error && vehicles.length > 0 && (
-            <div className="flex items-center gap-2">
-              <div className="relative w-full sm:w-64">
+            <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
+              <div className="relative w-full md:w-64">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <Input
                   id="search-frota"
@@ -485,22 +481,7 @@ export default function Frota() {
           )}
         </div>
 
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <div className="relative">
-              <div className="h-12 w-12 rounded-full border-4 border-slate-100" />
-              <Loader2 className="absolute inset-0 h-12 w-12 animate-spin text-[#062A45]" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-medium text-slate-700">
-                Carregando veículos...
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                Buscando dados da frota
-              </p>
-            </div>
-          </div>
-        )}
+        {isLoading && <LoadingIndicator label="Carregando veículos..." />}
 
         {!isLoading && error && (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
@@ -523,59 +504,12 @@ export default function Frota() {
           </div>
         )}
 
-        {!isLoading && !error && vehicles.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
-              <Truck className="h-8 w-8 text-slate-300" />
-            </div>
-            <div className="text-center max-w-xs">
-              <p className="text-sm font-semibold text-slate-700">
-                Nenhum veículo cadastrado ainda
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                Cadastre o primeiro veículo para começar a gerenciar sua frota.
-              </p>
-            </div>
-            <Button
-              onClick={() => navigate("/frota/cadastro")}
-              className="mt-1 gap-2 bg-[#062A45] hover:bg-[#0a1f35] text-white font-bold cursor-pointer rounded-lg"
-            >
-              <Plus className="h-4 w-4" /> Cadastrar Veículo
-            </Button>
-          </div>
-        )}
+        {!isLoading && !error && vehicles.length === 0 && <EmptyState icon={Truck} title={"Nenhum veículo cadastrado ainda"} description={"Cadastre o primeiro veículo para começar."} action={<Button onClick={() => navigate("/frota/cadastro")}><Plus className={"mr-2 size-4"}/>Cadastrar veículo</Button>} />}
 
-        {!isLoading &&
-          !error &&
-          vehicles.length > 0 &&
-          filteredVehicles.length === 0 && (
-            <div className="flex-1 flex flex-col items-center justify-center py-16 gap-3">
-              <Search className="h-10 w-10 text-slate-200" />
-              <div className="text-center">
-                <p className="text-base font-semibold text-[#062A45]">
-                  Não há nada a ser exibido
-                </p>
-                <p className="mt-1 text-xs text-slate-400">
-                  {hasActiveFilters
-                    ? "Nenhum veículo corresponde aos filtros selecionados."
-                    : "Nenhum resultado encontrado."}
-                </p>
-              </div>
-              {hasActiveFilters && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="mt-2 gap-1.5 text-xs rounded-lg cursor-pointer border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" /> Limpar filtros
-                </Button>
-              )}
-            </div>
-          )}
+        {!isLoading && !error && vehicles.length > 0 && filteredVehicles.length === 0 && <EmptyState title={"Nenhum veículo encontrado"} description={"Nenhum veículo corresponde aos filtros selecionados."} action={<Button variant={"outline"} onClick={clearFilters}><RotateCcw className={"mr-2 size-4"}/>Limpar filtros</Button>} />}
 
         {!isLoading && !error && filteredVehicles.length > 0 && (
-          <div className="flex-1 overflow-x-auto">
+          <div className="hidden flex-1 overflow-x-auto md:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/40">
@@ -660,6 +594,8 @@ export default function Frota() {
             </table>
           </div>
         )}
+
+        {!isLoading && !error && filteredVehicles.length > 0 && <div className="space-y-3 p-4 md:hidden">{paginatedVehicles.map((vehicle) => <article key={vehicle.id} className="rounded-lg border border-slate-200 p-4"><div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="font-bold text-[#062A45]">{vehicle.prefix}</h3><p className="text-sm text-slate-600">{vehicle.licensePlate}</p></div><StatusBadge status={vehicle.status} /></div><dl className="mt-3 grid grid-cols-2 gap-2 text-sm"><div><dt className="text-xs text-slate-500">Modelo</dt><dd>{FrotaService.getLabel("models", vehicle.model)}</dd></div><div><dt className="text-xs text-slate-500">Ano</dt><dd>{vehicle.year}</dd></div><div><dt className="text-xs text-slate-500">Capacidade</dt><dd>{vehicle.seats} lugares</dd></div><div><dt className="text-xs text-slate-500">Vistoria</dt><dd>{formatDate(vehicle.inspectionDate)}</dd></div></dl><div className="mt-3 flex items-center gap-1"><button type="button" title="Editar veículo" aria-label="Editar veículo" onClick={() => navigate("/frota/editar/" + vehicle.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-all duration-150 hover:bg-[#062A45]/10 hover:text-[#062A45]"><Pencil className="h-4 w-4" /></button><button type="button" title="Inativar veículo" aria-label="Inativar veículo" disabled={vehicle.status === "INACTIVE"} onClick={() => setConfirmVehicle(vehicle)} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition-all duration-150 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"><Ban className="h-4 w-4" /></button></div></article>)}</div>}
 
         {!isLoading && !error && filteredVehicles.length > 0 && (
           <div className="mt-auto">
