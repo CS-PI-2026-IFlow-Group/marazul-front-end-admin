@@ -1,6 +1,5 @@
 import {
   AlertCircle,
-  Loader2,
   Pencil,
   Plus,
   RefreshCw,
@@ -15,6 +14,8 @@ import { toast } from "sonner";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import Pagination from "../../components/Pagination";
+import LoadingIndicator from "../../components/LoadingIndicator";
+import EmptyState from "../../components/EmptyState";
 import PerfilService from "../../services/PerfilService";
 import { usePageTitle } from "../../hooks/usePageTitle";
 
@@ -24,7 +25,7 @@ function ConfirmDeleteModal({ profile, isLoading, onConfirm, onCancel }) {
   if (!profile) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
       <button
         type="button"
         aria-label="Fechar confirmação"
@@ -36,7 +37,7 @@ function ConfirmDeleteModal({ profile, isLoading, onConfirm, onCancel }) {
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-delete-title"
-        className="relative z-10 mx-4 w-full max-w-lg rounded-xl border border-slate-100 bg-white p-8 shadow-2xl"
+        className="relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-100 bg-white p-5 shadow-2xl sm:p-8"
       >
         <button
           type="button"
@@ -70,13 +71,13 @@ function ConfirmDeleteModal({ profile, isLoading, onConfirm, onCancel }) {
             </p>
           </div>
         </div>
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex flex-col gap-3 md:flex-row">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
             disabled={isLoading}
-            className="h-12 flex-1 cursor-pointer rounded-lg text-sm font-semibold disabled:cursor-not-allowed"
+            className="h-12 w-full flex-1 cursor-pointer rounded-lg text-sm font-semibold disabled:cursor-not-allowed md:w-auto"
           >
             Cancelar
           </Button>
@@ -84,12 +85,11 @@ function ConfirmDeleteModal({ profile, isLoading, onConfirm, onCancel }) {
             type="button"
             onClick={onConfirm}
             disabled={isLoading}
-            className="h-12 flex-1 cursor-pointer rounded-lg bg-red-600 text-sm font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed"
+            className="h-12 w-full flex-1 cursor-pointer rounded-lg bg-red-600 text-sm font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed md:w-auto"
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Excluindo...
+                <LoadingIndicator variant="button" label="Excluindo..." />
               </>
             ) : (
               "Confirmar exclusão"
@@ -202,19 +202,19 @@ export default function Perfis() {
 
   return (
     <div className="space-y-6 font-sans">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold text-[#062A45]">Perfis de Acesso</h1>
         <Button
           type="button"
           onClick={() => navigate("/perfis/cadastro")}
-          className="h-11 cursor-pointer gap-2 rounded-lg bg-[#062A45] px-6 font-bold text-white shadow-sm transition-all duration-200 hover:bg-[#0a1f35] hover:shadow-md"
+          className="h-11 w-full cursor-pointer gap-2 rounded-lg bg-[#062A45] px-6 font-bold text-white shadow-sm transition-all duration-200 hover:bg-[#0a1f35] hover:shadow-md md:w-auto"
         >
           <Plus className="h-4 w-4" /> Novo Perfil
         </Button>
       </div>
 
       <section className="relative flex min-h-[480px] flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 rounded-t-xl border-b border-slate-100 bg-slate-50/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-t-xl border-b border-slate-100 bg-slate-50/60 px-4 py-4 md:flex-row md:items-center md:justify-between sm:px-5">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-[#062A45]">
               Listagem de Perfis
@@ -226,7 +226,7 @@ export default function Perfis() {
             )}
           </div>
           {!isLoading && !error && profiles.length > 0 && (
-            <div className="relative w-full sm:w-64">
+            <div className="relative w-full md:w-64">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
                 id="search-perfis"
@@ -243,22 +243,7 @@ export default function Perfis() {
           )}
         </div>
 
-        {isLoading && (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 py-24">
-            <div className="relative">
-              <div className="h-12 w-12 rounded-full border-4 border-slate-100" />
-              <Loader2 className="absolute inset-0 h-12 w-12 animate-spin text-[#062A45]" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-medium text-slate-700">
-                Carregando perfis...
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                Buscando os perfis de acesso cadastrados
-              </p>
-            </div>
-          </div>
-        )}
+        {isLoading && <LoadingIndicator label={"Carregando perfis..."} />}
 
         {!isLoading && error && (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 py-24">
@@ -282,43 +267,12 @@ export default function Perfis() {
           </div>
         )}
 
-        {!isLoading && !error && profiles.length === 0 && (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 py-24">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
-              <ShieldCheck className="h-8 w-8 text-slate-300" />
-            </div>
-            <div className="max-w-xs text-center">
-              <p className="text-sm font-semibold text-slate-700">
-                Nenhum perfil cadastrado ainda
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                Cadastre o primeiro perfil de acesso para organizar as permissões.
-              </p>
-            </div>
-            <Button
-              type="button"
-              onClick={() => navigate("/perfis/cadastro")}
-              className="mt-1 cursor-pointer gap-2 rounded-lg bg-[#062A45] font-bold text-white hover:bg-[#0a1f35]"
-            >
-              <Plus className="h-4 w-4" /> Novo Perfil
-            </Button>
-          </div>
-        )}
+        {!isLoading && !error && profiles.length === 0 && <EmptyState icon={ShieldCheck} title={"Nenhum perfil cadastrado ainda"} description={"Cadastre o primeiro perfil de acesso."} action={<Button type={"button"} onClick={() => navigate("/perfis/cadastro")}><Plus className={"mr-2 size-4"}/>Novo perfil</Button>} />}
 
-        {!isLoading &&
-          !error &&
-          profiles.length > 0 &&
-          filteredProfiles.length === 0 && (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 py-16">
-              <Search className="h-10 w-10 text-slate-200" />
-              <p className="text-sm font-semibold text-[#062A45]">
-                Nenhum perfil encontrado
-              </p>
-            </div>
-          )}
+        {!isLoading && !error && profiles.length > 0 && filteredProfiles.length === 0 && <EmptyState title={"Nenhum perfil encontrado"} description={"Tente ajustar ou limpar a busca."} action={<Button type={"button"} variant={"outline"} onClick={() => setSearchTerm("")}>Limpar busca</Button>} />}
 
         {!isLoading && !error && filteredProfiles.length > 0 && (
-          <div className="flex-1 overflow-x-auto">
+          <div className="hidden flex-1 overflow-x-auto md:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/40">
@@ -403,6 +357,8 @@ export default function Perfis() {
             </table>
           </div>
         )}
+
+        {!isLoading && !error && filteredProfiles.length > 0 && <div className="space-y-3 p-4 md:hidden">{paginatedProfiles.map((profile) => { const name = profile.name ?? profile.nome ?? "Perfil sem nome"; const permissionCount = Array.isArray(profile.permissions) ? profile.permissions.length : 0; const isSystemProfile = name.toLocaleLowerCase("pt-BR") === "administrador"; return <article key={profile.id} className="rounded-lg border border-slate-200 p-4"><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="break-words font-semibold text-[#062A45]">{name}</h3>{isSystemProfile && <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">Padrão do sistema</span>}</div><p className="mt-2 text-sm text-slate-600">{permissionCount} {permissionCount === 1 ? "permissão" : "permissões"}</p><div className="mt-3 flex items-center gap-1"><button type="button" title="Editar perfil" aria-label="Editar perfil" onClick={() => navigate("/perfis/editar/" + profile.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-all duration-150 hover:bg-[#062A45]/10 hover:text-[#062A45]"><Pencil className="h-4 w-4" /></button><button type="button" title={isSystemProfile ? "Perfil padrão do sistema" : "Excluir perfil"} aria-label="Excluir perfil" disabled={isSystemProfile} onClick={() => setProfileToDelete(profile)} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition-all duration-150 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30"><Trash2 className="h-4 w-4" /></button></div></article>; })}</div>}
 
         {!isLoading && !error && filteredProfiles.length > 0 && (
           <div className="mt-auto">
