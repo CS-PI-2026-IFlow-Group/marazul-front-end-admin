@@ -41,13 +41,17 @@ function periodParams({ dataInicio, dataFim }) {
 async function withReadableBody(error) {
   const data = error.response?.data;
   if (data instanceof Blob) {
-    try {
-      error.response.data = JSON.parse(await data.text());
-    } catch {
-      
-    }
+    error.response.data = (await readJson(data)) ?? data;
   }
   return error;
+}
+
+async function readJson(blob) {
+  try {
+    return JSON.parse(await blob.text());
+  } catch {
+    return null;
+  }
 }
 
 export default new RelatorioService();
