@@ -1,9 +1,12 @@
-import { AlertCircle, BarChart3, FileText, Loader2, RefreshCw, SearchX } from "lucide-react";
+import { AlertCircle, BarChart3, Download, FileSpreadsheet, FileText, Loader2, RefreshCw, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import PeriodFilter from "../components/PeriodFilter";
 import ReportTable from "../components/ReportTable";
 import { Button } from "../components/ui/button";
 import { usePageTitle } from "../hooks/usePageTitle";
+import { reportFileName, reportToCsv } from "../lib/csv";
+import { saveFile } from "../lib/download";
 import { currentMonthPeriod, isValidPeriod } from "../lib/period";
 import { formatDate, formatDateTime } from "../lib/reportFormat";
 import RelatorioService from "../services/RelatorioService";
@@ -68,8 +71,10 @@ export default function Relatorios() {
   const [isLoadingResult, setIsLoadingResult] = useState(false);
   const [resultError, setResultError] = useState("");
   const [reloadResult, setReloadResult] = useState(0);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const shouldQuery = canQuery(selected, period);
+  const canExport = !isLoadingResult && !resultError && result?.linhas.length > 0;
 
   useEffect(() => {
     let active = true;
@@ -139,6 +144,22 @@ export default function Relatorios() {
     setReloadResult((value) => value + 1);
   };
 
+  const handleExportCsv = () => {
+    const csv = reportToCsv(result);
+    saveFile(new Blob([csv], { type: "text/csv;charset=utf-8" }), reportFileName(result, "csv"));
+  };
+
+  const handleExportPdf = async () => {
+    setIsDownloadingPdf(true);
+    try {
+      await RelatorioService.downloadPdf(result.relatorio, result.periodo ?? {});
+    } catch (error) {
+      toast.error(errorMessage(error, "Não foi possível baixar o PDF."));
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   return (
     <div className="space-y-6 font-sans">
       <h1 className="text-2xl font-bold text-[#062A45]">Relatórios</h1>
@@ -187,13 +208,34 @@ export default function Relatorios() {
       {selected && (
         <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="space-y-4 border-b border-slate-100 bg-slate-50/60 px-5 py-4 rounded-t-xl">
-            <div>
-              <h2 className="text-base font-semibold text-[#062A45]">{selected.titulo}</h2>
-              {result && (
-                <p className="mt-1 text-xs text-slate-500">
-                  {result.periodo && `Período de ${formatDate(result.periodo.dataInicio)} a ${formatDate(result.periodo.dataFim)} · `}
-                  Emitido em {formatDateTime(result.emitidoEm)}
-                </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-[#062A45]">{selected.titulo}</h2>
+                {result && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    {result.periodo && `Período de ${formatDate(result.periodo.dataInicio)} a ${formatDate(result.periodo.dataFim)} · `}
+                    Emitido em {formatDateTime(result.emitidoEm)}
+                  </p>
+                )}
+              </div>
+              {canExport && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleExportCsv}
+                    className="gap-2 rounded-lg cursor-pointer border-slate-200 text-[#062A45] font-semibold text-xs"
+                  >
+                    <FileSpreadsheet className="h-4 w-4" /> Exportar CSV
+                  </Button>
+                  <Button
+                    onClick={handleExportPdf}
+                    disabled={isDownloadingPdf}
+                    className="gap-2 rounded-lg cursor-pointer bg-[#062A45] hover:bg-[#0a1f35] text-white font-semibold text-xs"
+                  >
+                    {isDownloadingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                    {isDownloadingPdf ? "Baixando..." : "Baixar PDF"}
+                  </Button>
+                </div>
               )}
             </div>
             {selected.exigePeriodo && <PeriodFilter value={period} onChange={handlePeriodChange} />}
