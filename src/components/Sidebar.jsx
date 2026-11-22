@@ -1,20 +1,14 @@
-import { BarChart3, Contact, LayoutDashboard, Map, Truck, UserRound, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import logoMarazul from "../assets/logoMarazul.png";
+import { mainNavItems, filterNavItems } from "../config/navigation";
+import { useAuth } from "../context/AuthContext";
 import { cn } from "../lib/utils";
 import Rightbar from "./Rightbar";
 
-const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/frota", label: "Frota", icon: Truck },
-  { to: "/viagens", label: "Viagens", icon: Map },
-  { to: "/funcionario", label: "Colaboradores", icon: Users },
-  { to: "/clientes", label: "Clientes", icon: Contact },
-  { to: "/passageiros", label: "Passageiros", icon: UserRound },
-  { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
-];
-
 export default function Sidebar({ onNavigate }) {
+  const { profile } = useAuth();
+  const navItems = filterNavItems(mainNavItems, profile);
+
   return (
     <div className="flex h-full flex-col bg-white border-r border-slate-200">
       <div className="flex flex-col items-center border-b border-slate-100 px-4 py-6">

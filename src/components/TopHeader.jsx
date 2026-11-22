@@ -82,7 +82,11 @@ export default function TopHeader({ onOpenMenu }) {
               <p className="text-sm font-bold text-[#062A45]">
                 {displayName}
               </p>
-              <p className="text-xs font-normal text-slate-500">Administrador</p>
+              {profile?.perfil && (
+                <p className="text-xs font-normal text-slate-500">
+                  {profile.perfil}
+                </p>
+              )}
             </div>
             <UserCircle className="size-8 text-[#062A45]" />
             <ChevronDown

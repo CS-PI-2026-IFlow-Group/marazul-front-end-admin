@@ -1,18 +1,13 @@
 import { NavLink } from "react-router-dom";
-import { ShieldCheck } from "lucide-react";
-import { isAdmin } from "../lib/auth";
+import { adminNavItems, filterNavItems } from "../config/navigation";
+import { useAuth } from "../context/AuthContext";
 import { cn } from "../lib/utils";
 
-const adminItems = [
-  { to: "/perfis", label: "Perfis de Acesso", icon: ShieldCheck },
-];
-
-/**
- * Itens de menu restritos ao perfil administrador.
- * Não renderiza nada para os demais perfis.
- */
 export default function Rightbar({ onNavigate }) {
-  if (!isAdmin()) return null;
+  const { profile } = useAuth();
+  const adminItems = filterNavItems(adminNavItems, profile);
+
+  if (adminItems.length === 0) return null;
 
   return (
     <div className="space-y-1 border-t border-slate-100 pt-4">
