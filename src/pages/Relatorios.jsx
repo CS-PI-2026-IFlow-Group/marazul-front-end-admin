@@ -1,6 +1,8 @@
-import { AlertCircle, BarChart3, Download, FileSpreadsheet, FileText, Loader2, RefreshCw, SearchX } from "lucide-react";
+import { AlertCircle, BarChart3, Download, FileSpreadsheet, FileText, RefreshCw, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import EmptyState from "../components/EmptyState";
+import LoadingIndicator from "../components/LoadingIndicator";
 import PeriodFilter from "../components/PeriodFilter";
 import ReportTable from "../components/ReportTable";
 import { Button } from "../components/ui/button";
@@ -20,15 +22,6 @@ function canQuery(report, period) {
   return Boolean(report) && (!report.exigePeriodo || isValidPeriod(period));
 }
 
-function LoadingState({ message }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 gap-4">
-      <Loader2 className="h-10 w-10 animate-spin text-[#062A45]" />
-      <p className="text-sm font-medium text-slate-700">{message}</p>
-    </div>
-  );
-}
-
 function ErrorState({ message, onRetry }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-4" role="alert">
@@ -43,17 +36,6 @@ function ErrorState({ message, onRetry }) {
       >
         <RefreshCw className="h-4 w-4" /> Tentar novamente
       </Button>
-    </div>
-  );
-}
-
-function EmptyState({ icon: Icon, message }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 gap-4">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
-        <Icon className="h-8 w-8 text-slate-300" />
-      </div>
-      <p className="text-sm font-semibold text-slate-700">{message}</p>
     </div>
   );
 }
@@ -172,12 +154,16 @@ export default function Relatorios() {
           )}
         </div>
 
-        {isLoadingReports && <LoadingState message="Carregando relatórios..." />}
+        {isLoadingReports && <LoadingIndicator label="Carregando relatórios..." />}
 
         {!isLoadingReports && reportsError && <ErrorState message={reportsError} onRetry={retryReports} />}
 
         {!isLoadingReports && !reportsError && reports.length === 0 && (
-          <EmptyState icon={BarChart3} message="Nenhum relatório disponível ainda" />
+          <EmptyState
+            icon={BarChart3}
+            title="Nenhum relatório disponível ainda"
+            description="Os relatórios aparecem aqui assim que forem disponibilizados no sistema."
+          />
         )}
 
         {!isLoadingReports && !reportsError && reports.length > 0 && (
@@ -232,8 +218,13 @@ export default function Relatorios() {
                     disabled={isDownloadingPdf}
                     className="gap-2 rounded-lg cursor-pointer bg-[#062A45] hover:bg-[#0a1f35] text-white font-semibold text-xs"
                   >
-                    {isDownloadingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                    {isDownloadingPdf ? "Baixando..." : "Baixar PDF"}
+                    {isDownloadingPdf ? (
+                      <LoadingIndicator variant="button" label="Baixando..." />
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4" /> Baixar PDF
+                      </>
+                    )}
                   </Button>
                 </div>
               )}
@@ -241,12 +232,16 @@ export default function Relatorios() {
             {selected.exigePeriodo && <PeriodFilter value={period} onChange={handlePeriodChange} />}
           </div>
 
-          {isLoadingResult && <LoadingState message="Gerando relatório..." />}
+          {isLoadingResult && <LoadingIndicator label="Gerando relatório..." />}
 
           {!isLoadingResult && resultError && <ErrorState message={resultError} onRetry={retryResult} />}
 
           {!isLoadingResult && !resultError && result && result.linhas.length === 0 && (
-            <EmptyState icon={SearchX} message="Nenhum dado encontrado no período" />
+            <EmptyState
+              icon={SearchX}
+              title="Nenhum dado encontrado no período"
+              description="Tente escolher outro período."
+            />
           )}
 
           {!isLoadingResult && !resultError && result && result.linhas.length > 0 && (
