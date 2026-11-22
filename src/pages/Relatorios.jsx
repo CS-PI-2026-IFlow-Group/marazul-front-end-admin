@@ -1,10 +1,11 @@
-import { AlertCircle, BarChart3, Download, FileSpreadsheet, FileText, RefreshCw, SearchX } from "lucide-react";
+import { AlertCircle, BarChart3, Calendar, Download, FileSpreadsheet, FileText, RefreshCw, RotateCcw, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import EmptyState from "../components/EmptyState";
 import LoadingIndicator from "../components/LoadingIndicator";
 import PeriodFilter from "../components/PeriodFilter";
 import ReportTable from "../components/ReportTable";
+import ReportTotals from "../components/ReportTotals";
 import { Button } from "../components/ui/button";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { reportFileName, reportToCsv } from "../lib/csv";
@@ -20,6 +21,10 @@ function errorMessage(error, fallback) {
 
 function canQuery(report, period) {
   return Boolean(report) && (!report.exigePeriodo || isValidPeriod(period));
+}
+
+function isSamePeriod(first, second) {
+  return first.dataInicio === second.dataInicio && first.dataFim === second.dataFim;
 }
 
 function ErrorState({ message, onRetry }) {
@@ -50,13 +55,14 @@ export default function Relatorios() {
   const [selected, setSelected] = useState(null);
   const [period, setPeriod] = useState(currentMonthPeriod);
   const [result, setResult] = useState(null);
-  const [isLoadingResult, setIsLoadingResult] = useState(false);
   const [resultError, setResultError] = useState("");
   const [reloadResult, setReloadResult] = useState(0);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
-  const shouldQuery = canQuery(selected, period);
-  const canExport = !isLoadingResult && !resultError && result?.linhas.length > 0;
+  const activeReport = selected ?? reports[0] ?? null;
+  const shouldQuery = canQuery(activeReport, period);
+  const isLoadingResult = shouldQuery && result === null && resultError === "";
+  const hasRows = !isLoadingResult && !resultError && result?.linhas.length > 0;
 
   useEffect(() => {
     let active = true;
@@ -79,7 +85,7 @@ export default function Relatorios() {
   useEffect(() => {
     if (!shouldQuery) return undefined;
     let active = true;
-    RelatorioService.generate(selected.relatorio, selected.exigePeriodo ? period : {})
+    RelatorioService.generate(activeReport.relatorio, activeReport.exigePeriodo ? period : {})
       .then((data) => {
         if (active) {
           setResult(data);
@@ -91,28 +97,24 @@ export default function Relatorios() {
           setResult(null);
           setResultError(errorMessage(error, "Não foi possível gerar o relatório."));
         }
-      })
-      .finally(() => {
-        if (active) setIsLoadingResult(false);
       });
     return () => { active = false; };
-  }, [selected, period, reloadResult, shouldQuery]);
+  }, [activeReport, period, reloadResult, shouldQuery]);
 
-  const startQuery = (report, nextPeriod) => {
+  const resetResult = () => {
     setResult(null);
     setResultError("");
-    setIsLoadingResult(canQuery(report, nextPeriod));
   };
 
   const handleSelect = (report) => {
-    if (report.relatorio === selected?.relatorio) return;
+    if (report.relatorio === activeReport?.relatorio) return;
     setSelected(report);
-    startQuery(report, period);
+    resetResult();
   };
 
   const handlePeriodChange = (nextPeriod) => {
     setPeriod(nextPeriod);
-    startQuery(selected, nextPeriod);
+    resetResult();
   };
 
   const retryReports = () => {
@@ -122,7 +124,7 @@ export default function Relatorios() {
   };
 
   const retryResult = () => {
-    startQuery(selected, period);
+    resetResult();
     setReloadResult((value) => value + 1);
   };
 
@@ -144,16 +146,40 @@ export default function Relatorios() {
 
   return (
     <div className="space-y-6 font-sans">
-      <h1 className="text-2xl font-bold text-[#062A45]">Relatórios</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-[#062A45]">Relatórios</h1>
+          <p className="mt-1 text-sm text-slate-500">Resultados e desempenho da operação.</p>
+        </div>
+        {hasRows && (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExportCsv}
+              className="gap-2 rounded-lg cursor-pointer border-slate-200 text-[#062A45] font-semibold text-xs"
+            >
+              <FileSpreadsheet className="h-4 w-4" /> Exportar CSV
+            </Button>
+            <Button
+              onClick={handleExportPdf}
+              disabled={isDownloadingPdf}
+              className="gap-2 rounded-lg cursor-pointer bg-[#062A45] hover:bg-[#0a1f35] text-white font-semibold text-xs"
+            >
+              {isDownloadingPdf ? (
+                <LoadingIndicator variant="button" label="Baixando..." />
+              ) : (
+                <>
+                  <Download className="h-4 w-4" /> Baixar PDF
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {hasRows && result.totais?.length > 0 && <ReportTotals totais={result.totais} />}
 
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/60 px-5 py-4 rounded-t-xl">
-          <h2 className="text-base font-semibold text-[#062A45]">Relatórios disponíveis</h2>
-          {!isLoadingReports && !reportsError && (
-            <span className="ml-1 rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">{reports.length}</span>
-          )}
-        </div>
-
         {isLoadingReports && <LoadingIndicator label="Carregando relatórios..." />}
 
         {!isLoadingReports && reportsError && <ErrorState message={reportsError} onRetry={retryReports} />}
@@ -166,89 +192,84 @@ export default function Relatorios() {
           />
         )}
 
-        {!isLoadingReports && !reportsError && reports.length > 0 && (
-          <div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-3">
-            {reports.map((report) => {
-              const isSelected = report.relatorio === selected?.relatorio;
-              return (
-                <button
-                  key={report.relatorio}
-                  type="button"
-                  onClick={() => handleSelect(report)}
-                  aria-pressed={isSelected}
-                  className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm font-semibold transition-colors cursor-pointer ${
-                    isSelected
-                      ? "border-[#062A45] bg-[#062A45] text-white"
-                      : "border-slate-200 bg-white text-[#062A45] hover:border-[#062A45]/40 hover:bg-slate-50"
-                  }`}
-                >
-                  <FileText className="h-4 w-4 shrink-0" />
-                  {report.titulo}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {selected && (
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="space-y-4 border-b border-slate-100 bg-slate-50/60 px-5 py-4 rounded-t-xl">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <h2 className="text-base font-semibold text-[#062A45]">{selected.titulo}</h2>
-                {result && (
-                  <p className="mt-1 text-xs text-slate-500">
-                    {result.periodo && `Período de ${formatDate(result.periodo.dataInicio)} a ${formatDate(result.periodo.dataFim)} · `}
-                    Emitido em {formatDateTime(result.emitidoEm)}
-                  </p>
+        {!isLoadingReports && !reportsError && activeReport && (
+          <>
+            <div className="space-y-4 border-b border-slate-100 px-5 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-[#062A45]">
+                  <Calendar className="h-4 w-4" /> Período e filtros
+                </h2>
+                {activeReport.exigePeriodo && (
+                  <div className="flex items-center gap-4">
+                    {hasRows && (
+                      <span className="text-xs text-slate-500">
+                        {result.linhas.length} {result.linhas.length === 1 ? "registro" : "registros"} no período
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handlePeriodChange(currentMonthPeriod())}
+                      disabled={isSamePeriod(period, currentMonthPeriod())}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 transition-colors hover:text-[#062A45] cursor-pointer disabled:cursor-default disabled:opacity-40"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" /> Limpar filtros
+                    </button>
+                  </div>
                 )}
               </div>
-              {canExport && (
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={handleExportCsv}
-                    className="gap-2 rounded-lg cursor-pointer border-slate-200 text-[#062A45] font-semibold text-xs"
-                  >
-                    <FileSpreadsheet className="h-4 w-4" /> Exportar CSV
-                  </Button>
-                  <Button
-                    onClick={handleExportPdf}
-                    disabled={isDownloadingPdf}
-                    className="gap-2 rounded-lg cursor-pointer bg-[#062A45] hover:bg-[#0a1f35] text-white font-semibold text-xs"
-                  >
-                    {isDownloadingPdf ? (
-                      <LoadingIndicator variant="button" label="Baixando..." />
-                    ) : (
-                      <>
-                        <Download className="h-4 w-4" /> Baixar PDF
-                      </>
-                    )}
-                  </Button>
-                </div>
+              {activeReport.exigePeriodo ? (
+                <PeriodFilter value={period} onChange={handlePeriodChange} />
+              ) : (
+                <p className="text-sm text-slate-500">Este relatório não depende de período.</p>
               )}
             </div>
-            {selected.exigePeriodo && <PeriodFilter value={period} onChange={handlePeriodChange} />}
-          </div>
 
-          {isLoadingResult && <LoadingIndicator label="Gerando relatório..." />}
+            <div role="tablist" aria-label="Relatórios disponíveis" className="flex gap-1 overflow-x-auto border-b border-slate-100 px-5">
+              {reports.map((report) => {
+                const isActive = report.relatorio === activeReport.relatorio;
+                return (
+                  <button
+                    key={report.relatorio}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => handleSelect(report)}
+                    className={`flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm font-medium transition-colors cursor-pointer ${
+                      isActive
+                        ? "border-[#062A45] text-[#062A45]"
+                        : "border-transparent text-slate-500 hover:text-[#062A45]"
+                    }`}
+                  >
+                    <FileText className="h-4 w-4" />
+                    {report.titulo}
+                  </button>
+                );
+              })}
+            </div>
 
-          {!isLoadingResult && resultError && <ErrorState message={resultError} onRetry={retryResult} />}
+            {isLoadingResult && <LoadingIndicator label="Gerando relatório..." />}
 
-          {!isLoadingResult && !resultError && result && result.linhas.length === 0 && (
-            <EmptyState
-              icon={SearchX}
-              title="Nenhum dado encontrado no período"
-              description="Tente escolher outro período."
-            />
-          )}
+            {!isLoadingResult && resultError && <ErrorState message={resultError} onRetry={retryResult} />}
 
-          {!isLoadingResult && !resultError && result && result.linhas.length > 0 && (
-            <ReportTable colunas={result.colunas} linhas={result.linhas} totais={result.totais} />
-          )}
-        </div>
-      )}
+            {!isLoadingResult && !resultError && result && result.linhas.length === 0 && (
+              <EmptyState
+                icon={SearchX}
+                title="Nenhum dado encontrado no período"
+                description="Tente escolher outro período."
+              />
+            )}
+
+            {hasRows && <ReportTable colunas={result.colunas} linhas={result.linhas} />}
+
+            {!isLoadingResult && !resultError && result && (
+              <p className="border-t border-slate-100 px-5 py-3 text-xs text-slate-400">
+                {result.periodo && `Período de ${formatDate(result.periodo.dataInicio)} a ${formatDate(result.periodo.dataFim)} · `}
+                Emitido em {formatDateTime(result.emitidoEm)}
+              </p>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
