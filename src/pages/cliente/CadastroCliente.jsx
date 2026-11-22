@@ -1,4 +1,5 @@
-import { ArrowLeft, Contact, Loader2, MapPin, Save } from "lucide-react";
+import { ArrowLeft, Contact, MapPin, Save } from "lucide-react";
+import LoadingIndicator from "../../components/LoadingIndicator";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -301,7 +302,7 @@ export default function CadastroCliente({ isEdicao = false }) {
         </div>
 
         <form id="form-cliente" onSubmit={handleSubmit}>
-          <CardContent className="px-6 py-4">
+          <CardContent className="px-4 py-4 sm:px-6">
             <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
               <div className="md:col-span-2">
                 <GenericInput
@@ -354,7 +355,7 @@ export default function CadastroCliente({ isEdicao = false }) {
             <h2 className="text-sm font-medium text-[#062A45]">Endereço</h2>
           </div>
 
-          <CardContent className="px-6 py-4">
+          <CardContent className="px-4 py-4 sm:px-6">
             <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
               <GenericInput
                 id="street"
@@ -425,11 +426,11 @@ export default function CadastroCliente({ isEdicao = false }) {
           </CardContent>
         </form>
 
-        <CardFooter className="flex justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
+        <CardFooter className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3 sm:px-6 md:flex-row md:justify-between">
           <Button
             variant="outline"
             onClick={() => navigate("/clientes")}
-            className="h-9 gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer"
+            className="h-11 w-full gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer md:w-auto"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
@@ -437,12 +438,11 @@ export default function CadastroCliente({ isEdicao = false }) {
             type="submit"
             form="form-cliente"
             disabled={!podeSalvar}
-            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer md:w-auto"
           >
             {isSaving ? (
               <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Salvando...
+                <LoadingIndicator variant="button" label="Salvando..." />
               </>
             ) : (
               <>

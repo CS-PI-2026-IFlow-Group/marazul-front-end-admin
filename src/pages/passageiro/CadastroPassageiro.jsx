@@ -1,4 +1,5 @@
-import { ArrowLeft, CreditCard, Loader2, Phone, Save, User, UserRound } from "lucide-react";
+import { ArrowLeft, CreditCard, Phone, Save, User, UserRound } from "lucide-react";
+import LoadingIndicator from "../../components/LoadingIndicator";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -98,8 +99,8 @@ export default function CadastroPassageiro({ isEdicao = false }) {
             <h2 className="text-sm font-medium text-[#062A45]">Informações do passageiro</h2>
           </div>
 
-          <CardContent className="px-6 py-4">
-            {isFetching && <div role="status" className="flex items-center gap-2 py-4 text-sm text-slate-600"><Loader2 className="h-4 w-4 animate-spin" /> Carregando passageiro...</div>}
+          <CardContent className="px-4 py-4 sm:px-6">
+            {isFetching && <LoadingIndicator label="Carregando passageiro..." className="py-8" />}
             {loadError && <div role="alert" className="py-4 text-sm text-red-600">{loadError} <Button variant="outline" onClick={() => { setIsFetching(true); setLoadError(""); setReload((value) => value + 1); }} className="ml-2">Tentar novamente</Button></div>}
             <form id="form-passageiro" onSubmit={handleSubmit} className="space-y-3">
               <fieldset disabled={isFetching || isSaving || Boolean(loadError)} className="space-y-3">
@@ -153,17 +154,17 @@ export default function CadastroPassageiro({ isEdicao = false }) {
             </form>
           </CardContent>
 
-          <CardFooter className="flex justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
-            <Button variant="outline" onClick={() => navigate("/passageiros")} className={backButtonClass}>
+          <CardFooter className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3 sm:px-6 md:flex-row md:justify-between">
+            <Button variant="outline" onClick={() => navigate("/passageiros")} className={`${backButtonClass} h-11 w-full md:w-auto`}>
               <ArrowLeft className="h-4 w-4" /> Voltar
             </Button>
             <Button
               type="submit"
               form="form-passageiro"
               disabled={!isFormValid || isSaving || isFetching || Boolean(loadError) || (isEdicao && !hasChanges)}
-              className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer md:w-auto"
             >
-              {isSaving ? <><Loader2 className="mr-2 size-4 animate-spin" /> Salvando...</> : <><Save className="mr-2 size-4" /> Salvar</>}
+              {isSaving ? <LoadingIndicator variant="button" label="Salvando..." /> : <><Save className="mr-2 size-4" /> Salvar</>}
             </Button>
           </CardFooter>
       </Card>

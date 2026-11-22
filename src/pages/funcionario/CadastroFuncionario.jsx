@@ -2,13 +2,13 @@ import {
   ArrowLeft,
   Calendar1,
   CreditCard,
-  Loader2,
   Mail,
   Phone,
   Save,
   ShieldCheck,
   User,
 } from "lucide-react";
+import LoadingIndicator from "../../components/LoadingIndicator";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -174,8 +174,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
   if (isFetching) {
     return (
       <div className="flex min-h-[calc(100svh-8rem)] flex-col items-center justify-center font-sans text-slate-500 gap-3">
-        <Loader2 className="size-8 animate-spin text-[#062A45]" />
-        <p>Carregando dados do colaborador...</p>
+        <LoadingIndicator label="Carregando dados do colaborador..." />
       </div>
     );
   }
@@ -199,7 +198,7 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
           </h2>
         </div>
 
-        <CardContent className="px-6 py-4">
+        <CardContent className="px-4 py-4 sm:px-6">
           <form
             className="space-y-3"
             onSubmit={handleSubmit}
@@ -346,24 +345,23 @@ const CadastroFuncionario = ({ isEdicao = false }) => {
             </div>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
+        <CardFooter className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3 sm:px-6 md:flex-row md:justify-between">
           <Button
             variant="outline"
             onClick={() => navigate("/funcionario")}
-            className="h-9 gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer"
+            className="h-11 w-full gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer md:w-auto"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
           <Button
-            className="flex items-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer md:w-auto"
             type="submit"
             form="form-funcionario"
             disabled={!isFormValid || isLoading}
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Salvando...
+                <LoadingIndicator variant="button" label="Salvando..." />
               </>
             ) : (
               <>
