@@ -20,6 +20,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import FrotaService from "../services/FrotaService";
 import { usePageTitle } from "../hooks/usePageTitle";
+import { formatDate } from "../lib/dateTime";
 
 const STATUS_CONFIG = {
   ACTIVE: {
@@ -57,12 +58,6 @@ function StatusBadge({ status }) {
       {config.label}
     </span>
   );
-}
-
-function formatDate(isoDate) {
-  if (!isoDate) return "—";
-  const [year, month, day] = isoDate.split("-");
-  return `${day}/${month}/${year}`;
 }
 
 function SummaryCard({ label, value, accent }) {
