@@ -7,11 +7,13 @@ import PeriodFilter from "../components/PeriodFilter";
 import ReportTable from "../components/ReportTable";
 import ReportTotals from "../components/ReportTotals";
 import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { reportFileName, reportToCsv } from "../lib/csv";
 import { saveFile } from "../lib/download";
 import { currentMonthPeriod, isValidPeriod } from "../lib/period";
 import { formatDate, formatDateTime } from "../lib/reportFormat";
+import { cn } from "../lib/utils";
 import RelatorioService from "../services/RelatorioService";
 
 function errorMessage(error, fallback) {
@@ -29,17 +31,13 @@ function isSamePeriod(first, second) {
 
 function ErrorState({ message, onRetry }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 gap-4" role="alert">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-        <AlertCircle className="h-8 w-8 text-red-500" />
+    <div className="flex flex-col items-center justify-center gap-4 px-4 py-16 text-center" role="alert">
+      <div className="flex size-16 items-center justify-center rounded-full bg-destructive/10">
+        <AlertCircle className="size-8 text-destructive" aria-hidden="true" />
       </div>
-      <p className="max-w-sm text-center text-sm font-semibold text-red-700">{message}</p>
-      <Button
-        variant="outline"
-        onClick={onRetry}
-        className="gap-2 rounded-lg cursor-pointer border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-semibold text-xs"
-      >
-        <RefreshCw className="h-4 w-4" /> Tentar novamente
+      <p className="max-w-sm text-sm font-medium text-destructive">{message}</p>
+      <Button variant="outline" onClick={onRetry}>
+        <RefreshCw /> Tentar novamente
       </Button>
     </div>
   );
@@ -145,31 +143,23 @@ export default function Relatorios() {
   };
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#062A45]">Relatórios</h1>
-          <p className="mt-1 text-sm text-slate-500">Resultados e desempenho da operação.</p>
+          <h1 className="font-display text-3xl font-bold md:text-4xl">Relatórios</h1>
+          <p className="mt-1.5 text-muted-foreground">Resultados e desempenho da operação.</p>
         </div>
         {hasRows && (
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleExportCsv}
-              className="gap-2 rounded-lg cursor-pointer border-slate-200 text-[#062A45] font-semibold text-xs"
-            >
-              <FileSpreadsheet className="h-4 w-4" /> Exportar CSV
+            <Button variant="outline" onClick={handleExportCsv}>
+              <FileSpreadsheet /> Exportar CSV
             </Button>
-            <Button
-              onClick={handleExportPdf}
-              disabled={isDownloadingPdf}
-              className="gap-2 rounded-lg cursor-pointer bg-[#062A45] hover:bg-[#0a1f35] text-white font-semibold text-xs"
-            >
+            <Button onClick={handleExportPdf} disabled={isDownloadingPdf}>
               {isDownloadingPdf ? (
                 <LoadingIndicator variant="button" label="Baixando..." />
               ) : (
                 <>
-                  <Download className="h-4 w-4" /> Baixar PDF
+                  <Download /> Baixar PDF
                 </>
               )}
             </Button>
@@ -179,7 +169,7 @@ export default function Relatorios() {
 
       {hasRows && result.totais?.length > 0 && <ReportTotals totais={result.totais} />}
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <Card className="gap-0 py-0">
         {isLoadingReports && <LoadingIndicator label="Carregando relatórios..." />}
 
         {!isLoadingReports && reportsError && <ErrorState message={reportsError} onRetry={retryReports} />}
@@ -194,37 +184,38 @@ export default function Relatorios() {
 
         {!isLoadingReports && !reportsError && activeReport && (
           <>
-            <div className="space-y-4 border-b border-slate-100 px-5 py-4">
+            <div className="space-y-4 border-b px-5 py-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="flex items-center gap-2 text-sm font-semibold text-[#062A45]">
-                  <Calendar className="h-4 w-4" /> Período e filtros
+                <h2 className="flex items-center gap-2 text-sm font-semibold">
+                  <Calendar className="size-4 text-muted-foreground" aria-hidden="true" /> Período e filtros
                 </h2>
                 {activeReport.exigePeriodo && (
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     {hasRows && (
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-muted-foreground">
                         {result.linhas.length} {result.linhas.length === 1 ? "registro" : "registros"} no período
                       </span>
                     )}
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost"
+                      size="xs"
                       onClick={() => handlePeriodChange(currentMonthPeriod())}
                       disabled={isSamePeriod(period, currentMonthPeriod())}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 transition-colors hover:text-[#062A45] cursor-pointer disabled:cursor-default disabled:opacity-40"
+                      className="text-muted-foreground"
                     >
-                      <RotateCcw className="h-3.5 w-3.5" /> Limpar filtros
-                    </button>
+                      <RotateCcw /> Limpar filtros
+                    </Button>
                   </div>
                 )}
               </div>
               {activeReport.exigePeriodo ? (
                 <PeriodFilter value={period} onChange={handlePeriodChange} />
               ) : (
-                <p className="text-sm text-slate-500">Este relatório não depende de período.</p>
+                <p className="text-sm text-muted-foreground">Este relatório não depende de período.</p>
               )}
             </div>
 
-            <div role="tablist" aria-label="Relatórios disponíveis" className="flex gap-1 overflow-x-auto border-b border-slate-100 px-5">
+            <div role="tablist" aria-label="Relatórios disponíveis" className="flex gap-1 overflow-x-auto border-b px-5">
               {reports.map((report) => {
                 const isActive = report.relatorio === activeReport.relatorio;
                 return (
@@ -234,13 +225,14 @@ export default function Relatorios() {
                     role="tab"
                     aria-selected={isActive}
                     onClick={() => handleSelect(report)}
-                    className={`flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm font-medium transition-colors cursor-pointer ${
+                    className={cn(
+                      "flex shrink-0 cursor-pointer items-center gap-2 border-b-2 px-3 py-3 text-sm font-medium transition-colors",
                       isActive
-                        ? "border-[#062A45] text-[#062A45]"
-                        : "border-transparent text-slate-500 hover:text-[#062A45]"
-                    }`}
+                        ? "border-primary text-foreground"
+                        : "border-transparent text-muted-foreground hover:text-foreground",
+                    )}
                   >
-                    <FileText className="h-4 w-4" />
+                    <FileText className="size-4" aria-hidden="true" />
                     {report.titulo}
                   </button>
                 );
@@ -262,14 +254,14 @@ export default function Relatorios() {
             {hasRows && <ReportTable colunas={result.colunas} linhas={result.linhas} />}
 
             {!isLoadingResult && !resultError && result && (
-              <p className="border-t border-slate-100 px-5 py-3 text-xs text-slate-400">
+              <p className="border-t px-5 py-3 text-xs text-muted-foreground">
                 {result.periodo && `Período de ${formatDate(result.periodo.dataInicio)} a ${formatDate(result.periodo.dataFim)} · `}
                 Emitido em {formatDateTime(result.emitidoEm)}
               </p>
             )}
           </>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

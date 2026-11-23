@@ -9,22 +9,25 @@ export default function ReportTable({ colunas, linhas }) {
     <div className="overflow-x-auto">
       <table className="w-full min-w-[640px] text-sm">
         <thead>
-          <tr className="border-b border-slate-100 bg-slate-50/40">
+          <tr className="border-b bg-muted/50">
             {colunas.map((coluna) => (
               <th
                 key={coluna.chave}
-                className={`px-5 py-3.5 text-[11px] font-bold uppercase tracking-widest text-slate-400 ${alignmentOf(coluna)}`}
+                className={`px-5 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground ${alignmentOf(coluna)}`}
               >
                 {coluna.titulo}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-50">
+        <tbody className="divide-y">
           {linhas.map((linha, index) => (
-            <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-slate-50/30"}>
+            <tr key={index} className="transition-colors hover:bg-muted/40">
               {colunas.map((coluna) => (
-                <td key={coluna.chave} className={`whitespace-nowrap px-5 py-3.5 text-slate-600 ${alignmentOf(coluna)}`}>
+                <td
+                  key={coluna.chave}
+                  className={`whitespace-nowrap px-5 py-3.5 tabular-nums text-foreground ${alignmentOf(coluna)}`}
+                >
                   {formatReportValue(linha[coluna.chave])}
                 </td>
               ))}
