@@ -81,9 +81,9 @@ export default function TopHeader({ onOpenMenu }) {
               <span className="block text-base leading-tight font-semibold text-foreground">
                 {displayName}
               </span>
-              {profile?.email && (
+              {profile?.perfil && (
                 <span className="block text-sm font-normal text-muted-foreground">
-                  {profile.email}
+                  {profile.perfil}
                 </span>
               )}
             </span>

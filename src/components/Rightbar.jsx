@@ -1,14 +1,13 @@
 import { NavLink } from "react-router-dom";
-import { ShieldCheck } from "lucide-react";
-import { isAdmin } from "../lib/auth";
+import { adminNavItems, filterNavItems } from "../config/navigation";
+import { useAuth } from "../context/AuthContext";
 import { cn } from "../lib/utils";
 
-const adminItems = [
-  { to: "/perfis", label: "Perfis de Acesso", icon: ShieldCheck },
-];
-
 export default function Rightbar({ onNavigate }) {
-  if (!isAdmin()) return null;
+  const { profile } = useAuth();
+  const adminItems = filterNavItems(adminNavItems, profile);
+
+  if (adminItems.length === 0) return null;
 
   return (
     <div className="mt-3 flex flex-col gap-1 border-t border-sidebar-border pt-3">

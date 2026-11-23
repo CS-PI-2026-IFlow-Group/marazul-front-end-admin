@@ -4,10 +4,13 @@ import { X } from "lucide-react";
 import Sidebar from "./Sidebar";
 import TopHeader from "./TopHeader";
 import { Button } from "./ui/button";
+import { useAccessDenied } from "../hooks/useAccessDenied";
 import { cn } from "../lib/utils";
+import AcessoNegado from "../pages/AcessoNegado";
 
 export default function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const accessDenied = useAccessDenied();
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -44,7 +47,11 @@ export default function DashboardLayout() {
       <div className="flex min-w-0 flex-1 flex-col">
         <TopHeader onOpenMenu={() => setMobileOpen(true)} />
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-10">
-          <Outlet />
+          {accessDenied ? (
+            <AcessoNegado message={accessDenied.message} />
+          ) : (
+            <Outlet />
+          )}
         </main>
       </div>
     </div>
