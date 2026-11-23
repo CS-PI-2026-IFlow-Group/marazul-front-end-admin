@@ -13,24 +13,19 @@ export default function DashboardLayout() {
   const accessDenied = useAccessDenied();
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
-      {/* Sidebar fixa (desktop) */}
-      <aside className="fixed top-0 left-0 z-40 hidden h-screen w-64 md:block">
+    <div className="flex min-h-screen bg-background">
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 md:block">
         <Sidebar />
       </aside>
 
-      {/* Overlay do menu mobile */}
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-black/50 transition-opacity md:hidden",
-          mobileOpen
-            ? "opacity-100"
-            : "pointer-events-none opacity-0",
+          "fixed inset-0 z-40 bg-foreground/40 transition-opacity md:hidden",
+          mobileOpen ? "opacity-100" : "pointer-events-none opacity-0",
         )}
         onClick={() => setMobileOpen(false)}
       />
 
-      {/* Sidebar deslizante (mobile) */}
       <aside
         className={cn(
           "fixed top-0 left-0 z-50 h-screen w-64 transition-transform duration-300 md:hidden",
@@ -39,27 +34,24 @@ export default function DashboardLayout() {
       >
         <Button
           variant="ghost"
-          size="icon"
+          size="icon-sm"
           onClick={() => setMobileOpen(false)}
           aria-label="Fechar menu"
-          className="absolute top-4 right-4 z-10 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+          className="absolute top-6 right-3 z-10 text-muted-foreground"
         >
           <X className="size-5" />
         </Button>
         <Sidebar onNavigate={() => setMobileOpen(false)} />
       </aside>
 
-      {/* Área de conteúdo (Workspace) - rola de forma independente */}
-      <div className="min-h-screen md:pl-64">
+      <div className="flex min-w-0 flex-1 flex-col">
         <TopHeader onOpenMenu={() => setMobileOpen(true)} />
-        <main>
-          <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-            {accessDenied ? (
-              <AcessoNegado message={accessDenied.message} />
-            ) : (
-              <Outlet />
-            )}
-          </div>
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-10">
+          {accessDenied ? (
+            <AcessoNegado message={accessDenied.message} />
+          ) : (
+            <Outlet />
+          )}
         </main>
       </div>
     </div>

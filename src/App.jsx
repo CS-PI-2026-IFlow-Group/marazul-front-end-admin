@@ -20,7 +20,8 @@ import Passageiros from "./pages/passageiro/Passageiros";
 import CadastroPerfil from "./pages/perfil/CadastroPerfil";
 import Perfis from "./pages/perfil/Perfis";
 import Relatorios from "./pages/Relatorios";
-import Viagens from "./pages/Viagens";
+import CadastroViagem from "./pages/viagem/CadastroViagem";
+import Viagens from "./pages/viagem/Viagens";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
@@ -54,6 +55,11 @@ export default function App() {
 
           <Route element={<RequirePermission permission="viagens:view" />}>
             <Route path="/viagens" element={<Viagens />} />
+            <Route path="/viagens/cadastro" element={<CadastroViagem />} />
+            <Route
+              path="/viagens/editar/:id"
+              element={<CadastroViagem isEdicao={true} />}
+            />
           </Route>
 
           <Route element={<RequirePermission permission="passageiros:view" />}>

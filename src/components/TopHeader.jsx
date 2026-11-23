@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Menu,
-  Bell,
-  ChevronDown,
-  Settings,
-  LogOut,
-  UserCircle,
-} from "lucide-react";
+import { Bell, ChevronDown, LogOut, Menu, Settings, User } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "../lib/utils";
 import { logout } from "../lib/auth";
 import { useAuth } from "../context/AuthContext";
+
+function getInitials(nome) {
+  const parts = nome?.trim().split(/\s+/).filter(Boolean) ?? [];
+  if (parts.length === 0) return "";
+  const first = parts[0][0];
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+  return `${first}${last}`.toUpperCase();
+}
 
 export default function TopHeader({ onOpenMenu }) {
   const navigate = useNavigate();
@@ -19,7 +20,6 @@ export default function TopHeader({ onOpenMenu }) {
   const [accountOpen, setAccountOpen] = useState(false);
   const menuRef = useRef(null);
 
-  // Fecha o dropdown ao clicar fora.
   useEffect(() => {
     function handleClick(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -36,78 +36,72 @@ export default function TopHeader({ onOpenMenu }) {
       ? "Perfil indisponível"
       : "Carregando...";
 
+  const initials = getInitials(profile?.nome);
+
   const handleLogout = () => {
     logout();
-    // replace impede voltar ao painel pelo botão "Voltar" do navegador.
     navigate("/login", { replace: true });
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 lg:px-8">
-      {/* Botão hambúrguer (apenas mobile) */}
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-card/80 px-6 backdrop-blur">
       <Button
         variant="ghost"
-        size="icon"
+        size="icon-sm"
         onClick={onOpenMenu}
         aria-label="Abrir menu"
-        className="text-[#062A45] hover:bg-slate-100 md:hidden"
+        className="text-foreground md:hidden"
       >
-        <Menu className="size-6" />
+        <Menu className="size-5" />
       </Button>
 
-      {/* Empurra o conteúdo da conta para a direita no desktop */}
       <div className="hidden md:block" />
 
       <div className="flex items-center gap-4">
-        {/* Notificações */}
         <Button
           variant="ghost"
-          size="icon"
+          size="icon-sm"
           aria-label="Notificações"
-          className="text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+          className="text-muted-foreground"
         >
           <Bell className="size-5" />
         </Button>
 
-        <div className="h-8 w-px bg-slate-200" />
-
-        {/* Conta */}
-        <div className="relative" ref={menuRef}>
+        <div className="relative border-l pl-4" ref={menuRef}>
           <Button
             variant="ghost"
             onClick={() => setAccountOpen((v) => !v)}
-            className="flex h-auto items-center gap-2 px-1 normal-case tracking-normal hover:bg-slate-100"
+            aria-expanded={accountOpen}
+            className="h-auto gap-3 px-1.5 py-1"
           >
-            <div className="hidden text-right leading-tight sm:block">
-              <p className="text-sm font-bold text-[#062A45]">
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-muted text-base font-semibold text-foreground">
+              {initials || <User className="size-4 text-muted-foreground" />}
+            </span>
+            <span className="hidden text-right sm:block">
+              <span className="block text-base leading-tight font-semibold text-foreground">
                 {displayName}
-              </p>
+              </span>
               {profile?.perfil && (
-                <p className="text-xs font-normal text-slate-500">
+                <span className="block text-sm font-normal text-muted-foreground">
                   {profile.perfil}
-                </p>
+                </span>
               )}
-            </div>
-            <UserCircle className="size-8 text-[#062A45]" />
+            </span>
             <ChevronDown
               className={cn(
-                "size-4 text-slate-400 transition",
+                "size-4 text-muted-foreground transition",
                 accountOpen && "rotate-180",
               )}
             />
           </Button>
 
           {accountOpen && (
-            <div className="absolute right-0 mt-2 w-56 border border-slate-200 bg-white py-2 text-slate-800 shadow-xl">
-              <div className="border-b border-slate-100 px-4 py-2">
-                <p className="text-[10px] uppercase tracking-wider text-slate-400">
-                  Usuário Logado
-                </p>
-                <p className="truncate text-sm font-bold text-[#062A45]">
-                  {displayName}
-                </p>
+            <div className="absolute right-0 mt-2 w-64 overflow-hidden rounded-xl border bg-popover py-1.5 text-popover-foreground shadow-lg">
+              <div className="border-b px-4 py-2">
+                <p className="text-sm text-muted-foreground">Usuário Logado</p>
+                <p className="truncate text-base font-semibold">{displayName}</p>
                 {profile && (
-                  <p className="truncate text-xs text-slate-500">
+                  <p className="truncate text-sm text-muted-foreground">
                     {profile.email}
                   </p>
                 )}
@@ -115,17 +109,17 @@ export default function TopHeader({ onOpenMenu }) {
 
               <Button
                 variant="ghost"
-                className="h-auto w-full justify-start gap-2 rounded-none px-4 py-2.5 text-sm font-normal normal-case tracking-normal text-slate-800 hover:bg-slate-50"
+                className="h-auto w-full justify-start gap-2 rounded-none px-4 py-2.5 text-base font-normal"
               >
-                <Settings className="size-4 text-slate-400" /> Conta
+                <Settings className="size-4 text-muted-foreground" /> Conta
               </Button>
 
-              <div className="my-1 border-t border-slate-100" />
+              <div className="my-1 border-t" />
 
               <Button
                 variant="ghost"
                 onClick={handleLogout}
-                className="h-auto w-full justify-start gap-2 rounded-none px-4 py-2.5 text-sm font-normal normal-case tracking-normal text-[#e31e24] hover:bg-red-50 hover:text-[#c1191f]"
+                className="h-auto w-full justify-start gap-2 rounded-none px-4 py-2.5 text-base font-normal text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
                 <LogOut className="size-4" /> Sair
               </Button>

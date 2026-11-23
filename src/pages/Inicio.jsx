@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
 import LoadingIndicator from "../components/LoadingIndicator";
 import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
 import { getFirstAllowedPath } from "../config/navigation";
 import { useAuth } from "../context/AuthContext";
 import { usePageTitle } from "../hooks/usePageTitle";
@@ -13,18 +14,18 @@ export default function Inicio() {
 
   if (failed) {
     return (
-      <div className="flex min-h-[480px] flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
+      <Card className="min-h-[480px]">
         <EmptyState
           icon={UserX}
           title="Não foi possível carregar seu perfil"
           description="Verifique sua conexão com o servidor e tente novamente."
           action={
-            <Button variant="outline" onClick={reload} className="gap-2 rounded-lg">
+            <Button variant="outline" onClick={reload}>
               <RefreshCw className="size-4" /> Tentar novamente
             </Button>
           }
         />
-      </div>
+      </Card>
     );
   }
 
@@ -35,12 +36,12 @@ export default function Inicio() {
   if (firstAllowedPath) return <Navigate to={firstAllowedPath} replace />;
 
   return (
-    <div className="flex min-h-[480px] flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
+    <Card className="min-h-[480px]">
       <EmptyState
         icon={LockKeyhole}
         title="Nenhum módulo liberado"
         description="Seu perfil ainda não tem permissão para acessar nenhum módulo do painel. Fale com um administrador para liberar o acesso."
       />
-    </div>
+    </Card>
   );
 }

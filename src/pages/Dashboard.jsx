@@ -62,32 +62,33 @@ export default function Dashboard() {
   const firstName = profile?.nome?.trim().split(/\s+/)[0];
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-1">
-        <h1 className="flex flex-wrap items-center gap-x-2 text-2xl font-bold text-[#062A45] sm:text-3xl">
+    <div>
+      <div className="mb-8">
+        <h1 className="flex flex-wrap items-center gap-x-2 text-3xl font-bold md:text-4xl">
           {profileLoading ? (
             <>
               Olá,
               <span
                 role="status"
                 aria-label="Carregando nome do administrador"
-                className="inline-block h-7 w-40 animate-pulse rounded bg-slate-200"
+                className="inline-block h-8 w-40 animate-pulse rounded-lg bg-muted"
               />
             </>
           ) : (
             <span>{firstName ? `Olá, ${firstName}` : "Olá!"}</span>
           )}
         </h1>
-        <p className="text-slate-600">
+        <p className="mt-1.5 text-muted-foreground">
           Resumo da operação da Marazul em tempo real.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <MetricCard
           title="Total de ônibus"
           value={metrics?.totalVehicles}
           icon={Bus}
+          tone="primary"
           loading={loading}
           error={failed}
         />
@@ -95,17 +96,15 @@ export default function Dashboard() {
           title="Colaboradores ativos"
           value={metrics?.activeEmployees}
           icon={Users}
+          tone="success"
           loading={loading}
           error={failed}
         />
       </div>
 
       {failed && (
-        <Button
-          onClick={handleRetry}
-          className="gap-2 bg-[#062A45] font-bold text-white hover:bg-[#0f172a]"
-        >
-          <RefreshCw className="size-4" /> Tentar novamente
+        <Button onClick={handleRetry} className="mt-6">
+          <RefreshCw /> Tentar novamente
         </Button>
       )}
     </div>

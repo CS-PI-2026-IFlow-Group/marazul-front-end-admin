@@ -1,23 +1,23 @@
 import {
-  BarChart3,
+  Bus,
+  ChartColumn,
   Contact,
-  LayoutDashboard,
+  LayoutGrid,
   Map,
   ShieldCheck,
-  Truck,
-  UserRound,
+  User,
   Users,
 } from "lucide-react";
 import { hasPermission } from "../lib/permissions";
 
 export const mainNavItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard:view" },
-  { to: "/frota", label: "Frota", icon: Truck, permission: "frota:view" },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutGrid, permission: "dashboard:view" },
+  { to: "/frota", label: "Frota", icon: Bus, permission: "frota:view" },
   { to: "/viagens", label: "Viagens", icon: Map, permission: "viagens:view" },
   { to: "/funcionario", label: "Colaboradores", icon: Users, permission: "funcionario:view" },
   { to: "/clientes", label: "Clientes", icon: Contact, permission: "clientes:view" },
-  { to: "/passageiros", label: "Passageiros", icon: UserRound, permission: "passageiros:view" },
-  { to: "/relatorios", label: "Relatórios", icon: BarChart3, permission: "relatorios:view" },
+  { to: "/passageiros", label: "Passageiros", icon: User, permission: "passageiros:view" },
+  { to: "/relatorios", label: "Relatórios", icon: ChartColumn, permission: "relatorios:view" },
 ];
 
 export const adminNavItems = [
