@@ -1,6 +1,6 @@
 import { Bus, ChartColumn, Contact, LayoutGrid, Map, User, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import logoMarazul from "../assets/logoMarazul.png";
+import logoMarazul from "../assets/logoMarazulIcone.png";
 import { cn } from "../lib/utils";
 import Rightbar from "./Rightbar";
 
@@ -17,15 +17,20 @@ const navItems = [
 export default function Sidebar({ onNavigate }) {
   return (
     <div className="flex h-full flex-col border-r border-sidebar-border bg-sidebar p-4">
-      <div className="-mx-4 -mt-4 flex flex-col items-center border-b border-sidebar-border px-4 py-6">
-        <img
-          src={logoMarazul}
-          alt="Logo da Marazul"
-          className="h-20 object-contain"
-        />
-        <span className="mt-1 text-base font-medium text-sidebar-muted">
-          Painel Administrativo
-        </span>
+      <div className="flex items-center gap-3 px-2 py-4">
+        <div className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary">
+          <img
+            src={logoMarazul}
+            alt="Logo da Marazul"
+            className="size-full object-cover"
+          />
+        </div>
+        <div className="min-w-0">
+          <p className="font-display text-lg leading-tight font-semibold text-sidebar-foreground">
+            Marazul
+          </p>
+          <p className="text-sm text-sidebar-muted">Painel Administrativo</p>
+        </div>
       </div>
 
       <nav className="mt-6 flex flex-1 flex-col gap-1 overflow-y-auto">
