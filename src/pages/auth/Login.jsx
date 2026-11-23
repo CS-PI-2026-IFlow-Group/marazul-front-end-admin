@@ -36,7 +36,7 @@ export default function Login() {
       toast.success("Login realizado com sucesso!");
 
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/");
       }, 1000);
     } catch (error) {
       if (error.response && error.response.status === 401) {
