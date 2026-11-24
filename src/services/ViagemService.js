@@ -23,6 +23,16 @@ class ViagemService extends BaseService {
     super("/api/viagens");
   }
 
+  async getAll(filters = {}) {
+    const params = {};
+    if (filters.status) params.status = filters.status;
+    if (filters.dataInicio) params.dataInicio = filters.dataInicio;
+    if (filters.dataFim) params.dataFim = filters.dataFim;
+
+    const response = await api.get(this.endpoint, { params });
+    return response.data;
+  }
+
   async getEnums() {
     try {
       const response = await api.get(`${this.endpoint}/enums`);
