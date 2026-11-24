@@ -16,6 +16,7 @@ export default function MetricCard({
   tone = "primary",
   loading,
   error,
+  suffix = "",
 }) {
   return (
     <Card className="flex-row items-center justify-between gap-4 p-5">
@@ -39,6 +40,7 @@ export default function MetricCard({
         {!loading && !error && (
           <p className="mt-1 truncate font-display text-3xl font-bold tabular-nums">
             {Number(value ?? 0).toLocaleString("pt-BR")}
+            {suffix}
           </p>
         )}
       </div>
