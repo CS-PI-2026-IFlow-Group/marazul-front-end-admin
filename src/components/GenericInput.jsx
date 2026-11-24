@@ -5,7 +5,7 @@ import { Label } from "./ui/label";
 export default function GenericInput({
   id,
   label,
-  labelColor = "#062A45",
+  labelColor,
   icon: Icon,
   type = "text",
   required = false,
@@ -18,21 +18,22 @@ export default function GenericInput({
   ...props
 }) {
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-1.5">
       <Label
         htmlFor={id}
-        className="text-[11px] font-bold tracking-wider"
-        style={{ color: labelColor }}
+        className="tracking-wide uppercase"
+        style={labelColor ? { color: labelColor } : undefined}
       >
         {label}
-        {required && <span className="text-[#e31e24]">*</span>}
+        {required && <span className="text-accent"> *</span>}
       </Label>
       <div className="relative">
         {Icon && (
           <Icon
-            className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none ${
-              hasError ? "text-red-400" : "text-slate-400"
-            }`}
+            className={cn(
+              "pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2",
+              hasError ? "text-destructive" : "text-muted-foreground",
+            )}
           />
         )}
         <Input
@@ -42,18 +43,19 @@ export default function GenericInput({
           value={value}
           onChange={onChange}
           className={cn(
-            "pr-3 bg-[#F8FAFC] h-11 text-sm transition-colors",
-            Icon ? "pl-9" : "pl-3",
-            hasError
-              ? "border-red-500 focus-visible:ring-red-500"
-              : "border-slate-200 focus-visible:ring-slate-300",
+            "h-10",
+            Icon && "pl-10",
+            hasError &&
+              "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/15",
             className,
           )}
           {...props}
         />
       </div>
       {hasError && errorMessage && (
-        <p className="text-xs font-medium text-red-500 mt-1">{errorMessage}</p>
+        <p className="mt-0.5 text-xs font-medium text-destructive">
+          {errorMessage}
+        </p>
       )}
     </div>
   );
