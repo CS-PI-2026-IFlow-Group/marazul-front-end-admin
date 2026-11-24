@@ -8,6 +8,52 @@ import { usePageTitle } from "../../hooks/usePageTitle";
 import { formatDateTime } from "../../lib/dateTime";
 import ViagemService from "../../services/ViagemService";
 
+const IN_PROGRESS_STYLE = {
+  bg: "bg-amber-50",
+  text: "text-amber-700",
+  dot: "bg-amber-500",
+  border: "border-amber-200",
+};
+
+const STATUS_STYLES = {
+  SCHEDULED: {
+    bg: "bg-sky-50",
+    text: "text-sky-700",
+    dot: "bg-sky-500",
+    border: "border-sky-200",
+  },
+  CONFIRMED: {
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    dot: "bg-emerald-500",
+    border: "border-emerald-200",
+  },
+  LEFT_ORIGIN: IN_PROGRESS_STYLE,
+  ARRIVED_DESTINATION: IN_PROGRESS_STYLE,
+  LEFT_DESTINATION: IN_PROGRESS_STYLE,
+  ARRIVED_ORIGIN: IN_PROGRESS_STYLE,
+  COMPLETED: {
+    bg: "bg-slate-100",
+    text: "text-slate-600",
+    dot: "bg-slate-400",
+    border: "border-slate-200",
+  },
+};
+
+function StatusBadge({ status }) {
+  const style = STATUS_STYLES[status] || STATUS_STYLES.SCHEDULED;
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${style.bg} ${style.text} ${style.border}`}
+    >
+      <span
+        className={`inline-block h-2 w-2 rounded-full ${style.dot} animate-pulse`}
+      />
+      {ViagemService.getStatusLabel(status)}
+    </span>
+  );
+}
+
 function formatPlace(city, stateAcronym) {
   if (city && stateAcronym) return `${city}/${stateAcronym}`;
   return city || stateAcronym || "—";
@@ -49,7 +95,14 @@ export default function Viagens() {
     setRetryCount((count) => count + 1);
   };
 
-  const columns = ["Trecho", "Saída prevista", "Ônibus", "Situação", "Ações"];
+  const columns = [
+    "Trecho",
+    "Saída prevista",
+    "Ônibus",
+    "Passageiros",
+    "Situação",
+    "Ações",
+  ];
 
   return (
     <div className="space-y-6">
@@ -61,7 +114,7 @@ export default function Viagens() {
           onClick={() => navigate("/viagens/cadastro")}
           className="h-11 w-full gap-2 bg-[#062A45] hover:bg-[#0a1f35] text-white font-bold cursor-pointer rounded-lg px-6 shadow-sm transition-all duration-200 hover:shadow-md md:w-auto"
         >
-          <Plus className="h-4 w-4" /> Agendar Viagem
+          <Plus className="h-4 w-4" /> Nova Viagem
         </Button>
       </div>
 
@@ -153,11 +206,23 @@ export default function Viagens() {
                     <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
                       {formatDateTime(trip.plannedDepartureOrigin)}
                     </td>
-                    <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
-                      {trip.vehiclePrefix || "—"}
+                    <td className="whitespace-nowrap px-5 py-3.5">
+                      <span className="font-semibold text-[#062A45]">
+                        {trip.vehiclePrefix || "—"}
+                      </span>
+                      {trip.vehicleLicensePlate && (
+                        <span className="ml-2 rounded bg-slate-100 px-2 py-0.5 font-mono text-xs font-semibold text-slate-700 tracking-wider uppercase">
+                          {trip.vehicleLicensePlate}
+                        </span>
+                      )}
                     </td>
                     <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
-                      {ViagemService.getStatusLabel(trip.status)}
+                      <span className="font-semibold text-[#062A45]">
+                        {trip.passengerCount ?? 0}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3.5">
+                      <StatusBadge status={trip.status} />
                     </td>
                     <td className="whitespace-nowrap px-5 pl-7 py-3.5">
                       <button
