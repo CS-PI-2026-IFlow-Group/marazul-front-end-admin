@@ -1,12 +1,13 @@
-import { ArrowLeft, BusFront, Save } from "lucide-react";
-import LoadingIndicator from "../components/LoadingIndicator";
+import { Bus, ClipboardCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import FormFooter from "../components/FormFooter";
+import FormSection from "../components/FormSection";
 import GenericInput from "../components/GenericInput";
 import GenericSelect from "../components/GenericSelect";
-import { Button } from "../components/ui/button";
-import { Card, CardContent, CardFooter } from "../components/ui/card";
+import PageHeader from "../components/PageHeader";
+import { Card } from "../components/ui/card";
 import FrotaService from "../services/FrotaService";
 import { usePageTitle } from "../hooks/usePageTitle";
 
@@ -202,32 +203,22 @@ export default function CadastroFrota() {
   };
 
   return (
-    <div className="bg-slate-50/50 font-sans">
-      <div className="mb-3">
-        <div className="flex items-start gap-2 flex-col-reverse">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-700">
-              {isEditing ? "Edição de Frota" : "Cadastro de Frota"}
-            </h1>
-          </div>
-        </div>
-      </div>
+    <div>
+      <PageHeader
+        title={isEditing ? "Edição de veículo" : "Cadastro de veículo"}
+      />
 
-      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden py-1 gap-0">
-        <div className="flex border-b border-slate-100 px-6 py-3 items-center gap-3">
-          <BusFront className="h-4 w-4 text-[#e31e24]" />
-          <h2 className="text-sm font-medium text-[#062A45]">
-            Informações do veículo
-          </h2>
-        </div>
-
-        <CardContent className="px-4 py-4 sm:px-6">
-          <form id="form-frota" onSubmit={handleSubmit} className="space-y-3">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
+      <Card className="gap-0 py-0">
+        <form id="form-frota" onSubmit={handleSubmit}>
+          <div className="divide-y">
+            <FormSection
+              icon={Bus}
+              title="Identificação"
+              description="Dados principais do veículo."
+            >
               <GenericInput
                 id="prefix"
-                label="PREFIXO"
-                labelColor="#062A45"
+                label="Prefixo"
                 type="text"
                 placeholder="Ex: 18001"
                 pattern="[A-Za-z0-9]+"
@@ -240,8 +231,7 @@ export default function CadastroFrota() {
 
               <GenericInput
                 id="licensePlate"
-                label="PLACA"
-                labelColor="#062A45"
+                label="Placa"
                 type="text"
                 placeholder="ABC-1234 ou ABC1D23"
                 maxLength={8}
@@ -255,8 +245,7 @@ export default function CadastroFrota() {
 
               <GenericSelect
                 id="model"
-                label="MARCA"
-                labelColor="#062A45"
+                label="Marca"
                 required
                 value={form.model}
                 onChange={handleSelectChange("model")}
@@ -266,8 +255,7 @@ export default function CadastroFrota() {
 
               <GenericSelect
                 id="type"
-                label="TIPO"
-                labelColor="#062A45"
+                label="Tipo"
                 required
                 value={form.type}
                 onChange={handleSelectChange("type")}
@@ -277,8 +265,7 @@ export default function CadastroFrota() {
 
               <GenericInput
                 id="year"
-                label="ANO DE FABRICAÇÃO"
-                labelColor="#062A45"
+                label="Ano de fabricação"
                 type="text"
                 inputMode="numeric"
                 placeholder="Ex: 2024"
@@ -292,8 +279,7 @@ export default function CadastroFrota() {
 
               <GenericInput
                 id="seats"
-                label="QUANTIDADE DE ASSENTOS"
-                labelColor="#062A45"
+                label="Quantidade de assentos"
                 type="text"
                 inputMode="numeric"
                 placeholder="Ex: 46"
@@ -304,11 +290,16 @@ export default function CadastroFrota() {
                 hasError={assentosTemErro}
                 errorMessage="Informe uma quantidade válida de assentos"
               />
+            </FormSection>
 
+            <FormSection
+              icon={ClipboardCheck}
+              title="Situação"
+              description="Status e vistoria."
+            >
               <GenericSelect
                 id="status"
-                label="STATUS"
-                labelColor="#062A45"
+                label="Status"
                 required
                 value={form.status}
                 onChange={handleSelectChange("status")}
@@ -318,43 +309,23 @@ export default function CadastroFrota() {
 
               <GenericInput
                 id="inspectionDate"
-                label="DATA DE VISTORIA"
-                labelColor="#062A45"
+                label="Data de vistoria"
                 type="date"
                 required
                 value={form.inspectionDate}
                 onChange={handleChange("inspectionDate")}
               />
-            </div>
-          </form>
-        </CardContent>
+            </FormSection>
+          </div>
+        </form>
 
-        <CardFooter className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3 sm:px-6 md:flex-row md:justify-between">
-          <Button
-            variant="outline"
-            onClick={() => navigate("/frota")}
-            className="h-11 w-full gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer md:w-auto"
-          >
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </Button>
-          <Button
-            type="submit"
-            form="form-frota"
-            disabled={!isFormValid || isLoading}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer md:w-auto"
-          >
-            {isLoading ? (
-              <>
-                <LoadingIndicator variant="button" label="Salvando..." />
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 size-4" />
-                Salvar Veículo
-              </>
-            )}
-          </Button>
-        </CardFooter>
+        <FormFooter
+          formId="form-frota"
+          onBack={() => navigate("/frota")}
+          isSaving={isLoading}
+          isDisabled={!isFormValid}
+          saveLabel="Salvar veículo"
+        />
       </Card>
     </div>
   );
