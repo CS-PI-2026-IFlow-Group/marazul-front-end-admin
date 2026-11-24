@@ -1,4 +1,4 @@
-import { Map, Pencil, Plus, RotateCcw } from "lucide-react";
+import { Ban, Eye, Map, Pencil, Plus, RotateCcw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Badge from "../../components/Badge";
@@ -9,6 +9,7 @@ import GenericSelect from "../../components/GenericSelect";
 import ListCard from "../../components/ListCard";
 import LoadingIndicator from "../../components/LoadingIndicator";
 import PageHeader from "../../components/PageHeader";
+import Pagination from "../../components/Pagination";
 import RowActions from "../../components/RowActions";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -17,7 +18,11 @@ import { usePageTitle } from "../../hooks/usePageTitle";
 import { formatDateTime } from "../../lib/dateTime";
 import ViagemService, { FALLBACK_STATUSES } from "../../services/ViagemService";
 
+const ITEMS_PER_PAGE = 8;
+
 const ALL_STATUSES = "ALL";
+
+const NOT_STARTED_STATUSES = ["SCHEDULED", "CONFIRMED"];
 
 const EMPTY_FILTERS = {
   status: ALL_STATUSES,
@@ -57,6 +62,59 @@ function formatPlace(city, stateAcronym) {
   return city || stateAcronym || "—";
 }
 
+function formatRoute(trip) {
+  return `${formatPlace(trip.originCity, trip.originStateAcronym)} → ${formatPlace(
+    trip.destinationCity,
+    trip.destinationStateAcronym,
+  )}`;
+}
+
+function hasStarted(trip) {
+  return !NOT_STARTED_STATUSES.includes(trip.status);
+}
+
+function TripActions({ trip, onEdit }) {
+  const started = hasStarted(trip);
+
+  return (
+    <RowActions>
+      <button
+        type="button"
+        disabled
+        title="Disponível em breve"
+        aria-label="Detalhes da viagem"
+      >
+        <Eye className="size-4" />
+      </button>
+      <button
+        type="button"
+        onClick={onEdit}
+        disabled={started}
+        title={
+          started
+            ? "Viagem que já saiu da origem não pode ser alterada"
+            : "Editar"
+        }
+        aria-label="Editar viagem"
+      >
+        <Pencil className="size-4" />
+      </button>
+      <button
+        type="button"
+        disabled
+        title={
+          started
+            ? "Viagem que já saiu da origem não pode ser cancelada"
+            : "Disponível em breve"
+        }
+        aria-label="Cancelar viagem"
+      >
+        <Ban className="size-4" />
+      </button>
+    </RowActions>
+  );
+}
+
 export default function Viagens() {
   usePageTitle("Viagens");
   const navigate = useNavigate();
@@ -65,6 +123,7 @@ export default function Viagens() {
   const [statuses, setStatuses] = useState(FALLBACK_STATUSES);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -118,6 +177,7 @@ export default function Viagens() {
 
   const updateFilter = (field, value) => {
     reload();
+    setCurrentPage(1);
     setFilters((current) => ({ ...current, [field]: value }));
   };
 
@@ -129,6 +189,7 @@ export default function Viagens() {
 
   const clearFilters = () => {
     setSearchTerm("");
+    setCurrentPage(1);
     if (hasApiFilters) {
       reload();
       setFilters(EMPTY_FILTERS);
@@ -156,6 +217,17 @@ export default function Viagens() {
       ),
     );
   }, [trips, searchTerm]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredTrips.length / ITEMS_PER_PAGE),
+  );
+  const displayedPage = Math.min(currentPage, totalPages);
+
+  const paginatedTrips = useMemo(() => {
+    const startIndex = (displayedPage - 1) * ITEMS_PER_PAGE;
+    return filteredTrips.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredTrips, displayedPage]);
 
   const columns = [
     "Trecho",
@@ -185,7 +257,10 @@ export default function Viagens() {
           label: "Buscar viagem por cidade de origem, cidade de destino ou prefixo do ônibus",
           placeholder: "Buscar cidade ou prefixo...",
           value: searchTerm,
-          onChange: (e) => setSearchTerm(e.target.value),
+          onChange: (e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          },
         }}
       >
         <div className="grid grid-cols-1 gap-3 border-b px-6 py-4 sm:grid-cols-3">
@@ -256,51 +331,94 @@ export default function Viagens() {
         )}
 
         {!isLoading && !error && filteredTrips.length > 0 && (
-          <DataTable head={columns}>
-            {filteredTrips.map((trip) => (
-              <tr key={trip.id}>
-                <td className="whitespace-nowrap font-semibold text-foreground">
-                  {formatPlace(trip.originCity, trip.originStateAcronym)}
-                  {" → "}
-                  {formatPlace(trip.destinationCity, trip.destinationStateAcronym)}
-                </td>
-                <td className="whitespace-nowrap text-muted-foreground">
-                  {formatDateTime(trip.plannedDepartureOrigin)}
-                </td>
-                <td className="whitespace-nowrap">
-                  <span className="font-semibold text-foreground">
-                    {trip.vehiclePrefix || "—"}
-                  </span>
-                  {trip.vehicleLicensePlate && (
-                    <span className="ml-2 rounded bg-muted px-2 py-0.5 font-mono text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                      {trip.vehicleLicensePlate}
+          <>
+            <DataTable head={columns} className="hidden md:block">
+              {paginatedTrips.map((trip) => (
+                <tr key={trip.id}>
+                  <td className="whitespace-nowrap font-semibold text-foreground">
+                    {formatRoute(trip)}
+                  </td>
+                  <td className="whitespace-nowrap text-muted-foreground">
+                    {formatDateTime(trip.plannedDepartureOrigin)}
+                  </td>
+                  <td className="whitespace-nowrap">
+                    <span className="font-semibold text-foreground">
+                      {trip.vehiclePrefix || "—"}
                     </span>
-                  )}
-                </td>
-                <td className="whitespace-nowrap text-muted-foreground">
-                  {trip.passengerCount ?? 0}
-                </td>
-                <td className="whitespace-nowrap">
-                  <StatusBadge
-                    status={trip.status}
-                    label={statusLabels[trip.status] || trip.status}
-                  />
-                </td>
-                <td>
-                  <RowActions>
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/viagens/editar/${trip.id}`)}
-                      title="Editar"
-                      aria-label="Editar viagem"
-                    >
-                      <Pencil className="size-4" />
-                    </button>
-                  </RowActions>
-                </td>
-              </tr>
-            ))}
-          </DataTable>
+                    {trip.vehicleLicensePlate && (
+                      <span className="ml-2 rounded bg-muted px-2 py-0.5 font-mono text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                        {trip.vehicleLicensePlate}
+                      </span>
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap text-muted-foreground">
+                    {trip.passengerCount ?? 0}
+                  </td>
+                  <td className="whitespace-nowrap">
+                    <StatusBadge
+                      status={trip.status}
+                      label={statusLabels[trip.status] || trip.status}
+                    />
+                  </td>
+                  <td>
+                    <TripActions
+                      trip={trip}
+                      onEdit={() => navigate(`/viagens/editar/${trip.id}`)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </DataTable>
+
+            <div className="space-y-3 p-4 md:hidden">
+              {paginatedTrips.map((trip) => (
+                <article key={trip.id} className="rounded-xl border p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <h3 className="min-w-0 font-semibold break-words text-foreground">
+                      {formatRoute(trip)}
+                    </h3>
+                    <StatusBadge
+                      status={trip.status}
+                      label={statusLabels[trip.status] || trip.status}
+                    />
+                  </div>
+                  <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Saída prevista</dt>
+                      <dd>{formatDateTime(trip.plannedDepartureOrigin)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Passageiros</dt>
+                      <dd>{trip.passengerCount ?? 0}</dd>
+                    </div>
+                    <div className="col-span-2">
+                      <dt className="text-xs text-muted-foreground">Ônibus</dt>
+                      <dd>
+                        {trip.vehiclePrefix || "—"}
+                        {trip.vehicleLicensePlate && ` · ${trip.vehicleLicensePlate}`}
+                      </dd>
+                    </div>
+                  </dl>
+                  <div className="mt-3">
+                    <TripActions
+                      trip={trip}
+                      onEdit={() => navigate(`/viagens/editar/${trip.id}`)}
+                    />
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <Pagination
+              currentPage={displayedPage}
+              totalPages={totalPages}
+              totalItems={filteredTrips.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+              onPageChange={setCurrentPage}
+              itemName="viagem"
+              itemNamePlural="viagens"
+            />
+          </>
         )}
       </ListCard>
     </div>
