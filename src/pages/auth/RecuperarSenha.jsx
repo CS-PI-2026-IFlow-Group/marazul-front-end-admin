@@ -3,9 +3,9 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import AuthHeader from "../../components/AuthHeader";
+import AuthInput from "../../components/AuthInput";
 import AuthLayout from "../../components/AuthLayout";
-import GenericInput from "../../components/GenericInput";
-import SubmitButton from "../../components/SubmitButton";
+import AuthSubmitButton from "../../components/AuthSubmitButton";
 import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
 import api from "../../config/axiosConfig";
 import { usePageTitle } from "../../hooks/usePageTitle";
@@ -44,32 +44,32 @@ export default function RecuperarSenha() {
     return (
       <AuthLayout>
         <div className="flex justify-center">
-          <div className="bg-[#ffefef] p-4 rounded-xl relative mt-1">
-            <MailCheck className="h-10 w-10 text-[#e31e24]" />
+          <div className="relative mt-1 rounded-2xl bg-accent/10 p-4 text-accent">
+            <MailCheck className="size-10" />
           </div>
         </div>
-        <h2 className="text-xl font-bold text-[#062A45] -mb-1">
+        <h2 className="-mb-1 font-display text-xl font-bold text-foreground">
           E-mail enviado!
         </h2>
-        <p className="text-slate-600 text-sm leading-relaxed px-4">
+        <p className="px-4 text-sm leading-relaxed text-muted-foreground">
           Enviamos um link de recuperação para o endereço de e-mail informado.
           Por favor, verifique sua caixa de entrada ou spam para continuar.
         </p>
 
         <Link to="/login" className="block w-full">
-          <SubmitButton>
-            <ArrowLeft className="h-4 w-4" /> Voltar ao Login
-          </SubmitButton>
+          <AuthSubmitButton>
+            <ArrowLeft /> Voltar ao Login
+          </AuthSubmitButton>
         </Link>
 
-        <CardFooter className="flex justify-center pt-2">
-          <div className="w-full border-t border-slate-100 pt-6 flex justify-center">
-            <p className="text-sm text-slate-500">
+        <CardFooter className="justify-center px-8 pt-2">
+          <div className="flex w-full justify-center border-t pt-6">
+            <p className="text-sm text-muted-foreground">
               Não recebeu o e-mail?{" "}
               <button
                 onClick={handleRecoverPassword}
                 disabled={isLoading}
-                className="text-[#e31e24] hover:text-[#c1191f] hover:underline cursor-pointer"
+                className="cursor-pointer font-medium text-accent hover:underline"
               >
                 Reenviar e-mail
               </button>
@@ -82,22 +82,22 @@ export default function RecuperarSenha() {
 
   return (
     <AuthLayout>
-      <CardHeader className="flex flex-col items-center space-y-0">
+      <CardHeader className="flex flex-col items-center gap-1.5 px-8">
         <AuthHeader />
-        <div className="text-center pt-6 space-y-2">
-          <p className="text-sm text-slate-500 px-2 leading-relaxed">
+        <div className="space-y-2 pt-6 text-center">
+          <p className="px-2 text-sm leading-relaxed text-muted-foreground">
             Digite o seu e-mail associado à sua conta para receber um link de
             recuperação para a senha
           </p>
         </div>
       </CardHeader>
 
-      <CardContent>
-        <form onSubmit={handleRecoverPassword} className="space-y-6">
+      <CardContent className="px-8">
+        <form onSubmit={handleRecoverPassword} className="space-y-6 text-left">
           <div className="space-y-2">
-            <GenericInput
+            <AuthInput
               id="email"
-              label="EMAIL"
+              label="E-mail"
               type="email"
               icon={MailCheck}
               placeholder="nome@marazul.com.br"
@@ -106,24 +106,24 @@ export default function RecuperarSenha() {
             />
           </div>
 
-          <SubmitButton
+          <AuthSubmitButton
             isLoading={isLoading}
             isDisabled={!isEmailValid}
             loadingText="Enviando..."
             icon={ArrowRight}
           >
             Enviar Link de Recuperação
-          </SubmitButton>
+          </AuthSubmitButton>
         </form>
       </CardContent>
 
-      <CardFooter className="flex justify-center pt-2">
-        <div className="w-full border-t border-slate-100 pt-6 flex justify-center">
+      <CardFooter className="justify-center px-8 pt-2">
+        <div className="flex w-full justify-center border-t pt-6">
           <Link
             to="/login"
-            className="flex items-center text-sm text-[#e31e24] hover:text-[#c1191f] hover:underline font-medium gap-2 transition-colors"
+            className="flex items-center gap-2 text-sm font-medium text-accent transition-colors hover:underline"
           >
-            <ArrowLeft className="h-4 w-4" /> Voltar para o login
+            <ArrowLeft className="size-4" /> Voltar para o login
           </Link>
         </div>
       </CardFooter>
