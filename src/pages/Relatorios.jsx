@@ -1,8 +1,10 @@
-import { AlertCircle, BarChart3, Calendar, Download, FileSpreadsheet, FileText, RefreshCw, RotateCcw, SearchX } from "lucide-react";
+import { BarChart3, Calendar, Download, FileSpreadsheet, FileText, RotateCcw, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import EmptyState from "../components/EmptyState";
+import ErrorState from "../components/ErrorState";
 import LoadingIndicator from "../components/LoadingIndicator";
+import PageHeader from "../components/PageHeader";
 import PeriodFilter from "../components/PeriodFilter";
 import ReportTable from "../components/ReportTable";
 import ReportTotals from "../components/ReportTotals";
@@ -27,20 +29,6 @@ function canQuery(report, period) {
 
 function isSamePeriod(first, second) {
   return first.dataInicio === second.dataInicio && first.dataFim === second.dataFim;
-}
-
-function ErrorState({ message, onRetry }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-4 px-4 py-16 text-center" role="alert">
-      <div className="flex size-16 items-center justify-center rounded-full bg-destructive/10">
-        <AlertCircle className="size-8 text-destructive" aria-hidden="true" />
-      </div>
-      <p className="max-w-sm text-sm font-medium text-destructive">{message}</p>
-      <Button variant="outline" onClick={onRetry}>
-        <RefreshCw /> Tentar novamente
-      </Button>
-    </div>
-  );
 }
 
 export default function Relatorios() {
@@ -144,28 +132,27 @@ export default function Relatorios() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="font-display text-3xl font-bold md:text-4xl">Relatórios</h1>
-          <p className="mt-1.5 text-muted-foreground">Resultados e desempenho da operação.</p>
-        </div>
-        {hasRows && (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleExportCsv}>
-              <FileSpreadsheet /> Exportar CSV
-            </Button>
-            <Button onClick={handleExportPdf} disabled={isDownloadingPdf}>
-              {isDownloadingPdf ? (
-                <LoadingIndicator variant="button" label="Baixando..." />
-              ) : (
-                <>
-                  <Download /> Baixar PDF
-                </>
-              )}
-            </Button>
-          </div>
-        )}
-      </div>
+      <PageHeader
+        title="Relatórios"
+        action={
+          hasRows && (
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleExportCsv}>
+                <FileSpreadsheet /> Exportar CSV
+              </Button>
+              <Button onClick={handleExportPdf} disabled={isDownloadingPdf}>
+                {isDownloadingPdf ? (
+                  <LoadingIndicator variant="button" label="Baixando..." />
+                ) : (
+                  <>
+                    <Download /> Baixar PDF
+                  </>
+                )}
+              </Button>
+            </div>
+          )
+        }
+      />
 
       {hasRows && result.totais?.length > 0 && <ReportTotals totais={result.totais} />}
 
