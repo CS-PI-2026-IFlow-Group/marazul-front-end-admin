@@ -3,10 +3,10 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AuthHeader from "../../components/AuthHeader";
+import AuthInput from "../../components/AuthInput";
 import AuthLayout from "../../components/AuthLayout";
-import GenericInput from "../../components/GenericInput";
-import PasswordInput from "../../components/PasswordInput";
-import SubmitButton from "../../components/SubmitButton";
+import AuthPasswordInput from "../../components/AuthPasswordInput";
+import AuthSubmitButton from "../../components/AuthSubmitButton";
 import { CardContent, CardFooter, CardHeader } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Label } from "../../components/ui/label";
@@ -56,55 +56,53 @@ export default function Login() {
 
   return (
     <AuthLayout>
-      <CardHeader className="flex flex-col items-center space-y-0">
+      <CardHeader className="flex flex-col items-center gap-1.5 px-8">
         <AuthHeader />
       </CardHeader>
 
-      <CardContent>
-        <form onSubmit={handleLogin} className="space-y-6">
-          <GenericInput
+      <CardContent className="px-8">
+        <form onSubmit={handleLogin} className="space-y-5 text-left">
+          <AuthInput
             id="email"
-            label="EMAIL"
+            label="E-mail"
             type="email"
             icon={Mail}
             placeholder="nome@marazul.com.br"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <PasswordInput
+          <AuthPasswordInput
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <div className="flex items-center space-x-2 pt-1">
-            <Checkbox
-              id="keep-connected"
-              className="border-slate-300 data-[state=checked]:bg-[#062A45] cursor-pointer"
-            />
+          <div className="flex items-center gap-2 pt-1">
+            <Checkbox id="keep-connected" />
             <Label
               htmlFor="keep-connected"
-              className="text-sm text-slate-600 font-normal cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="cursor-pointer leading-none font-normal text-muted-foreground"
             >
               Manter conectado
             </Label>
           </div>
-          <SubmitButton
+          <AuthSubmitButton
             isLoading={isLoading}
             isDisabled={!isFormValid}
             loadingText="Entrando..."
             icon={LogIn}
           >
             Entrar
-          </SubmitButton>
+          </AuthSubmitButton>
         </form>
       </CardContent>
-      <CardFooter className="flex justify-center">
-        <div className="w-full border-t border-slate-100 pt-2 flex justify-center">
-          <p className="text-sm text-slate-600">
+
+      <CardFooter className="justify-center px-8">
+        <div className="flex w-full justify-center border-t pt-4">
+          <p className="text-sm text-muted-foreground">
             Esqueceu a senha?{" "}
             <Link
               to="/recuperar-senha"
-              className="text-[#e31e24] hover:underline font-medium"
+              className="font-medium text-accent hover:underline"
             >
               Clique Aqui
             </Link>
