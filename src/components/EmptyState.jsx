@@ -1,25 +1,31 @@
 import { Search } from "lucide-react";
+import { cn } from "../lib/utils";
 
 export default function EmptyState({
   icon: Icon = Search,
   title,
   description,
   action,
-  className = "",
+  className,
 }) {
   return (
     <div
-      className={`flex flex-1 flex-col items-center justify-center gap-4 px-4 py-16 text-center ${className}`}
+      className={cn(
+        "flex flex-1 flex-col items-center justify-center px-6 py-20 text-center",
+        className,
+      )}
       role="status"
     >
-      <div className="flex size-16 items-center justify-center rounded-full bg-slate-100">
-        <Icon className="size-8 text-slate-400" aria-hidden="true" />
+      <div className="grid size-16 place-items-center rounded-2xl bg-muted text-muted-foreground">
+        <Icon className="size-7" aria-hidden="true" />
       </div>
-      <div className="max-w-sm space-y-1">
-        <h3 className="text-base font-semibold text-[#062A45]">{title}</h3>
-        {description && <p className="text-sm text-slate-500">{description}</p>}
-      </div>
-      {action}
+      <h3 className="mt-4 text-base font-semibold text-foreground">{title}</h3>
+      {description && (
+        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+          {description}
+        </p>
+      )}
+      {action && <div className="mt-6">{action}</div>}
     </div>
   );
 }
