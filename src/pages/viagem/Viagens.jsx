@@ -1,57 +1,55 @@
-import { AlertCircle, Map, Pencil, Plus, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Map, Pencil, Plus, RotateCcw } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Badge from "../../components/Badge";
+import DataTable from "../../components/DataTable";
 import EmptyState from "../../components/EmptyState";
+import ErrorState from "../../components/ErrorState";
+import GenericSelect from "../../components/GenericSelect";
+import ListCard from "../../components/ListCard";
 import LoadingIndicator from "../../components/LoadingIndicator";
+import PageHeader from "../../components/PageHeader";
+import RowActions from "../../components/RowActions";
 import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { formatDateTime } from "../../lib/dateTime";
-import ViagemService from "../../services/ViagemService";
+import ViagemService, { FALLBACK_STATUSES } from "../../services/ViagemService";
 
-const IN_PROGRESS_STYLE = {
-  bg: "bg-amber-50",
-  text: "text-amber-700",
-  dot: "bg-amber-500",
-  border: "border-amber-200",
+const ALL_STATUSES = "ALL";
+
+const EMPTY_FILTERS = {
+  status: ALL_STATUSES,
+  dataInicio: "",
+  dataFim: "",
 };
 
-const STATUS_STYLES = {
-  SCHEDULED: {
-    bg: "bg-sky-50",
-    text: "text-sky-700",
-    dot: "bg-sky-500",
-    border: "border-sky-200",
-  },
-  CONFIRMED: {
-    bg: "bg-emerald-50",
-    text: "text-emerald-700",
-    dot: "bg-emerald-500",
-    border: "border-emerald-200",
-  },
-  LEFT_ORIGIN: IN_PROGRESS_STYLE,
-  ARRIVED_DESTINATION: IN_PROGRESS_STYLE,
-  LEFT_DESTINATION: IN_PROGRESS_STYLE,
-  ARRIVED_ORIGIN: IN_PROGRESS_STYLE,
-  COMPLETED: {
-    bg: "bg-slate-100",
-    text: "text-slate-600",
-    dot: "bg-slate-400",
-    border: "border-slate-200",
-  },
+const STATUS_TONES = {
+  SCHEDULED: { tone: "neutral" },
+  CONFIRMED: { tone: "success" },
+  LEFT_ORIGIN: { tone: "warning" },
+  ARRIVED_DESTINATION: { tone: "warning" },
+  LEFT_DESTINATION: { tone: "warning" },
+  ARRIVED_ORIGIN: { tone: "warning" },
+  COMPLETED: { tone: "neutral", className: "bg-primary/10 text-primary" },
 };
 
-function StatusBadge({ status }) {
-  const style = STATUS_STYLES[status] || STATUS_STYLES.SCHEDULED;
+function StatusBadge({ status, label }) {
+  const config = STATUS_TONES[status] || STATUS_TONES.SCHEDULED;
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${style.bg} ${style.text} ${style.border}`}
-    >
-      <span
-        className={`inline-block h-2 w-2 rounded-full ${style.dot} animate-pulse`}
-      />
-      {ViagemService.getStatusLabel(status)}
-    </span>
+    <Badge tone={config.tone} className={config.className}>
+      {label}
+    </Badge>
   );
+}
+
+function normalizeText(value) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLocaleLowerCase("pt-BR")
+    .trim();
 }
 
 function formatPlace(city, stateAcronym) {
@@ -64,6 +62,9 @@ export default function Viagens() {
   const navigate = useNavigate();
 
   const [trips, setTrips] = useState([]);
+  const [statuses, setStatuses] = useState(FALLBACK_STATUSES);
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -71,7 +72,23 @@ export default function Viagens() {
   useEffect(() => {
     let active = true;
 
-    ViagemService.getAll()
+    ViagemService.getEnums().then((data) => {
+      if (active) setStatuses(data.statuses);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    ViagemService.getAll({
+      status: filters.status === ALL_STATUSES ? "" : filters.status,
+      dataInicio: filters.dataInicio,
+      dataFim: filters.dataFim,
+    })
       .then((data) => {
         if (active) setTrips(Array.isArray(data) ? data : []);
       })
@@ -87,13 +104,58 @@ export default function Viagens() {
     return () => {
       active = false;
     };
-  }, [retryCount]);
+  }, [filters, retryCount]);
 
-  const fetchTrips = () => {
+  const reload = () => {
     setIsLoading(true);
     setError(null);
+  };
+
+  const fetchTrips = () => {
+    reload();
     setRetryCount((count) => count + 1);
   };
+
+  const updateFilter = (field, value) => {
+    reload();
+    setFilters((current) => ({ ...current, [field]: value }));
+  };
+
+  const hasApiFilters =
+    filters.status !== ALL_STATUSES ||
+    filters.dataInicio !== "" ||
+    filters.dataFim !== "";
+  const isFiltering = hasApiFilters || searchTerm.trim() !== "";
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    if (hasApiFilters) {
+      reload();
+      setFilters(EMPTY_FILTERS);
+    }
+  };
+
+  const statusLabels = useMemo(
+    () =>
+      Object.fromEntries(statuses.map((status) => [status.value, status.label])),
+    [statuses],
+  );
+
+  const statusOptions = useMemo(
+    () => [{ value: ALL_STATUSES, label: "Todas" }, ...statuses],
+    [statuses],
+  );
+
+  const filteredTrips = useMemo(() => {
+    const term = normalizeText(searchTerm);
+    if (!term) return trips;
+
+    return trips.filter((trip) =>
+      [trip.originCity, trip.destinationCity, trip.vehiclePrefix].some(
+        (value) => normalizeText(value).includes(term),
+      ),
+    );
+  }, [trips, searchTerm]);
 
   const columns = [
     "Trecho",
@@ -101,147 +163,146 @@ export default function Viagens() {
     "Ônibus",
     "Passageiros",
     "Situação",
-    "Ações",
+    "",
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#062A45]">Viagens</h1>
-        </div>
-        <Button
-          onClick={() => navigate("/viagens/cadastro")}
-          className="h-11 w-full gap-2 bg-[#062A45] hover:bg-[#0a1f35] text-white font-bold cursor-pointer rounded-lg px-6 shadow-sm transition-all duration-200 hover:shadow-md md:w-auto"
-        >
-          <Plus className="h-4 w-4" /> Nova Viagem
-        </Button>
-      </div>
+    <div>
+      <PageHeader
+        title="Viagens"
+        action={
+          <Button onClick={() => navigate("/viagens/cadastro")}>
+            <Plus /> Nova Viagem
+          </Button>
+        }
+      />
 
-      <div className="relative flex flex-col min-h-[480px] rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/60 px-4 py-4 rounded-t-xl sm:px-5">
-          <h2 className="text-base font-semibold text-[#062A45]">
-            Listagem de Viagens
-          </h2>
-          {!isLoading && !error && (
-            <span className="ml-1 rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
-              {trips.length}
-            </span>
-          )}
+      <ListCard
+        title="Viagens"
+        count={!isLoading && !error ? filteredTrips.length : undefined}
+        search={{
+          id: "search-viagens",
+          label: "Buscar viagem por cidade de origem, cidade de destino ou prefixo do ônibus",
+          placeholder: "Buscar cidade ou prefixo...",
+          value: searchTerm,
+          onChange: (e) => setSearchTerm(e.target.value),
+        }}
+      >
+        <div className="grid grid-cols-1 gap-3 border-b px-6 py-4 sm:grid-cols-3">
+          <GenericSelect
+            id="filtro-situacao"
+            label="Situação"
+            value={filters.status}
+            onChange={(value) => updateFilter("status", value)}
+            options={statusOptions}
+          />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="filtro-data-inicio" className="tracking-wide uppercase">
+              Data inicial
+            </Label>
+            <Input
+              id="filtro-data-inicio"
+              type="date"
+              value={filters.dataInicio}
+              max={filters.dataFim || undefined}
+              onChange={(e) => updateFilter("dataInicio", e.target.value)}
+              className="h-10"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="filtro-data-fim" className="tracking-wide uppercase">
+              Data final
+            </Label>
+            <Input
+              id="filtro-data-fim"
+              type="date"
+              value={filters.dataFim}
+              min={filters.dataInicio || undefined}
+              onChange={(e) => updateFilter("dataFim", e.target.value)}
+              className="h-10"
+            />
+          </div>
         </div>
 
         {isLoading && <LoadingIndicator label="Carregando viagens..." />}
 
-        {!isLoading && error && (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-              <AlertCircle className="h-8 w-8 text-red-500" />
-            </div>
-            <div className="text-center max-w-xs">
-              <p className="text-sm font-semibold text-red-700">{error}</p>
-              <p className="mt-1 text-xs text-red-400">
-                Verifique sua conexão e tente novamente.
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              onClick={fetchTrips}
-              className="mt-1 gap-2 rounded-lg cursor-pointer border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-semibold text-xs"
-            >
-              <RefreshCw className="h-4 w-4" /> Tentar novamente
-            </Button>
-          </div>
-        )}
+        {!isLoading && error && <ErrorState message={error} onRetry={fetchTrips} />}
 
-        {!isLoading && !error && trips.length === 0 && (
+        {!isLoading && !error && filteredTrips.length === 0 && (
           <EmptyState
-            icon={Map}
-            title="Nenhuma viagem agendada ainda"
-            description="Agende a primeira viagem."
+            icon={isFiltering ? undefined : Map}
+            title={
+              isFiltering
+                ? "Nenhuma viagem encontrada"
+                : "Nenhuma viagem cadastrada ainda"
+            }
+            description={
+              isFiltering
+                ? "Nenhuma viagem corresponde aos filtros selecionados."
+                : "Agende a primeira viagem."
+            }
             action={
-              <Button onClick={() => navigate("/viagens/cadastro")}>
-                <Plus className="mr-2 size-4" />
-                Agendar viagem
-              </Button>
+              isFiltering ? (
+                <Button variant="outline" onClick={clearFilters}>
+                  <RotateCcw /> Limpar filtros
+                </Button>
+              ) : (
+                <Button onClick={() => navigate("/viagens/cadastro")}>
+                  <Plus /> Nova Viagem
+                </Button>
+              )
             }
           />
         )}
 
-        {!isLoading && !error && trips.length > 0 && (
-          <div className="flex-1 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/40">
-                  {columns.map((col) => (
-                    <th
-                      key={col}
-                      className={`py-3.5 text-left text-[11px] font-bold uppercase tracking-widest text-slate-400 ${
-                        col === "Ações" ? "px-5 pl-7" : "px-5"
-                      }`}
+        {!isLoading && !error && filteredTrips.length > 0 && (
+          <DataTable head={columns}>
+            {filteredTrips.map((trip) => (
+              <tr key={trip.id}>
+                <td className="whitespace-nowrap font-semibold text-foreground">
+                  {formatPlace(trip.originCity, trip.originStateAcronym)}
+                  {" → "}
+                  {formatPlace(trip.destinationCity, trip.destinationStateAcronym)}
+                </td>
+                <td className="whitespace-nowrap text-muted-foreground">
+                  {formatDateTime(trip.plannedDepartureOrigin)}
+                </td>
+                <td className="whitespace-nowrap">
+                  <span className="font-semibold text-foreground">
+                    {trip.vehiclePrefix || "—"}
+                  </span>
+                  {trip.vehicleLicensePlate && (
+                    <span className="ml-2 rounded bg-muted px-2 py-0.5 font-mono text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                      {trip.vehicleLicensePlate}
+                    </span>
+                  )}
+                </td>
+                <td className="whitespace-nowrap text-muted-foreground">
+                  {trip.passengerCount ?? 0}
+                </td>
+                <td className="whitespace-nowrap">
+                  <StatusBadge
+                    status={trip.status}
+                    label={statusLabels[trip.status] || trip.status}
+                  />
+                </td>
+                <td>
+                  <RowActions>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/viagens/editar/${trip.id}`)}
+                      title="Editar"
+                      aria-label="Editar viagem"
                     >
-                      {col}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-
-              <tbody className="divide-y divide-slate-50">
-                {trips.map((trip, idx) => (
-                  <tr
-                    key={trip.id}
-                    className={`transition-colors duration-150 hover:bg-blue-50/30 ${
-                      idx % 2 === 0 ? "bg-white" : "bg-slate-50/30"
-                    }`}
-                  >
-                    <td className="whitespace-nowrap px-5 py-3.5">
-                      <span className="font-bold text-[#062A45]">
-                        {formatPlace(trip.originCity, trip.originStateAcronym)}
-                        {" → "}
-                        {formatPlace(
-                          trip.destinationCity,
-                          trip.destinationStateAcronym,
-                        )}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
-                      {formatDateTime(trip.plannedDepartureOrigin)}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3.5">
-                      <span className="font-semibold text-[#062A45]">
-                        {trip.vehiclePrefix || "—"}
-                      </span>
-                      {trip.vehicleLicensePlate && (
-                        <span className="ml-2 rounded bg-slate-100 px-2 py-0.5 font-mono text-xs font-semibold text-slate-700 tracking-wider uppercase">
-                          {trip.vehicleLicensePlate}
-                        </span>
-                      )}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
-                      <span className="font-semibold text-[#062A45]">
-                        {trip.passengerCount ?? 0}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3.5">
-                      <StatusBadge status={trip.status} />
-                    </td>
-                    <td className="whitespace-nowrap px-5 pl-7 py-3.5">
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/viagens/editar/${trip.id}`)}
-                        title="Editar viagem"
-                        aria-label="Editar viagem"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-all duration-150 hover:bg-[#062A45]/10 hover:text-[#062A45] cursor-pointer"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      <Pencil className="size-4" />
+                    </button>
+                  </RowActions>
+                </td>
+              </tr>
+            ))}
+          </DataTable>
         )}
-      </div>
+      </ListCard>
     </div>
   );
 }
