@@ -13,7 +13,7 @@ import { Card } from "../components/ui/card";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { reportFileName, reportToCsv } from "../lib/csv";
 import { saveFile } from "../lib/download";
-import { currentMonthPeriod, isValidPeriod } from "../lib/period";
+import { currentMonthPeriod, defaultPeriodFor, isValidPeriod } from "../lib/period";
 import { formatDate, formatDateTime } from "../lib/reportFormat";
 import { cn } from "../lib/utils";
 import RelatorioService from "../services/RelatorioService";
@@ -55,7 +55,9 @@ export default function Relatorios() {
     RelatorioService.getAll()
       .then((data) => {
         if (active) {
-          setReports(Array.isArray(data) ? data : []);
+          const list = Array.isArray(data) ? data : [];
+          setReports(list);
+          setPeriod(defaultPeriodFor(list[0]));
           setReportsError("");
         }
       })
@@ -95,6 +97,7 @@ export default function Relatorios() {
   const handleSelect = (report) => {
     if (report.relatorio === activeReport?.relatorio) return;
     setSelected(report);
+    setPeriod(defaultPeriodFor(report));
     resetResult();
   };
 
@@ -186,8 +189,8 @@ export default function Relatorios() {
                     <Button
                       variant="ghost"
                       size="xs"
-                      onClick={() => handlePeriodChange(currentMonthPeriod())}
-                      disabled={isSamePeriod(period, currentMonthPeriod())}
+                      onClick={() => handlePeriodChange(defaultPeriodFor(activeReport))}
+                      disabled={isSamePeriod(period, defaultPeriodFor(activeReport))}
                       className="text-muted-foreground"
                     >
                       <RotateCcw /> Limpar filtros
