@@ -5,6 +5,10 @@ import BaseService from "./BaseService";
 // back-end aceite a conexão mas não responda.
 const METRICS_TIMEOUT_MS = 10000;
 
+function toCount(value) {
+  return value === null || value === undefined ? null : Number(value);
+}
+
 class DashboardService extends BaseService {
   constructor() {
     super("/api/dashboard");
@@ -23,8 +27,10 @@ class DashboardService extends BaseService {
     const data = response.data || {};
 
     return {
-      totalVehicles: Number(data.totalVehicles ?? 0),
-      activeEmployees: Number(data.activeEmployees ?? 0),
+      totalVehicles: toCount(data.totalVehicles),
+      activeEmployees: toCount(data.activeEmployees),
+      totalClients: toCount(data.totalClients),
+      totalPassengers: toCount(data.totalPassengers),
     };
   }
 }

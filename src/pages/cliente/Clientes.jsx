@@ -12,6 +12,7 @@ import Pagination from "../../components/Pagination";
 import RowActions from "../../components/RowActions";
 import { Button } from "../../components/ui/button";
 import { formatCnpj, formatCpf, onlyDigits } from "../../lib/documentMasks";
+import { formatPhone } from "../../lib/phoneMasks";
 import ClienteService from "../../services/ClienteService";
 import { usePageTitle } from "../../hooks/usePageTitle";
 
@@ -229,7 +230,7 @@ export default function Clientes() {
     }
   };
 
-  const columns = ["Nome", "Documento", "Tipo", "Cidade/UF", ""];
+  const columns = ["Nome", "Documento", "Tipo", "Telefone", "Cidade/UF", ""];
 
   const showList = !isLoading && !error && filteredClients.length > 0;
 
@@ -329,6 +330,9 @@ export default function Clientes() {
                   <td className="whitespace-nowrap text-muted-foreground">
                     {PERSON_TYPE_LABELS[getPersonType(client)]}
                   </td>
+                  <td className="whitespace-nowrap text-muted-foreground">
+                    {formatPhone(client.phone)}
+                  </td>
                   <td className="text-muted-foreground">
                     {formatLocation(client)}
                   </td>
@@ -354,6 +358,14 @@ export default function Clientes() {
                       <dt className="text-xs text-muted-foreground">Tipo</dt>
                       <dd>{PERSON_TYPE_LABELS[getPersonType(client)]}</dd>
                     </div>
+                    {client.phone && (
+                      <div className="col-span-2">
+                        <dt className="text-xs text-muted-foreground">
+                          Telefone
+                        </dt>
+                        <dd>{formatPhone(client.phone)}</dd>
+                      </div>
+                    )}
                     <div className="col-span-2">
                       <dt className="text-xs text-muted-foreground">
                         Cidade/UF

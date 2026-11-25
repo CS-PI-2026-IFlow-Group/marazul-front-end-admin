@@ -1,4 +1,4 @@
-import { Contact, MapPin } from "lucide-react";
+import { Contact, Mail, MapPin, Phone } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -15,9 +15,13 @@ import {
   isValidCpf,
   onlyDigits,
 } from "../../lib/documentMasks";
+import { formatPhone } from "../../lib/phoneMasks";
 import ClienteService from "../../services/ClienteService";
 import LocalidadeService from "../../services/LocalidadeService";
 import { usePageTitle } from "../../hooks/usePageTitle";
+
+const TELEFONE_REGEX = /^\d{2}9\d{8}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const PERSON_TYPE_OPTIONS = [
   { value: "PF", label: "Pessoa Física" },
@@ -67,6 +71,8 @@ export default function CadastroCliente({ isEdicao = false }) {
     complement: "",
     stateId: "",
     cityId: "",
+    phone: "",
+    email: "",
   });
 
   const [states, setStates] = useState([]);
@@ -126,6 +132,8 @@ export default function CadastroCliente({ isEdicao = false }) {
           complement: address.complement ?? "",
           stateId,
           cityId: address.cityId ? String(address.cityId) : "",
+          phone: formatPhone(client?.phone ?? ""),
+          email: client?.email ?? "",
         };
 
         selectedStateRef.current = stateId;
@@ -152,6 +160,10 @@ export default function CadastroCliente({ isEdicao = false }) {
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handlePhoneChange = (e) => {
+    setForm((prev) => ({ ...prev, phone: formatPhone(e.target.value) }));
   };
 
   const handlePersonTypeChange = (value) => {
@@ -209,11 +221,22 @@ export default function CadastroCliente({ isEdicao = false }) {
   const numeroValido = form.number.trim().length > 0;
   const numeroTemErro = form.number.length > 0 && !numeroValido;
 
+  const telefoneDigits = onlyDigits(form.phone);
+  const telefoneValido =
+    telefoneDigits.length === 0 || TELEFONE_REGEX.test(telefoneDigits);
+  const telefoneTemErro = form.phone.length > 0 && !telefoneValido;
+
+  const emailPreenchido = form.email.trim().length > 0;
+  const emailValido = !emailPreenchido || EMAIL_REGEX.test(form.email.trim());
+  const emailTemErro = emailPreenchido && !emailValido;
+
   const isFormValid =
     nomeValido &&
     documentoValido &&
     ruaValida &&
     numeroValido &&
+    telefoneValido &&
+    emailValido &&
     form.stateId !== "" &&
     form.cityId !== "";
 
@@ -248,6 +271,8 @@ export default function CadastroCliente({ isEdicao = false }) {
         complement: form.complement,
         cityId: form.cityId,
       },
+      phone: form.phone,
+      email: form.email,
     };
 
     try {
@@ -329,6 +354,35 @@ export default function CadastroCliente({ isEdicao = false }) {
                 onChange={handleDocumentChange}
                 hasError={documentoTemErro}
                 errorMessage={documentConfig.errorMessage}
+              />
+
+              <GenericInput
+                id="phone"
+                label="Telefone"
+                type="text"
+                inputMode="numeric"
+                autoComplete="tel"
+                maxLength={15}
+                icon={Phone}
+                placeholder="(44) 99999-9999"
+                disabled={isLoadingClient}
+                value={form.phone}
+                onChange={handlePhoneChange}
+                hasError={telefoneTemErro}
+                errorMessage="Informe um celular válido no formato (XX) 9XXXX-XXXX"
+              />
+
+              <GenericInput
+                id="email"
+                label="E-mail"
+                type="email"
+                icon={Mail}
+                placeholder="contato@cliente.com.br"
+                disabled={isLoadingClient}
+                value={form.email}
+                onChange={handleChange("email")}
+                hasError={emailTemErro}
+                errorMessage="Informe um e-mail válido"
               />
             </FormSection>
 

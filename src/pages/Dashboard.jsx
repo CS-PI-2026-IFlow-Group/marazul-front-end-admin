@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bus, RefreshCw, Users } from "lucide-react";
+import { Bus, Contact, RefreshCw, UserRound, Users } from "lucide-react";
 import MetricCard from "../components/MetricCard";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
@@ -61,6 +61,37 @@ export default function Dashboard() {
 
   const firstName = profile?.nome?.trim().split(/\s+/)[0];
 
+  const isUnavailable = (value) => failed || (!loading && value == null);
+
+  const cards = [
+    {
+      title: "Total de ônibus",
+      value: metrics?.totalVehicles,
+      icon: Bus,
+      tone: "primary",
+    },
+    {
+      title: "Colaboradores ativos",
+      value: metrics?.activeEmployees,
+      icon: Users,
+      tone: "success",
+    },
+    {
+      title: "Clientes cadastrados",
+      value: metrics?.totalClients,
+      icon: Contact,
+      tone: "accent",
+    },
+    {
+      title: "Passageiros cadastrados",
+      value: metrics?.totalPassengers,
+      icon: UserRound,
+      tone: "primary",
+    },
+  ];
+
+  const hasUnavailable = cards.some((card) => isUnavailable(card.value));
+
   return (
     <div>
       <div className="mb-8">
@@ -83,26 +114,21 @@ export default function Dashboard() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <MetricCard
-          title="Total de ônibus"
-          value={metrics?.totalVehicles}
-          icon={Bus}
-          tone="primary"
-          loading={loading}
-          error={failed}
-        />
-        <MetricCard
-          title="Colaboradores ativos"
-          value={metrics?.activeEmployees}
-          icon={Users}
-          tone="success"
-          loading={loading}
-          error={failed}
-        />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {cards.map((card) => (
+          <MetricCard
+            key={card.title}
+            title={card.title}
+            value={card.value}
+            icon={card.icon}
+            tone={card.tone}
+            loading={loading}
+            error={isUnavailable(card.value)}
+          />
+        ))}
       </div>
 
-      {failed && (
+      {hasUnavailable && (
         <Button onClick={handleRetry} className="mt-6">
           <RefreshCw /> Tentar novamente
         </Button>
