@@ -1,7 +1,6 @@
 import { Ban, Eye, Map, Pencil, Plus, RotateCcw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Badge from "../../components/Badge";
 import DataTable from "../../components/DataTable";
 import EmptyState from "../../components/EmptyState";
 import ErrorState from "../../components/ErrorState";
@@ -11,6 +10,7 @@ import LoadingIndicator from "../../components/LoadingIndicator";
 import PageHeader from "../../components/PageHeader";
 import Pagination from "../../components/Pagination";
 import RowActions from "../../components/RowActions";
+import TripStatusBadge from "../../components/TripStatusBadge";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -29,25 +29,6 @@ const EMPTY_FILTERS = {
   dataInicio: "",
   dataFim: "",
 };
-
-const STATUS_TONES = {
-  SCHEDULED: { tone: "neutral" },
-  CONFIRMED: { tone: "success" },
-  LEFT_ORIGIN: { tone: "warning" },
-  ARRIVED_DESTINATION: { tone: "warning" },
-  LEFT_DESTINATION: { tone: "warning" },
-  ARRIVED_ORIGIN: { tone: "warning" },
-  COMPLETED: { tone: "neutral", className: "bg-primary/10 text-primary" },
-};
-
-function StatusBadge({ status, label }) {
-  const config = STATUS_TONES[status] || STATUS_TONES.SCHEDULED;
-  return (
-    <Badge tone={config.tone} className={config.className}>
-      {label}
-    </Badge>
-  );
-}
 
 function normalizeText(value) {
   return String(value ?? "")
@@ -355,7 +336,7 @@ export default function Viagens() {
                     {trip.passengerCount ?? 0}
                   </td>
                   <td className="whitespace-nowrap">
-                    <StatusBadge
+                    <TripStatusBadge
                       status={trip.status}
                       label={statusLabels[trip.status] || trip.status}
                     />
@@ -377,7 +358,7 @@ export default function Viagens() {
                     <h3 className="min-w-0 font-semibold break-words text-foreground">
                       {formatRoute(trip)}
                     </h3>
-                    <StatusBadge
+                    <TripStatusBadge
                       status={trip.status}
                       label={statusLabels[trip.status] || trip.status}
                     />
