@@ -1,5 +1,6 @@
-import { BarChart3, Calendar, Download, FileSpreadsheet, FileText, RotateCcw, SearchX } from "lucide-react";
+import { BarChart3, Calendar, CalendarDays, Download, FileSpreadsheet, FileText, RotateCcw, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import EmptyState from "../components/EmptyState";
 import ErrorState from "../components/ErrorState";
@@ -228,8 +229,12 @@ export default function Relatorios() {
       <PageHeader
         title="Relatórios"
         action={
-          hasRows && (
-            <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+              <Link to="/relatorios/resumo-mensal"><CalendarDays aria-hidden="true" /> Resumo mensal</Link>
+            </Button>
+            {hasRows && (
+              <>
               <Button variant="outline" onClick={handleExportCsv}>
                 <FileSpreadsheet /> Exportar CSV
               </Button>
@@ -242,8 +247,9 @@ export default function Relatorios() {
                   </>
                 )}
               </Button>
-            </div>
-          )
+              </>
+            )}
+          </div>
         }
       />
 
