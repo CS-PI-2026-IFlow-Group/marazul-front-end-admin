@@ -1,10 +1,14 @@
+import { cn } from "../lib/utils";
 import { Card } from "./ui/card";
 
-export default function AuthLayout({ children, className = "" }) {
+export default function AuthLayout({ children, className }) {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#F9FAFB] p-4">
+    <div className="flex min-h-screen w-full items-center justify-center bg-background p-4 text-foreground">
       <Card
-        className={`w-full max-w-100 bg-white shadow-sm border-slate-200 py-6 px-4 text-center ${className}`}
+        className={cn(
+          "w-full max-w-100 gap-8 px-5 text-center ring-1 ring-foreground/5",
+          className,
+        )}
       >
         {children}
       </Card>

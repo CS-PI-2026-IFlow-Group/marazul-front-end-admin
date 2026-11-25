@@ -40,9 +40,9 @@ export default function NotFound() {
             asChild
             className="h-10 rounded-lg bg-[#062A45] px-6 font-semibold text-white shadow-sm transition-all hover:bg-[#0a1f35]"
           >
-            <Link to={isAuth ? "/dashboard" : "/login"} className="flex items-center gap-2">
+            <Link to={isAuth ? "/" : "/login"} className="flex items-center gap-2">
               <Home className="h-4 w-4" />
-              <span>{isAuth ? "Voltar ao Dashboard" : "Ir para o Login"}</span>
+              <span>{isAuth ? "Voltar ao Início" : "Ir para o Login"}</span>
             </Link>
           </Button>
         </CardFooter>

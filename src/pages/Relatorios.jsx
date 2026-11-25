@@ -1,62 +1,52 @@
+import { BarChart3, Calendar, Download, FileSpreadsheet, FileText, RotateCcw, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
-import { CalendarDays, Download } from "lucide-react";
-import { Button } from "../components/ui/button";
+import { toast } from "sonner";
+import EmptyState from "../components/EmptyState";
+import ErrorState from "../components/ErrorState";
 import FleetUsageSummary from "../components/FleetUsageSummary";
 import FleetUsageTable from "../components/FleetUsageTable";
+import LoadingIndicator from "../components/LoadingIndicator";
+import PageHeader from "../components/PageHeader";
+import PeriodFilter from "../components/PeriodFilter";
+import ReportTable from "../components/ReportTable";
+import ReportTotals from "../components/ReportTotals";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
 import { usePageTitle } from "../hooks/usePageTitle";
-import fleetUsageReportService from "../services/FleetUsageReportService";
+import { reportFileName, reportToCsv } from "../lib/csv";
+import { saveFile } from "../lib/download";
+import { currentMonthPeriod, defaultPeriodFor, isValidPeriod } from "../lib/period";
+import { formatDate, formatDateTime } from "../lib/reportFormat";
+import { cn } from "../lib/utils";
+import RelatorioService from "../services/RelatorioService";
 
-function formatDateInput(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
+function errorMessage(error, fallback) {
+  const data = error?.response?.data;
+  return data?.message || data?.erro || fallback;
 }
 
-function getCurrentMonthPeriod() {
-  const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-  return {
-    dataInicio: formatDateInput(firstDay),
-    dataFim: formatDateInput(lastDay),
-  };
+function canQuery(report, period) {
+  return Boolean(report) && (!report.exigePeriodo || isValidPeriod(period));
 }
 
-function getPeriodDays(dataInicio, dataFim) {
-  const start = Date.parse(`${dataInicio}T00:00:00Z`);
-  const end = Date.parse(`${dataFim}T00:00:00Z`);
-
-  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return 0;
-
-  return Math.floor((end - start) / 86400000) + 1;
+function isSamePeriod(first, second) {
+  return first.dataInicio === second.dataInicio && first.dataFim === second.dataFim;
 }
 
 function normalizeVehicles(payload, periodDays) {
   const rows = Array.isArray(payload)
     ? payload
-    : payload?.veiculos ?? payload?.vehicles ?? payload?.resultados ?? [];
+    : payload?.linhas ?? payload?.veiculos ?? payload?.vehicles ?? payload?.resultados ?? [];
 
   return rows.map((row, index) => {
     const prefix = row.prefixo ?? row.prefix ?? row.vehiclePrefix ?? "Sem prefixo";
     const plate = row.placa ?? row.licensePlate ?? row.plate ?? "Sem placa";
-    const trips = Number(
-      row.viagensRealizadas ?? row.totalViagens ?? row.tripCount ?? row.trips ?? 0,
-    );
-    const daysDriven = Number(
-      row.diasRodados ?? row.daysDriven ?? row.distinctDaysDriven ?? 0,
-    );
-    const daysStopped = Number(
-      row.diasParados ?? row.daysStopped ?? Math.max(0, periodDays - daysDriven),
-    );
-    const reportedUtilization =
-      row.percentualAproveitamento ??
-      row.aproveitamento ??
-      row.utilizationPercentage;
+    const trips = Number(row.viagens ?? row.viagensRealizadas ?? row.totalViagens ?? row.tripCount ?? row.trips ?? 0);
+    const daysDriven = Number(row.diasRodados ?? row.daysDriven ?? row.distinctDaysDriven ?? 0);
+    const daysStopped = Number(row.diasParados ?? row.daysStopped ?? Math.max(0, periodDays - daysDriven));
     const utilization = Number(
-      reportedUtilization ?? (periodDays > 0 ? (daysDriven / periodDays) * 100 : 0),
+      row.aproveitamento ?? row.percentualAproveitamento ?? row.utilizationPercentage ??
+        (periodDays > 0 ? (daysDriven / periodDays) * 100 : 0),
     );
 
     return {
@@ -72,258 +62,303 @@ function normalizeVehicles(payload, periodDays) {
   });
 }
 
-function getVehicleStatus(status) {
-  const normalized = String(status ?? "").toUpperCase();
+function getPeriodDays(period) {
+  const start = Date.parse(`${period.dataInicio}T00:00:00Z`);
+  const end = Date.parse(`${period.dataFim}T00:00:00Z`);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return 0;
+  return Math.floor((end - start) / 86400000) + 1;
+}
 
+function totalValue(totals, ...keys) {
+  const total = totals?.find((item) => keys.includes(item.chave));
+  return total?.valor;
+}
+
+function vehicleForTotal(value, sortedVehicles) {
+  if (value == null || value === "") return null;
+  const prefix = typeof value === "object" ? value.prefixo ?? value.prefix : String(value);
+  return sortedVehicles.find((vehicle) => vehicle.prefix === prefix) ?? { prefix };
+}
+
+function getFleetStatus(status) {
+  const normalized = String(status ?? "").toUpperCase();
   if (normalized === "INACTIVE" || normalized === "INATIVO") {
     return { label: "Inativo", className: "bg-rose-50 text-rose-700 ring-rose-200" };
   }
-
-  if (
-    normalized === "UNDER_MAINTENANCE" ||
-    normalized === "EM_MANUTENÇÃO" ||
-    normalized === "EM MANUTENÇÃO"
-  ) {
-    return {
-      label: "Em manutenção",
-      className: "bg-amber-50 text-amber-800 ring-amber-200",
-    };
+  if (["UNDER_MAINTENANCE", "EM_MANUTENÇÃO", "EM MANUTENÇÃO"].includes(normalized)) {
+    return { label: "Em manutenção", className: "bg-amber-50 text-amber-800 ring-amber-200" };
   }
-
   return { label: "Ativo", className: "bg-emerald-50 text-emerald-700 ring-emerald-200" };
 }
 
 function formatPercent(value) {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "percent",
-    maximumFractionDigits: 1,
-  }).format(value / 100);
-}
-
-function formatPeriodDate(value) {
-  const [year, month, day] = value.split("-");
-  return `${day}/${month}/${year}`;
-}
-
-function csvCell(value) {
-  const text = String(value ?? "");
-  const safeText = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
-
-  return `"${safeText.replaceAll('"', '""')}"`;
+  return new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 1 }).format(value / 100);
 }
 
 export default function Relatorios() {
-  usePageTitle("Uso da frota");
+  usePageTitle("Relatórios");
 
-  const [period, setPeriod] = useState(getCurrentMonthPeriod);
-  const [appliedPeriod, setAppliedPeriod] = useState(getCurrentMonthPeriod);
-  const [reloadKey, setReloadKey] = useState(0);
-  const [report, setReport] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [periodError, setPeriodError] = useState("");
+  const [reports, setReports] = useState([]);
+  const [isLoadingReports, setIsLoadingReports] = useState(true);
+  const [reportsError, setReportsError] = useState("");
+  const [reloadReports, setReloadReports] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [period, setPeriod] = useState(currentMonthPeriod);
+  const [result, setResult] = useState(null);
+  const [resultError, setResultError] = useState("");
+  const [reloadResult, setReloadResult] = useState(0);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [sortDirection, setSortDirection] = useState("desc");
 
-  useEffect(() => {
-    const controller = new AbortController();
-    let active = true;
-
-    fleetUsageReportService
-      .getUsoFrota(appliedPeriod.dataInicio, appliedPeriod.dataFim, {
-        signal: controller.signal,
-      })
-      .then((data) => {
-        if (!active) return;
-        setReport(data);
-        setLoading(false);
-      })
-      .catch((requestError) => {
-        if (!active) return;
-        setLoading(false);
-        if (requestError.response?.status === 401) return;
-        setError(
-          requestError.response?.data?.message ??
-            requestError.response?.data?.erro ??
-            "Não foi possível carregar o relatório. Tente novamente.",
-        );
-      });
-
-    return () => {
-      active = false;
-      controller.abort();
-    };
-  }, [appliedPeriod, reloadKey]);
-
-  const periodDays = getPeriodDays(appliedPeriod.dataInicio, appliedPeriod.dataFim);
-  const vehicles = report ? normalizeVehicles(report, periodDays) : [];
-  const totalTrips = vehicles.reduce((total, vehicle) => total + vehicle.trips, 0);
-  const averageDaysDriven = vehicles.length
-    ? vehicles.reduce((total, vehicle) => total + vehicle.daysDriven, 0) / vehicles.length
-    : 0;
-  const sortedVehicles = [...vehicles].sort((left, right) => {
+  const activeReport = selected ?? reports[0] ?? null;
+  const shouldQuery = canQuery(activeReport, period);
+  const isLoadingResult = shouldQuery && result === null && resultError === "";
+  const hasRows = !isLoadingResult && !resultError && result?.linhas.length > 0;
+  const isFleetUsage = activeReport?.relatorio === "uso-frota";
+  const fleetVehicles = isFleetUsage && result
+    ? normalizeVehicles(result, getPeriodDays(period))
+    : [];
+  const sortedVehicles = [...fleetVehicles].sort((left, right) => {
     const difference = left.utilization - right.utilization;
     if (difference !== 0) return sortDirection === "desc" ? -difference : difference;
     return left.prefix.localeCompare(right.prefix, "pt-BR");
   });
-  const mostUsed = totalTrips > 0 ? sortedVehicles[0] : null;
-  const leastUsed = totalTrips > 0 ? sortedVehicles[sortedVehicles.length - 1] : null;
+  const totalTrips = Number(totalValue(result?.totais, "viagens") ?? fleetVehicles.reduce((sum, vehicle) => sum + vehicle.trips, 0));
+  const averageDaysDriven = Number(totalValue(result?.totais, "mediaDiasRodados") ?? (
+    fleetVehicles.length ? fleetVehicles.reduce((sum, vehicle) => sum + vehicle.daysDriven, 0) / fleetVehicles.length : 0
+  ));
+  const usageRank = [...fleetVehicles].sort((left, right) => right.utilization - left.utilization || left.prefix.localeCompare(right.prefix, "pt-BR"));
+  const mostUsed = vehicleForTotal(totalValue(result?.totais, "maisUtilizado"), usageRank) ?? (totalTrips > 0 ? usageRank[0] : null);
+  const leastUsed = vehicleForTotal(totalValue(result?.totais, "menosUtilizado"), usageRank) ?? (totalTrips > 0 ? usageRank[usageRank.length - 1] : null);
 
-  const handlePeriodChange = (event) => {
-    setPeriod((current) => ({ ...current, [event.target.name]: event.target.value }));
-    setPeriodError("");
+  useEffect(() => {
+    let active = true;
+    RelatorioService.getAll()
+      .then((data) => {
+        if (active) {
+          const list = Array.isArray(data) ? data : [];
+          setReports(list);
+          setPeriod(defaultPeriodFor(list[0]));
+          setReportsError("");
+        }
+      })
+      .catch((error) => {
+        if (active) setReportsError(errorMessage(error, "Não foi possível carregar os relatórios."));
+      })
+      .finally(() => {
+        if (active) setIsLoadingReports(false);
+      });
+    return () => { active = false; };
+  }, [reloadReports]);
+
+  useEffect(() => {
+    if (!shouldQuery) return undefined;
+    let active = true;
+    RelatorioService.generate(activeReport.relatorio, activeReport.exigePeriodo ? period : {})
+      .then((data) => {
+        if (active) {
+          setResult(data);
+          setResultError("");
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          setResult(null);
+          setResultError(errorMessage(error, "Não foi possível gerar o relatório."));
+        }
+      });
+    return () => { active = false; };
+  }, [activeReport, period, reloadResult, shouldQuery]);
+
+  const resetResult = () => {
+    setResult(null);
+    setResultError("");
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const handleSelect = (report) => {
+    if (report.relatorio === activeReport?.relatorio) return;
+    setSelected(report);
+    setPeriod(defaultPeriodFor(report));
+    resetResult();
+  };
 
-    if (!period.dataInicio || !period.dataFim) {
-      setPeriodError("Informe as duas datas do período.");
-      return;
+  const handlePeriodChange = (nextPeriod) => {
+    setPeriod(nextPeriod);
+    resetResult();
+  };
+
+  const retryReports = () => {
+    setIsLoadingReports(true);
+    setReportsError("");
+    setReloadReports((value) => value + 1);
+  };
+
+  const retryResult = () => {
+    resetResult();
+    setReloadResult((value) => value + 1);
+  };
+
+  const handleExportCsv = () => {
+    const csv = reportToCsv(result);
+    saveFile(new Blob([csv], { type: "text/csv;charset=utf-8" }), reportFileName(result, "csv"));
+  };
+
+  const handleExportPdf = async () => {
+    setIsDownloadingPdf(true);
+    try {
+      await RelatorioService.downloadPdf(result.relatorio, result.periodo ?? {});
+    } catch (error) {
+      toast.error(errorMessage(error, "Não foi possível baixar o PDF."));
+    } finally {
+      setIsDownloadingPdf(false);
     }
-
-    if (period.dataInicio > period.dataFim) {
-      setPeriodError("A data inicial deve ser anterior ou igual à data final.");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    setReport(null);
-    setAppliedPeriod({ ...period });
-    setReloadKey((key) => key + 1);
-  };
-
-  const handleRetry = () => {
-    setLoading(true);
-    setError("");
-    setReport(null);
-    setReloadKey((key) => key + 1);
-  };
-
-  const handleExport = () => {
-    const header = [
-      "Prefixo",
-      "Placa",
-      "Status",
-      "Viagens realizadas",
-      "Dias rodados",
-      "Dias parados",
-      "Aproveitamento (%)",
-    ];
-    const rows = sortedVehicles.map((vehicle) => [
-      vehicle.prefix,
-      vehicle.plate,
-      getVehicleStatus(vehicle.status).label,
-      vehicle.trips,
-      vehicle.daysDriven,
-      vehicle.daysStopped,
-      vehicle.utilization.toLocaleString("pt-BR", { maximumFractionDigits: 1 }),
-    ]);
-    const csv = [header, ...rows].map((row) => row.map(csvCell).join(";")).join("\r\n");
-    const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = `uso-da-frota_${appliedPeriod.dataInicio}_${appliedPeriod.dataFim}.csv`;
-    link.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
   };
 
   return (
-    <div className="space-y-4">
-      <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-[#101828] sm:text-3xl">Relatórios</h1>
-        </div>
-        <Button
-          type="button"
-          onClick={handleExport}
-          disabled={loading || !report}
-          className="normal-case tracking-normal rounded-lg bg-[#171717] text-white hover:bg-[#303030]"
-        >
-          <Download aria-hidden="true" />
-          Exportar CSV
-        </Button>
-      </header>
-
-      <FleetUsageSummary
-        totalTrips={totalTrips}
-        averageDaysDriven={averageDaysDriven}
-        mostUsed={mostUsed}
-        leastUsed={leastUsed}
-        loading={loading}
-        error={error}
+    <div className="space-y-6">
+      <PageHeader
+        title="Relatórios"
+        action={
+          hasRows && (
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleExportCsv}>
+                <FileSpreadsheet /> Exportar CSV
+              </Button>
+              <Button onClick={handleExportPdf} disabled={isDownloadingPdf}>
+                {isDownloadingPdf ? (
+                  <LoadingIndicator variant="button" label="Baixando..." />
+                ) : (
+                  <>
+                    <Download /> Baixar PDF
+                  </>
+                )}
+              </Button>
+            </div>
+          )
+        }
       />
 
-      <section className="space-y-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 py-2 text-xs text-slate-500">
-        <p className="flex items-center gap-2">
-          <span aria-hidden="true" className="size-1.5 rounded-full bg-amber-500" />
-          Período de {formatPeriodDate(appliedPeriod.dataInicio)} a {formatPeriodDate(appliedPeriod.dataFim)}
-        </p>
-        <p aria-live="polite">
-          {loading ? "Atualizando relatório..." : `${totalTrips.toLocaleString("pt-BR")} viagens no período`}
-        </p>
-      </div>
+      {hasRows && result.totais?.length > 0 && !isFleetUsage && <ReportTotals totais={result.totais} />}
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-3 border-b border-slate-200 pb-4"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-[#101828]">
-            <CalendarDays aria-hidden="true" className="size-4 text-slate-500" />
-            Período e filtros
-          </h2>
-          <Button type="submit" disabled={loading} variant="ghost" className="h-8 normal-case tracking-normal text-slate-600">
-            Aplicar período
-          </Button>
-        </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:max-w-2xl">
-          <label className="grid gap-1.5 text-xs font-medium text-slate-700">
-            Data inicial
-            <input
-              type="date"
-              name="dataInicio"
-              value={period.dataInicio}
-              onChange={handlePeriodChange}
-              aria-invalid={Boolean(periodError)}
-              className="h-9 min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-[#167D91] focus:ring-2 focus:ring-[#167D91]/20"
-            />
-          </label>
-          <label className="grid gap-1.5 text-xs font-medium text-slate-700">
-            Data final
-            <input
-              type="date"
-              name="dataFim"
-              value={period.dataFim}
-              onChange={handlePeriodChange}
-              aria-invalid={Boolean(periodError)}
-              className="h-9 min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-[#167D91] focus:ring-2 focus:ring-[#167D91]/20"
-            />
-          </label>
-        </div>
-      </form>
-
-      {periodError && (
-        <p role="alert" className="text-sm font-medium text-red-600">
-          {periodError}
-        </p>
+      {isFleetUsage && (
+        <FleetUsageSummary
+          totalTrips={totalTrips}
+          averageDaysDriven={averageDaysDriven}
+          mostUsed={mostUsed}
+          leastUsed={leastUsed}
+          loading={isLoadingResult}
+          error={resultError}
+        />
       )}
 
-      <FleetUsageTable
-        vehicles={sortedVehicles}
-        loading={loading}
-        error={error}
-        noTrips={Boolean(report && totalTrips === 0)}
-        onRetry={handleRetry}
-        sortDirection={sortDirection}
-        setSortDirection={setSortDirection}
-        getVehicleStatus={getVehicleStatus}
-        formatPercent={formatPercent}
-      />
-      </section>
+      <Card className="gap-0 py-0">
+        {isLoadingReports && <LoadingIndicator label="Carregando relatórios..." />}
+
+        {!isLoadingReports && reportsError && <ErrorState message={reportsError} onRetry={retryReports} />}
+
+        {!isLoadingReports && !reportsError && reports.length === 0 && (
+          <EmptyState
+            icon={BarChart3}
+            title="Nenhum relatório disponível ainda"
+            description="Os relatórios aparecem aqui assim que forem disponibilizados no sistema."
+          />
+        )}
+
+        {!isLoadingReports && !reportsError && activeReport && (
+          <>
+            <div className="space-y-4 border-b px-5 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="flex items-center gap-2 text-sm font-semibold">
+                  <Calendar className="size-4 text-muted-foreground" aria-hidden="true" /> Período e filtros
+                </h2>
+                {activeReport.exigePeriodo && (
+                  <div className="flex items-center gap-3">
+                    {hasRows && (
+                      <span className="text-xs text-muted-foreground">
+                        {result.linhas.length} {result.linhas.length === 1 ? "registro" : "registros"} no período
+                      </span>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      onClick={() => handlePeriodChange(defaultPeriodFor(activeReport))}
+                      disabled={isSamePeriod(period, defaultPeriodFor(activeReport))}
+                      className="text-muted-foreground"
+                    >
+                      <RotateCcw /> Limpar filtros
+                    </Button>
+                  </div>
+                )}
+              </div>
+              {activeReport.exigePeriodo ? (
+                <PeriodFilter value={period} onChange={handlePeriodChange} />
+              ) : (
+                <p className="text-sm text-muted-foreground">Este relatório não depende de período.</p>
+              )}
+            </div>
+
+            <div role="tablist" aria-label="Relatórios disponíveis" className="flex gap-1 overflow-x-auto border-b px-5">
+              {reports.map((report) => {
+                const isActive = report.relatorio === activeReport.relatorio;
+                return (
+                  <button
+                    key={report.relatorio}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => handleSelect(report)}
+                    className={cn(
+                      "flex shrink-0 cursor-pointer items-center gap-2 border-b-2 px-3 py-3 text-sm font-medium transition-colors",
+                      isActive
+                        ? "border-primary text-foreground"
+                        : "border-transparent text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    <FileText className="size-4" aria-hidden="true" />
+                    {report.titulo}
+                  </button>
+                );
+              })}
+            </div>
+
+            {isLoadingResult && <LoadingIndicator label="Gerando relatório..." />}
+
+            {!isLoadingResult && resultError && <ErrorState message={resultError} onRetry={retryResult} />}
+
+            {!isLoadingResult && !resultError && result && result.linhas.length === 0 && (
+              <EmptyState
+                icon={SearchX}
+                title="Nenhum dado encontrado no período"
+                description="Tente escolher outro período."
+              />
+            )}
+
+            {hasRows && isFleetUsage && (
+              <div className="p-5">
+                <FleetUsageTable
+                  vehicles={sortedVehicles}
+                  loading={isLoadingResult}
+                  error={resultError}
+                  noTrips={Boolean(result && totalTrips === 0)}
+                  onRetry={retryResult}
+                  sortDirection={sortDirection}
+                  setSortDirection={setSortDirection}
+                  getVehicleStatus={getFleetStatus}
+                  formatPercent={formatPercent}
+                />
+              </div>
+            )}
+            {hasRows && !isFleetUsage && <ReportTable colunas={result.colunas} linhas={result.linhas} />}
+
+            {!isLoadingResult && !resultError && result && (
+              <p className="border-t px-5 py-3 text-xs text-muted-foreground">
+                {result.periodo && `Período de ${formatDate(result.periodo.dataInicio)} a ${formatDate(result.periodo.dataFim)} · `}
+                Emitido em {formatDateTime(result.emitidoEm)}
+              </p>
+            )}
+          </>
+        )}
+      </Card>
     </div>
   );
 }

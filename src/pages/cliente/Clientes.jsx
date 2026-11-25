@@ -1,22 +1,18 @@
-import {
-  AlertCircle,
-  Contact,
-  Loader2,
-  Pencil,
-  Plus,
-  RefreshCw,
-  RotateCcw,
-  Search,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Contact, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import DataTable from "../../components/DataTable";
+import EmptyState from "../../components/EmptyState";
+import ErrorState from "../../components/ErrorState";
+import ListCard from "../../components/ListCard";
+import LoadingIndicator from "../../components/LoadingIndicator";
+import PageHeader from "../../components/PageHeader";
 import Pagination from "../../components/Pagination";
+import RowActions from "../../components/RowActions";
 import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
 import { formatCnpj, formatCpf, onlyDigits } from "../../lib/documentMasks";
+import { formatPhone } from "../../lib/phoneMasks";
 import ClienteService from "../../services/ClienteService";
 import { usePageTitle } from "../../hooks/usePageTitle";
 
@@ -54,66 +50,66 @@ function ConfirmModal({ client, isLoading, onConfirm, onCancel }) {
   if (!client) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-foreground/40 backdrop-blur-sm transition-opacity"
         onClick={isLoading ? undefined : onCancel}
       />
 
-      <div className="relative z-10 w-full max-w-lg rounded-xl bg-white p-8 shadow-2xl mx-4 border border-slate-100">
+      <div className="relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl border bg-card p-5 text-card-foreground shadow-2xl sm:p-8">
         <button
+          type="button"
           onClick={onCancel}
           disabled={isLoading}
-          className="absolute top-4 right-4 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label="Fechar"
+          className="absolute top-4 right-4 cursor-pointer rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <X className="h-5 w-5" />
+          <X className="size-5" />
         </button>
 
-        <div className="flex flex-col items-center text-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-            <Trash2 className="h-8 w-8 text-red-600" />
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="flex size-16 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+            <Trash2 className="size-8" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-[#062A45]">
+            <h3 className="font-display text-xl font-bold text-foreground">
               Excluir Cliente
             </h3>
-            <p className="mt-3 text-base text-slate-600">
+            <p className="mt-3 text-base text-muted-foreground">
               Deseja realmente excluir o cliente{" "}
-              <span className="font-semibold text-[#062A45]">
+              <span className="font-semibold text-foreground">
                 {client.name}
               </span>{" "}
               com documento{" "}
-              <span className="font-semibold text-[#062A45]">
+              <span className="font-semibold text-foreground">
                 {formatDocument(client)}
               </span>
               ?
             </p>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               Esta ação não poderá ser desfeita e o endereço vinculado ao
               cliente também será excluído.
             </p>
           </div>
         </div>
 
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Button
             variant="outline"
             onClick={onCancel}
             disabled={isLoading}
-            className="flex-1 rounded-lg h-12 text-sm cursor-pointer font-semibold"
+            className="h-11 w-full flex-1 font-semibold"
           >
             Cancelar
           </Button>
           <Button
+            variant="destructive"
             onClick={onConfirm}
             disabled={isLoading}
-            className="flex-1 rounded-lg h-12 bg-red-600 text-sm text-white hover:bg-red-700 cursor-pointer font-semibold"
+            className="h-11 w-full flex-1"
           >
             {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Excluindo...
-              </>
+              <LoadingIndicator variant="button" label="Excluindo..." />
             ) : (
               "Confirmar Exclusão"
             )}
@@ -234,212 +230,154 @@ export default function Clientes() {
     }
   };
 
-  const columns = ["Nome", "Documento", "Tipo", "Cidade/UF", "Ações"];
+  const columns = ["Nome", "Documento", "Tipo", "Telefone", "Cidade/UF", ""];
+
+  const showList = !isLoading && !error && filteredClients.length > 0;
+
+  const renderActions = (client) => (
+    <RowActions>
+      <button
+        type="button"
+        onClick={() => navigate(`/clientes/editar/${client.id}`)}
+        title="Editar cliente"
+        aria-label={`Editar cliente ${client.name}`}
+      >
+        <Pencil className="size-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setConfirmClient(client)}
+        title="Excluir cliente"
+        aria-label={`Excluir cliente ${client.name}`}
+      >
+        <Trash2 className="size-4" />
+      </button>
+    </RowActions>
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#062A45]">Clientes</h1>
-        </div>
-        <Button
-          onClick={() => navigate("/clientes/cadastro")}
-          className="gap-2 bg-[#062A45] hover:bg-[#0a1f35] text-white font-bold cursor-pointer rounded-lg h-11 px-6 shadow-sm transition-all duration-200 hover:shadow-md"
-        >
-          <Plus className="h-4 w-4" /> Novo Cliente
-        </Button>
-      </div>
+    <div>
+      <PageHeader
+        title="Clientes"
+        action={
+          <Button onClick={() => navigate("/clientes/cadastro")}>
+            <Plus /> Novo cliente
+          </Button>
+        }
+      />
 
-      <div className="relative flex flex-col min-h-[480px] rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between rounded-t-xl">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-[#062A45]">
-              Listagem de Clientes
-            </h2>
-            {!isLoading && !error && (
-              <span className="ml-1 rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
-                {filteredClients.length}
-              </span>
-            )}
-          </div>
-
-          {!isLoading && !error && clients.length > 0 && (
-            <div className="flex items-center gap-2">
-              <div className="relative w-full sm:w-72">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                <Input
-                  id="search-clientes"
-                  placeholder="Buscar nome, CPF ou CNPJ..."
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="pl-9 h-9 bg-white border-slate-200 text-xs shadow-none focus-visible:border-[#062A45] focus-visible:ring-[#062A45]/20 rounded-lg"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <div className="relative">
-              <div className="h-12 w-12 rounded-full border-4 border-slate-100" />
-              <Loader2 className="absolute inset-0 h-12 w-12 animate-spin text-[#062A45]" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-medium text-slate-700">
-                Carregando clientes...
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                Buscando dados dos clientes
-              </p>
-            </div>
-          </div>
-        )}
+      <ListCard
+        title="Clientes"
+        count={!isLoading && !error ? filteredClients.length : undefined}
+        search={{
+          id: "search-clientes",
+          label: "Buscar cliente por nome, CPF ou CNPJ",
+          placeholder: "Buscar nome, CPF ou CNPJ…",
+          value: searchTerm,
+          onChange: (e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          },
+        }}
+      >
+        {isLoading && <LoadingIndicator label="Carregando clientes..." />}
 
         {!isLoading && error && (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-              <AlertCircle className="h-8 w-8 text-red-500" />
-            </div>
-            <div className="text-center max-w-xs">
-              <p className="text-sm font-semibold text-red-700">{error}</p>
-              <p className="mt-1 text-xs text-red-400">
-                Verifique sua conexão e tente novamente.
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              onClick={fetchClients}
-              className="mt-1 gap-2 rounded-lg cursor-pointer border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-semibold text-xs"
-            >
-              <RefreshCw className="h-4 w-4" /> Tentar novamente
-            </Button>
-          </div>
+          <ErrorState message={error} onRetry={fetchClients} />
         )}
 
         {!isLoading && !error && clients.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
-              <Contact className="h-8 w-8 text-slate-300" />
-            </div>
-            <div className="text-center max-w-xs">
-              <p className="text-sm font-semibold text-slate-700">
-                Nenhum cliente cadastrado ainda
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                Cadastre o primeiro cliente para começar a gerenciar seus
-                contratantes.
-              </p>
-            </div>
-            <Button
-              onClick={() => navigate("/clientes/cadastro")}
-              className="mt-1 gap-2 bg-[#062A45] hover:bg-[#0a1f35] text-white font-bold cursor-pointer rounded-lg"
-            >
-              <Plus className="h-4 w-4" /> Cadastrar Cliente
-            </Button>
-          </div>
+          <EmptyState
+            icon={Contact}
+            title="Nenhum cliente cadastrado ainda"
+            description="Cadastre o primeiro cliente para começar a gerenciar seus contratantes."
+            action={
+              <Button onClick={() => navigate("/clientes/cadastro")}>
+                <Plus /> Cadastrar cliente
+              </Button>
+            }
+          />
         )}
 
         {!isLoading &&
           !error &&
           clients.length > 0 &&
           filteredClients.length === 0 && (
-            <div className="flex-1 flex flex-col items-center justify-center py-16 gap-3">
-              <Search className="h-10 w-10 text-slate-200" />
-              <div className="text-center">
-                <p className="text-base font-semibold text-[#062A45]">
-                  Nenhum cliente encontrado
-                </p>
-                <p className="mt-1 text-xs text-slate-400">
-                  Nenhum cliente corresponde à busca realizada.
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clearSearch}
-                className="mt-2 gap-1.5 text-xs rounded-lg cursor-pointer border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold"
-              >
-                <RotateCcw className="h-3.5 w-3.5" /> Limpar busca
-              </Button>
-            </div>
+            <EmptyState
+              title="Nenhum cliente encontrado"
+              description="Nenhum cliente corresponde à busca realizada."
+              action={
+                <Button variant="outline" onClick={clearSearch}>
+                  <RotateCcw /> Limpar busca
+                </Button>
+              }
+            />
           )}
 
-        {!isLoading && !error && filteredClients.length > 0 && (
-          <div className="flex-1 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/40">
-                  {columns.map((col) => (
-                    <th
-                      key={col}
-                      className={`py-3.5 text-left text-[11px] font-bold uppercase tracking-widest text-slate-400 ${
-                        col === "Ações" ? "px-5 pl-7" : "px-5"
-                      }`}
-                    >
-                      {col}
-                    </th>
-                  ))}
+        {showList && (
+          <>
+            <DataTable head={columns} className="hidden md:block">
+              {paginatedClients.map((client) => (
+                <tr key={client.id}>
+                  <td className="font-semibold text-foreground">
+                    {client.name}
+                  </td>
+                  <td className="whitespace-nowrap">
+                    <span className="rounded-md border bg-muted px-2 py-1 font-mono text-xs text-foreground">
+                      {formatDocument(client)}
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap text-muted-foreground">
+                    {PERSON_TYPE_LABELS[getPersonType(client)]}
+                  </td>
+                  <td className="whitespace-nowrap text-muted-foreground">
+                    {formatPhone(client.phone)}
+                  </td>
+                  <td className="text-muted-foreground">
+                    {formatLocation(client)}
+                  </td>
+                  <td>{renderActions(client)}</td>
                 </tr>
-              </thead>
+              ))}
+            </DataTable>
 
-              <tbody className="divide-y divide-slate-50">
-                {paginatedClients.map((client, idx) => (
-                  <tr
-                    key={client.id}
-                    className={`transition-colors duration-150 hover:bg-blue-50/30 ${
-                      idx % 2 === 0 ? "bg-white" : "bg-slate-50/30"
-                    }`}
-                  >
-                    <td className="whitespace-nowrap px-5 py-3.5">
-                      <span className="font-bold text-[#062A45]">
-                        {client.name}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3.5">
-                      <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs font-semibold text-slate-700 tracking-wider">
-                        {formatDocument(client)}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
-                      {PERSON_TYPE_LABELS[getPersonType(client)]}
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
-                      {formatLocation(client)}
-                    </td>
-                    <td className="whitespace-nowrap px-5 pl-7 py-3.5">
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() =>
-                            navigate(`/clientes/editar/${client.id}`)
-                          }
-                          title="Editar cliente"
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-all duration-150 hover:bg-[#062A45]/10 hover:text-[#062A45] cursor-pointer"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-
-                        <button
-                          onClick={() => setConfirmClient(client)}
-                          title="Excluir cliente"
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition-all duration-150 hover:bg-red-50 hover:text-red-600 cursor-pointer"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+            <div className="space-y-3 p-4 md:hidden">
+              {paginatedClients.map((client) => (
+                <article key={client.id} className="rounded-xl border p-4">
+                  <h3 className="font-semibold break-words text-foreground">
+                    {client.name}
+                  </h3>
+                  <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <dt className="text-xs text-muted-foreground">
+                        Documento
+                      </dt>
+                      <dd className="break-all">{formatDocument(client)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Tipo</dt>
+                      <dd>{PERSON_TYPE_LABELS[getPersonType(client)]}</dd>
+                    </div>
+                    {client.phone && (
+                      <div className="col-span-2">
+                        <dt className="text-xs text-muted-foreground">
+                          Telefone
+                        </dt>
+                        <dd>{formatPhone(client.phone)}</dd>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                    )}
+                    <div className="col-span-2">
+                      <dt className="text-xs text-muted-foreground">
+                        Cidade/UF
+                      </dt>
+                      <dd>{formatLocation(client)}</dd>
+                    </div>
+                  </dl>
+                  <div className="mt-3">{renderActions(client)}</div>
+                </article>
+              ))}
+            </div>
 
-        {!isLoading && !error && filteredClients.length > 0 && (
-          <div className="mt-auto">
             <Pagination
               currentPage={displayedPage}
               totalPages={totalPages}
@@ -448,9 +386,9 @@ export default function Clientes() {
               onPageChange={setCurrentPage}
               itemName="cliente"
             />
-          </div>
+          </>
         )}
-      </div>
+      </ListCard>
 
       <ConfirmModal
         client={confirmClient}
