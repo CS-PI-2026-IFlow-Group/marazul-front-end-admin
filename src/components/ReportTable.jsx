@@ -1,4 +1,5 @@
-import { ALIGNMENT_CLASS, formatReportValue } from "../lib/reportFormat";
+import { ALIGNMENT_CLASS, formatReportValue, isNegativeMoney } from "../lib/reportFormat";
+import { cn } from "../lib/utils";
 
 function alignmentOf(coluna) {
   return ALIGNMENT_CLASS[coluna.alinhamento] ?? ALIGNMENT_CLASS.LEFT;
@@ -26,9 +27,13 @@ export default function ReportTable({ colunas, linhas }) {
               {colunas.map((coluna) => (
                 <td
                   key={coluna.chave}
-                  className={`whitespace-nowrap px-5 py-3.5 tabular-nums text-foreground ${alignmentOf(coluna)}`}
+                  className={cn(
+                    "whitespace-nowrap px-5 py-3.5 tabular-nums text-foreground",
+                    alignmentOf(coluna),
+                    isNegativeMoney(linha[coluna.chave], coluna.formato) && "text-destructive",
+                  )}
                 >
-                  {formatReportValue(linha[coluna.chave])}
+                  {formatReportValue(linha[coluna.chave], coluna.formato)}
                 </td>
               ))}
             </tr>
