@@ -69,9 +69,12 @@ function getPeriodDays(period) {
   return Math.floor((end - start) / 86400000) + 1;
 }
 
+function findTotal(totals, ...keys) {
+  return totals?.find((item) => keys.includes(item.chave));
+}
+
 function totalValue(totals, ...keys) {
-  const total = totals?.find((item) => keys.includes(item.chave));
-  return total?.valor;
+  return findTotal(totals, ...keys)?.valor;
 }
 
 function vehicleForTotal(value, sortedVehicles) {
@@ -128,8 +131,14 @@ export default function Relatorios() {
     fleetVehicles.length ? fleetVehicles.reduce((sum, vehicle) => sum + vehicle.daysDriven, 0) / fleetVehicles.length : 0
   ));
   const usageRank = [...fleetVehicles].sort((left, right) => right.utilization - left.utilization || left.prefix.localeCompare(right.prefix, "pt-BR"));
-  const mostUsed = vehicleForTotal(totalValue(result?.totais, "maisUtilizado"), usageRank) ?? (totalTrips > 0 ? usageRank[0] : null);
-  const leastUsed = vehicleForTotal(totalValue(result?.totais, "menosUtilizado"), usageRank) ?? (totalTrips > 0 ? usageRank[usageRank.length - 1] : null);
+  const mostUsedTotal = findTotal(result?.totais, "maisUtilizado");
+  const leastUsedTotal = findTotal(result?.totais, "menosUtilizado");
+  const mostUsed = mostUsedTotal
+    ? vehicleForTotal(mostUsedTotal.valor, usageRank)
+    : totalTrips > 0 ? usageRank[0] : null;
+  const leastUsed = leastUsedTotal
+    ? vehicleForTotal(leastUsedTotal.valor, usageRank)
+    : totalTrips > 0 ? usageRank[usageRank.length - 1] : null;
 
   useEffect(() => {
     let active = true;
