@@ -1,12 +1,13 @@
-import { ArrowLeft, Contact, MapPin, Save } from "lucide-react";
-import LoadingIndicator from "../../components/LoadingIndicator";
+import { Contact, MapPin } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import FormFooter from "../../components/FormFooter";
+import FormSection from "../../components/FormSection";
 import GenericInput from "../../components/GenericInput";
 import GenericSelect from "../../components/GenericSelect";
-import { Button } from "../../components/ui/button";
-import { Card, CardContent, CardFooter } from "../../components/ui/card";
+import PageHeader from "../../components/PageHeader";
+import { Card } from "../../components/ui/card";
 import {
   formatCnpj,
   formatCpf,
@@ -282,33 +283,17 @@ export default function CadastroCliente({ isEdicao = false }) {
   };
 
   return (
-    <div className="bg-slate-50/50 font-sans">
-      <div className="mb-3">
-        <div className="flex items-start gap-2 flex-col-reverse">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-700">
-              {isEdicao ? "Editar Cliente" : "Cadastro de Cliente"}
-            </h1>
-          </div>
-        </div>
-      </div>
+    <div>
+      <PageHeader title={isEdicao ? "Editar cliente" : "Cadastro de cliente"} />
 
-      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden py-1 gap-0">
-        <div className="flex border-b border-slate-100 px-6 py-3 items-center gap-3">
-          <Contact className="h-4 w-4 text-[#e31e24]" />
-          <h2 className="text-sm font-medium text-[#062A45]">
-            Dados do Cliente
-          </h2>
-        </div>
-
+      <Card className="gap-0 py-0">
         <form id="form-cliente" onSubmit={handleSubmit}>
-          <CardContent className="px-4 py-4 sm:px-6">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
-              <div className="md:col-span-2">
+          <div className="divide-y">
+            <FormSection icon={Contact} title="Dados do cliente">
+              <div className="sm:col-span-2">
                 <GenericInput
                   id="name"
-                  label="NOME"
-                  labelColor="#062A45"
+                  label="Nome"
                   type="text"
                   placeholder="Ex: Maria da Silva"
                   required
@@ -322,8 +307,7 @@ export default function CadastroCliente({ isEdicao = false }) {
 
               <GenericSelect
                 id="personType"
-                label="TIPO DE PESSOA"
-                labelColor="#062A45"
+                label="Tipo de pessoa"
                 required
                 disabled={isLoadingClient}
                 value={form.personType}
@@ -335,7 +319,6 @@ export default function CadastroCliente({ isEdicao = false }) {
               <GenericInput
                 id="document"
                 label={documentConfig.label}
-                labelColor="#062A45"
                 type="text"
                 inputMode="numeric"
                 placeholder={documentConfig.placeholder}
@@ -347,20 +330,12 @@ export default function CadastroCliente({ isEdicao = false }) {
                 hasError={documentoTemErro}
                 errorMessage={documentConfig.errorMessage}
               />
-            </div>
-          </CardContent>
+            </FormSection>
 
-          <div className="flex border-y border-slate-100 px-6 py-3 items-center gap-3">
-            <MapPin className="h-4 w-4 text-[#e31e24]" />
-            <h2 className="text-sm font-medium text-[#062A45]">Endereço</h2>
-          </div>
-
-          <CardContent className="px-4 py-4 sm:px-6">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
+            <FormSection icon={MapPin} title="Endereço">
               <GenericInput
                 id="street"
-                label="RUA"
-                labelColor="#062A45"
+                label="Rua"
                 type="text"
                 placeholder="Ex: Rua das Gaivotas"
                 required
@@ -373,8 +348,7 @@ export default function CadastroCliente({ isEdicao = false }) {
 
               <GenericInput
                 id="number"
-                label="NÚMERO"
-                labelColor="#062A45"
+                label="Número"
                 type="text"
                 placeholder="Ex: 120"
                 maxLength={10}
@@ -386,11 +360,10 @@ export default function CadastroCliente({ isEdicao = false }) {
                 errorMessage="O número não pode conter apenas espaços"
               />
 
-              <div className="md:col-span-2">
+              <div className="sm:col-span-2">
                 <GenericInput
                   id="complement"
-                  label="COMPLEMENTO"
-                  labelColor="#062A45"
+                  label="Complemento"
                   type="text"
                   placeholder="Ex: Sala 2, Bloco B"
                   disabled={isLoadingClient}
@@ -401,8 +374,7 @@ export default function CadastroCliente({ isEdicao = false }) {
 
               <GenericSelect
                 id="state"
-                label="ESTADO"
-                labelColor="#062A45"
+                label="Estado"
                 required
                 disabled={isLoadingClient}
                 value={form.stateId}
@@ -413,8 +385,7 @@ export default function CadastroCliente({ isEdicao = false }) {
 
               <GenericSelect
                 id="city"
-                label="CIDADE"
-                labelColor="#062A45"
+                label="Cidade"
                 required
                 disabled={isLoadingClient || !form.stateId || isLoadingCities}
                 value={form.cityId}
@@ -422,36 +393,17 @@ export default function CadastroCliente({ isEdicao = false }) {
                 options={cities}
                 placeholder={getCityPlaceholder()}
               />
-            </div>
-          </CardContent>
+            </FormSection>
+          </div>
         </form>
 
-        <CardFooter className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3 sm:px-6 md:flex-row md:justify-between">
-          <Button
-            variant="outline"
-            onClick={() => navigate("/clientes")}
-            className="h-11 w-full gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 cursor-pointer md:w-auto"
-          >
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </Button>
-          <Button
-            type="submit"
-            form="form-cliente"
-            disabled={!podeSalvar}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-[#0A1A2F] px-6 py-4 text-sm font-medium normal-case tracking-normal text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100 disabled:hover:bg-slate-300 cursor-pointer md:w-auto"
-          >
-            {isSaving ? (
-              <>
-                <LoadingIndicator variant="button" label="Salvando..." />
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 size-4" />
-                Salvar Cliente
-              </>
-            )}
-          </Button>
-        </CardFooter>
+        <FormFooter
+          formId="form-cliente"
+          onBack={() => navigate("/clientes")}
+          isSaving={isSaving}
+          isDisabled={!podeSalvar}
+          saveLabel="Salvar cliente"
+        />
       </Card>
     </div>
   );
