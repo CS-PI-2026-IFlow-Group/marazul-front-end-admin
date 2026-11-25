@@ -268,20 +268,16 @@ export default function Clientes() {
       <ListCard
         title="Clientes"
         count={!isLoading && !error ? filteredClients.length : undefined}
-        search={
-          !isLoading && !error && clients.length > 0
-            ? {
-                id: "search-clientes",
-                label: "Buscar cliente por nome, CPF ou CNPJ",
-                placeholder: "Buscar nome, CPF ou CNPJ…",
-                value: searchTerm,
-                onChange: (e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                },
-              }
-            : null
-        }
+        search={{
+          id: "search-clientes",
+          label: "Buscar cliente por nome, CPF ou CNPJ",
+          placeholder: "Buscar nome, CPF ou CNPJ…",
+          value: searchTerm,
+          onChange: (e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          },
+        }}
       >
         {isLoading && <LoadingIndicator label="Carregando clientes..." />}
 
