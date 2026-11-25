@@ -11,6 +11,8 @@ import PageHeader from "../components/PageHeader";
 import PeriodFilter from "../components/PeriodFilter";
 import ReportTable from "../components/ReportTable";
 import ReportTotals from "../components/ReportTotals";
+import WeeklySchedule from "../components/WeeklySchedule";
+import WeeklyScheduleSummary from "../components/WeeklyScheduleSummary";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { usePageTitle } from "../hooks/usePageTitle";
@@ -119,6 +121,8 @@ export default function Relatorios() {
   const isLoadingResult = shouldQuery && result === null && resultError === "";
   const hasRows = !isLoadingResult && !resultError && result?.linhas.length > 0;
   const isFleetUsage = activeReport?.relatorio === "uso-frota";
+  const isSchedule = activeReport?.relatorio === "agenda";
+  const hasGenericView = !isFleetUsage && !isSchedule;
   const fleetVehicles = isFleetUsage && result
     ? normalizeVehicles(result, getPeriodDays(period))
     : [];
@@ -253,7 +257,9 @@ export default function Relatorios() {
         }
       />
 
-      {hasRows && result.totais?.length > 0 && !isFleetUsage && <ReportTotals totais={result.totais} />}
+      {hasRows && result.totais?.length > 0 && hasGenericView && <ReportTotals totais={result.totais} />}
+
+      {hasRows && isSchedule && <WeeklyScheduleSummary totais={result.totais ?? []} />}
 
       {isFleetUsage && (
         <FleetUsageSummary
@@ -288,7 +294,7 @@ export default function Relatorios() {
                 </h2>
                 {activeReport.exigePeriodo && (
                   <div className="flex items-center gap-3">
-                    {hasRows && (
+                    {hasRows && !isSchedule && (
                       <span className="text-xs text-muted-foreground">
                         {result.linhas.length} {result.linhas.length === 1 ? "registro" : "registros"} no período
                       </span>
@@ -363,7 +369,8 @@ export default function Relatorios() {
                 />
               </div>
             )}
-            {hasRows && !isFleetUsage && <ReportTable colunas={result.colunas} linhas={result.linhas} />}
+            {hasRows && isSchedule && <WeeklySchedule linhas={result.linhas} />}
+            {hasRows && hasGenericView && <ReportTable colunas={result.colunas} linhas={result.linhas} />}
 
             {!isLoadingResult && !resultError && result && (
               <p className="border-t px-5 py-3 text-xs text-muted-foreground">
