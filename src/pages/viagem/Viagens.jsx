@@ -54,15 +54,15 @@ function hasStarted(trip) {
   return !NOT_STARTED_STATUSES.includes(trip.status);
 }
 
-function TripActions({ trip, onEdit }) {
+function TripActions({ trip, onDetails, onEdit }) {
   const started = hasStarted(trip);
 
   return (
     <RowActions>
       <button
         type="button"
-        disabled
-        title="Disponível em breve"
+        onClick={onDetails}
+        title="Detalhes"
         aria-label="Detalhes da viagem"
       >
         <Eye className="size-4" />
@@ -344,6 +344,7 @@ export default function Viagens() {
                   <td>
                     <TripActions
                       trip={trip}
+                      onDetails={() => navigate(`/viagens/detalhes/${trip.id}`)}
                       onEdit={() => navigate(`/viagens/editar/${trip.id}`)}
                     />
                   </td>
@@ -383,6 +384,7 @@ export default function Viagens() {
                   <div className="mt-3">
                     <TripActions
                       trip={trip}
+                      onDetails={() => navigate(`/viagens/detalhes/${trip.id}`)}
                       onEdit={() => navigate(`/viagens/editar/${trip.id}`)}
                     />
                   </div>
