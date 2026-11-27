@@ -2,14 +2,16 @@ import {
   BusFront,
   ClipboardList,
   MapPinned,
+  TriangleAlert,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import FormFooter from "../../components/FormFooter";
 import FormSection from "../../components/FormSection";
 import GenericInput from "../../components/GenericInput";
 import GenericSelect from "../../components/GenericSelect";
+import LoadingIndicator from "../../components/LoadingIndicator";
 import PageHeader from "../../components/PageHeader";
 import { Card } from "../../components/ui/card";
 import { usePageTitle } from "../../hooks/usePageTitle";
@@ -41,6 +43,35 @@ const INITIAL_FORM = {
   minimumPassengers: "",
   notes: "",
 };
+
+const EDITABLE_STATUSES = ["SCHEDULED", "CONFIRMED"];
+
+function toDateTimeInput(value) {
+  return value ? value.slice(0, 16) : "";
+}
+
+function tripToForm(trip, states) {
+  const stateIdByAcronym = (acronym) => {
+    const state = states.find((item) => item.acronym === acronym);
+    return state ? String(state.id) : "";
+  };
+
+  return {
+    originStateId: stateIdByAcronym(trip.originStateAcronym),
+    originCityId: String(trip.originCityId),
+    destinationStateId: stateIdByAcronym(trip.destinationStateAcronym),
+    destinationCityId: String(trip.destinationCityId),
+    plannedDepartureOrigin: toDateTimeInput(trip.plannedDepartureOrigin),
+    plannedArrivalDestination: toDateTimeInput(trip.plannedArrivalDestination),
+    plannedDepartureDestination: toDateTimeInput(trip.plannedDepartureDestination),
+    plannedArrivalOrigin: toDateTimeInput(trip.plannedArrivalOrigin),
+    vehicleId: String(trip.vehicleId),
+    driverIds: (trip.drivers ?? []).map((driver) => String(driver.id)),
+    clientId: trip.clientId ? String(trip.clientId) : "",
+    minimumPassengers: trip.minimumPassengers ? String(trip.minimumPassengers) : "",
+    notes: trip.notes ?? "",
+  };
+}
 
 function currentDateTimeLocal() {
   const now = new Date();
@@ -92,9 +123,11 @@ function validateForm(form) {
   return errors;
 }
 
-function CadastroViagemForm() {
-  usePageTitle("Agendamento de Viagem");
+export default function CadastroViagem({ isEdicao = false }) {
+  usePageTitle(isEdicao ? "Edição de Viagem" : "Agendamento de Viagem");
   const navigate = useNavigate();
+  const { id } = useParams();
+  const [trip, setTrip] = useState(null);
   const [form, setForm] = useState(INITIAL_FORM);
   const [states, setStates] = useState([]);
   const [originCities, setOriginCities] = useState({ stateId: "", items: [] });
@@ -113,11 +146,29 @@ function CadastroViagemForm() {
       FrotaService.getAll(),
       FuncionarioService.getAll(),
       ClienteService.getAll(),
+      isEdicao ? ViagemService.getById(id) : Promise.resolve(null),
     ]).then((results) => {
       if (!active) return;
-      const [statesResult, vehiclesResult, driversResult, clientsResult] = results;
+      const [statesResult, vehiclesResult, driversResult, clientsResult, tripResult] = results;
+
+      if (tripResult.status === "rejected") {
+        const status = tripResult.reason?.response?.status;
+        toast.error(
+          status === 404 || status === 400
+            ? "Viagem não encontrada."
+            : "Erro ao carregar dados da viagem.",
+        );
+        navigate("/viagens");
+        return;
+      }
+
       const getValue = (result) => (result.status === "fulfilled" ? result.value : []);
-      setStates(getValue(statesResult));
+      const loadedStates = getValue(statesResult);
+      setStates(loadedStates);
+      if (tripResult.value) {
+        setTrip(tripResult.value);
+        setForm(tripToForm(tripResult.value, loadedStates));
+      }
       setVehicles(getValue(vehiclesResult).filter((vehicle) => vehicle.status === "ACTIVE"));
       setDrivers(
         getValue(driversResult).filter(
@@ -125,7 +176,7 @@ function CadastroViagemForm() {
         ),
       );
       setClients(getValue(clientsResult));
-      if (results.some((result) => result.status === "rejected")) {
+      if (results.slice(0, 4).some((result) => result.status === "rejected")) {
         toast.error("Não foi possível carregar todas as opções do cadastro.");
       }
       setIsLoadingOptions(false);
@@ -134,7 +185,7 @@ function CadastroViagemForm() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [isEdicao, id, navigate]);
 
   useEffect(() => {
     let active = true;
@@ -166,6 +217,8 @@ function CadastroViagemForm() {
     };
   }, [form.destinationStateId]);
 
+  const isLoadingTrip = isEdicao && isLoadingOptions;
+  const isReadOnly = Boolean(trip) && !EDITABLE_STATUSES.includes(trip.status);
   const validationErrors = hasSubmitted ? validateForm(form) : {};
   const stateOptions = states.map((state) => ({
     value: String(state.id),
@@ -201,6 +254,7 @@ function CadastroViagemForm() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (isEdicao) return;
     setHasSubmitted(true);
     const errors = validateForm(form);
     if (Object.keys(errors).length || isSaving) return;
@@ -238,11 +292,31 @@ function CadastroViagemForm() {
 
   return (
     <div>
-      <PageHeader title="Agendar viagem" />
+      <PageHeader title={isEdicao ? "Editar viagem" : "Agendar viagem"} />
 
       <Card className="gap-0 py-0">
-        <form id="form-viagem" noValidate onSubmit={handleSubmit}>
-          <div className="divide-y">
+        {isReadOnly && (
+          <div
+            role="alert"
+            className="flex items-start gap-3 border-b bg-warning/10 px-6 py-4 text-sm text-foreground"
+          >
+            <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
+            <p>
+              Esta viagem já saiu da origem e está em andamento
+              ({ViagemService.getStatusLabel(trip.status).toLowerCase()}), por isso não pode ser
+              alterada.
+            </p>
+          </div>
+        )}
+
+        {isLoadingTrip && (
+          <div className="border-b px-6 py-4">
+            <LoadingIndicator variant="button" label="Carregando viagem..." className="text-sm text-muted-foreground" />
+          </div>
+        )}
+
+        <form id="form-viagem" noValidate onSubmit={handleSubmit} aria-busy={isLoadingTrip}>
+          <fieldset disabled={isReadOnly || isLoadingTrip} className="min-w-0 divide-y">
             <FormSection
               icon={MapPinned}
               title="Trecho e horários"
@@ -386,7 +460,7 @@ function CadastroViagemForm() {
                 />
               </div>
             </FormSection>
-          </div>
+          </fieldset>
         </form>
 
         <FormFooter
@@ -394,30 +468,9 @@ function CadastroViagemForm() {
           onBack={() => navigate("/viagens")}
           isSaving={isSaving}
           saveLabel="Salvar viagem"
+          showSave={!isEdicao}
         />
       </Card>
     </div>
   );
-}
-
-function CadastroViagemEdicao() {
-  usePageTitle("Edição de Viagem");
-  const navigate = useNavigate();
-
-  return (
-    <div>
-      <PageHeader title="Edição de viagem" />
-      <Card className="gap-0 py-0">
-        <FormFooter
-          formId="form-viagem-edicao"
-          onBack={() => navigate("/viagens")}
-          showSave={false}
-        />
-      </Card>
-    </div>
-  );
-}
-
-export default function CadastroViagem({ isEdicao = false }) {
-  return isEdicao ? <CadastroViagemEdicao /> : <CadastroViagemForm />;
 }
