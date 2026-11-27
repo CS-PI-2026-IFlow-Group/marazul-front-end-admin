@@ -11,6 +11,7 @@ import FormSection from "../../components/FormSection";
 import GenericInput from "../../components/GenericInput";
 import GenericSelect from "../../components/GenericSelect";
 import PageHeader from "../../components/PageHeader";
+import TripPassengers from "../../components/TripPassengers";
 import { Card } from "../../components/ui/card";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import ClienteService from "../../services/ClienteService";
@@ -40,6 +41,8 @@ const INITIAL_FORM = {
   clientId: "",
   minimumPassengers: "",
   notes: "",
+  passengers: [],
+  responsiblePassengerId: null,
 };
 
 function currentDateTimeLocal() {
@@ -48,7 +51,7 @@ function currentDateTimeLocal() {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 }
 
-function validateForm(form) {
+function validateForm(form, capacity = null) {
   const errors = {};
   const requiredFields = [
     ["originStateId", "Selecione o estado de origem."],
@@ -87,6 +90,10 @@ function validateForm(form) {
     if (!Number.isInteger(minimumPassengers) || minimumPassengers <= 0) {
       errors.minimumPassengers = "Informe um número inteiro maior que zero.";
     }
+  }
+
+  if (capacity !== null && form.passengers.length > capacity) {
+    errors.passengers = `O ônibus selecionado tem ${capacity} assentos, menos que os ${form.passengers.length} passageiros incluídos.`;
   }
 
   return errors;
@@ -166,7 +173,9 @@ function CadastroViagemForm() {
     };
   }, [form.destinationStateId]);
 
-  const validationErrors = hasSubmitted ? validateForm(form) : {};
+  const selectedVehicle = vehicles.find((vehicle) => String(vehicle.id) === form.vehicleId);
+  const capacity = selectedVehicle?.seats ?? null;
+  const validationErrors = hasSubmitted ? validateForm(form, capacity) : {};
   const stateOptions = states.map((state) => ({
     value: String(state.id),
     label: `${state.name} (${state.acronym})`,
@@ -195,6 +204,9 @@ function CadastroViagemForm() {
   const handleSelectChange = (field) => (value) => {
     setForm((previous) => ({ ...previous, [field]: value }));
   };
+  const handlePassengersChange = ({ passengers, responsiblePassengerId }) => {
+    setForm((previous) => ({ ...previous, passengers, responsiblePassengerId }));
+  };
   const handleStateChange = (stateField, cityField) => (value) => {
     setForm((previous) => ({ ...previous, [stateField]: value, [cityField]: "" }));
   };
@@ -202,7 +214,8 @@ function CadastroViagemForm() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setHasSubmitted(true);
-    const errors = validateForm(form);
+    const errors = validateForm(form, capacity);
+    if (errors.passengers) toast.error(errors.passengers);
     if (Object.keys(errors).length || isSaving) return;
 
     setIsSaving(true);
@@ -219,6 +232,8 @@ function CadastroViagemForm() {
         clientId: form.clientId,
         minimumPassengers: form.minimumPassengers,
         notes: form.notes,
+        passengers: form.passengers,
+        responsiblePassengerId: form.responsiblePassengerId,
       });
       toast.success("Viagem agendada com sucesso!");
       navigate("/viagens");
@@ -386,6 +401,15 @@ function CadastroViagemForm() {
                 />
               </div>
             </FormSection>
+
+            <TripPassengers
+              passengers={form.passengers}
+              responsiblePassengerId={form.responsiblePassengerId}
+              onChange={handlePassengersChange}
+              capacity={capacity}
+              minimumPassengers={Number(form.minimumPassengers) || null}
+              disabled={isSaving}
+            />
           </div>
         </form>
 
