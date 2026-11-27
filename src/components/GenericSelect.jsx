@@ -249,7 +249,7 @@ function SearchableSelect({
       </div>
 
       {hasError && errorMessage && (
-        <p className="mt-1 text-xs font-medium text-red-500">{errorMessage}</p>
+        <p className="mt-0.5 text-xs font-medium text-destructive">{errorMessage}</p>
       )}
     </div>
   );

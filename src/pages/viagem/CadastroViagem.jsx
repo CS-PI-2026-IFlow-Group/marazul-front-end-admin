@@ -1,19 +1,17 @@
 import {
-  ArrowLeft,
   BusFront,
   ClipboardList,
-  Map,
   MapPinned,
-  Save,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import FormFooter from "../../components/FormFooter";
+import FormSection from "../../components/FormSection";
 import GenericInput from "../../components/GenericInput";
 import GenericSelect from "../../components/GenericSelect";
-import LoadingIndicator from "../../components/LoadingIndicator";
-import { Button } from "../../components/ui/button";
-import { Card, CardContent, CardFooter } from "../../components/ui/card";
+import PageHeader from "../../components/PageHeader";
+import { Card } from "../../components/ui/card";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import ClienteService from "../../services/ClienteService";
 import FrotaService from "../../services/FrotaService";
@@ -22,10 +20,10 @@ import LocalidadeService from "../../services/LocalidadeService";
 import ViagemService from "../../services/ViagemService";
 
 const TIME_FIELDS = [
-  ["plannedDepartureOrigin", "SAÍDA PREVISTA DA ORIGEM", "Informe a saída prevista da origem."],
-  ["plannedArrivalDestination", "CHEGADA PREVISTA AO DESTINO", "Informe a chegada prevista ao destino."],
-  ["plannedDepartureDestination", "SAÍDA PREVISTA DO DESTINO", "Informe a saída prevista do destino."],
-  ["plannedArrivalOrigin", "CHEGADA PREVISTA À ORIGEM", "Informe a chegada prevista à origem."],
+  ["plannedDepartureOrigin", "Saída prevista da origem", "Informe a saída prevista da origem."],
+  ["plannedArrivalDestination", "Chegada prevista ao destino", "Informe a chegada prevista ao destino."],
+  ["plannedDepartureDestination", "Saída prevista do destino", "Informe a saída prevista do destino."],
+  ["plannedArrivalOrigin", "Chegada prevista à origem", "Informe a chegada prevista à origem."],
 ];
 
 const INITIAL_FORM = {
@@ -92,15 +90,6 @@ function validateForm(form) {
   }
 
   return errors;
-}
-
-function SectionHeading({ icon: Icon, children }) {
-  return (
-    <div className="mb-4 flex items-center gap-3">
-      <Icon className="size-4 text-[#e31e24]" />
-      <h2 className="text-sm font-medium text-[#062A45]">{children}</h2>
-    </div>
-  );
 }
 
 function CadastroViagemForm() {
@@ -248,177 +237,164 @@ function CadastroViagemForm() {
   };
 
   return (
-    <div className="bg-slate-50/50 font-sans">
-      <div className="mx-auto mb-3 max-w-5xl">
-        <h1 className="text-xl font-semibold text-slate-700">
-          Agendar Viagem
-        </h1>
-      </div>
+    <div>
+      <PageHeader title="Agendar viagem" />
 
-      <Card className="mx-auto max-w-5xl overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-sm">
-        <CardContent className="p-0">
-          <form id="form-viagem" noValidate onSubmit={handleSubmit}>
-            <section className="border-b border-slate-100 px-4 py-5 sm:px-6">
-              <SectionHeading icon={MapPinned}>Trecho e horários</SectionHeading>
-              <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
-                <GenericSelect
-                  id="origin-state"
-                  label="ESTADO DE ORIGEM"
-                  required
-                  value={form.originStateId}
-                  onChange={handleStateChange("originStateId", "originCityId")}
-                  options={stateOptions}
-                  placeholder="Selecione o estado"
-                  hasError={Boolean(validationErrors.originStateId)}
-                  errorMessage={validationErrors.originStateId}
-                />
-                <GenericSelect
-                  id="origin-city"
-                  label="CIDADE DE ORIGEM"
-                  required
-                  searchable
-                  disabled={!form.originStateId}
-                  value={form.originCityId}
-                  onChange={handleSelectChange("originCityId")}
-                  options={originCityOptions}
-                  placeholder={form.originStateId ? "Selecione a cidade" : "Escolha primeiro o estado"}
-                  hasError={Boolean(validationErrors.originCityId)}
-                  errorMessage={validationErrors.originCityId}
-                />
-                <GenericSelect
-                  id="destination-state"
-                  label="ESTADO DE DESTINO"
-                  required
-                  value={form.destinationStateId}
-                  onChange={handleStateChange("destinationStateId", "destinationCityId")}
-                  options={stateOptions}
-                  placeholder="Selecione o estado"
-                  hasError={Boolean(validationErrors.destinationStateId)}
-                  errorMessage={validationErrors.destinationStateId}
-                />
-                <GenericSelect
-                  id="destination-city"
-                  label="CIDADE DE DESTINO"
-                  required
-                  searchable
-                  disabled={!form.destinationStateId}
-                  value={form.destinationCityId}
-                  onChange={handleSelectChange("destinationCityId")}
-                  options={destinationCityOptions}
-                  placeholder={form.destinationStateId ? "Selecione a cidade" : "Escolha primeiro o estado"}
-                  hasError={Boolean(validationErrors.destinationCityId)}
-                  errorMessage={validationErrors.destinationCityId}
-                />
-                {TIME_FIELDS.map(([field, label]) => (
-                  <GenericInput
-                    key={field}
-                    id={field}
-                    label={label}
-                    type="datetime-local"
-                    required
-                    min={currentDateTimeLocal().slice(0, 16)}
-                    value={form[field]}
-                    onChange={handleInputChange(field)}
-                    hasError={Boolean(validationErrors[field])}
-                    errorMessage={validationErrors[field]}
-                  />
-                ))}
-              </div>
-            </section>
-
-            <section className="border-b border-slate-100 px-4 py-5 sm:px-6">
-              <SectionHeading icon={BusFront}>Ônibus e motoristas</SectionHeading>
-              <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
-                <GenericSelect
-                  id="vehicle"
-                  label="ÔNIBUS"
-                  required
-                  searchable
-                  disabled={isLoadingOptions}
-                  value={form.vehicleId}
-                  onChange={handleSelectChange("vehicleId")}
-                  options={vehicleOptions}
-                  placeholder="Prefixo | placa | assentos"
-                  hasError={Boolean(validationErrors.vehicleId)}
-                  errorMessage={validationErrors.vehicleId}
-                />
-                <GenericSelect
-                  id="drivers"
-                  label="MOTORISTAS"
-                  required
-                  searchable
-                  multiple
-                  disabled={isLoadingOptions}
-                  value={form.driverIds}
-                  onChange={handleSelectChange("driverIds")}
-                  options={driverOptions}
-                  placeholder="Selecione um ou mais motoristas"
-                  searchPlaceholder="Buscar motorista..."
-                  hasError={Boolean(validationErrors.driverIds)}
-                  errorMessage={validationErrors.driverIds}
-                />
-              </div>
-            </section>
-
-            <section className="px-4 py-5 sm:px-6">
-              <SectionHeading icon={ClipboardList}>Informações complementares</SectionHeading>
-              <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
-                <GenericSelect
-                  id="client"
-                  label="CLIENTE (OPCIONAL)"
-                  searchable
-                  disabled={isLoadingOptions}
-                  value={form.clientId}
-                  onChange={handleSelectChange("clientId")}
-                  options={clientOptions}
-                  placeholder="Selecione um cliente"
-                />
+      <Card className="gap-0 py-0">
+        <form id="form-viagem" noValidate onSubmit={handleSubmit}>
+          <div className="divide-y">
+            <FormSection
+              icon={MapPinned}
+              title="Trecho e horários"
+              description="Origem, destino e horários previstos."
+            >
+              <GenericSelect
+                id="origin-state"
+                label="Estado de origem"
+                required
+                value={form.originStateId}
+                onChange={handleStateChange("originStateId", "originCityId")}
+                options={stateOptions}
+                placeholder="Selecione o estado"
+                hasError={Boolean(validationErrors.originStateId)}
+                errorMessage={validationErrors.originStateId}
+              />
+              <GenericSelect
+                id="origin-city"
+                label="Cidade de origem"
+                required
+                searchable
+                disabled={!form.originStateId}
+                value={form.originCityId}
+                onChange={handleSelectChange("originCityId")}
+                options={originCityOptions}
+                placeholder={form.originStateId ? "Selecione a cidade" : "Escolha primeiro o estado"}
+                hasError={Boolean(validationErrors.originCityId)}
+                errorMessage={validationErrors.originCityId}
+              />
+              <GenericSelect
+                id="destination-state"
+                label="Estado de destino"
+                required
+                value={form.destinationStateId}
+                onChange={handleStateChange("destinationStateId", "destinationCityId")}
+                options={stateOptions}
+                placeholder="Selecione o estado"
+                hasError={Boolean(validationErrors.destinationStateId)}
+                errorMessage={validationErrors.destinationStateId}
+              />
+              <GenericSelect
+                id="destination-city"
+                label="Cidade de destino"
+                required
+                searchable
+                disabled={!form.destinationStateId}
+                value={form.destinationCityId}
+                onChange={handleSelectChange("destinationCityId")}
+                options={destinationCityOptions}
+                placeholder={form.destinationStateId ? "Selecione a cidade" : "Escolha primeiro o estado"}
+                hasError={Boolean(validationErrors.destinationCityId)}
+                errorMessage={validationErrors.destinationCityId}
+              />
+              {TIME_FIELDS.map(([field, label]) => (
                 <GenericInput
-                  id="minimum-passengers"
-                  label="QUANTIDADE MÍNIMA DE PASSAGEIROS (OPCIONAL)"
-                  type="number"
-                  inputMode="numeric"
-                  min="1"
-                  step="1"
-                  value={form.minimumPassengers}
-                  onChange={handleInputChange("minimumPassengers")}
-                  placeholder="Ex: 10"
-                  hasError={Boolean(validationErrors.minimumPassengers)}
-                  errorMessage={validationErrors.minimumPassengers}
+                  key={field}
+                  id={field}
+                  label={label}
+                  type="datetime-local"
+                  required
+                  min={currentDateTimeLocal().slice(0, 16)}
+                  value={form[field]}
+                  onChange={handleInputChange(field)}
+                  hasError={Boolean(validationErrors[field])}
+                  errorMessage={validationErrors[field]}
                 />
-                <div className="md:col-span-2">
-                  <GenericInput
-                    id="notes"
-                    label="OBSERVAÇÃO (OPCIONAL)"
-                    value={form.notes}
-                    onChange={handleInputChange("notes")}
-                    placeholder="Informações adicionais sobre a viagem"
-                    maxLength={2000}
-                  />
-                </div>
-              </div>
-            </section>
-          </form>
-        </CardContent>
+              ))}
+            </FormSection>
 
-        <CardFooter className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3 sm:flex-row sm:justify-between sm:px-6">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate("/viagens")}
-            className="h-11 w-full gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 sm:w-auto"
-          >
-            Voltar
-          </Button>
-          <Button
-            type="submit"
-            form="form-viagem"
-            disabled={isSaving}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-[#0A1A2F] px-6 text-sm font-medium text-white transition-colors hover:bg-[#0A1A2F]/90 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 sm:w-auto"
-          >
-            {isSaving ? <LoadingIndicator variant="button" label="Salvando..." /> : <><Save className="size-4" /> Salvar Viagem</>}
-          </Button>
-        </CardFooter>
+            <FormSection
+              icon={BusFront}
+              title="Ônibus e motoristas"
+              description="Recursos disponíveis para a viagem."
+            >
+              <GenericSelect
+                id="vehicle"
+                label="Ônibus"
+                required
+                searchable
+                disabled={isLoadingOptions}
+                value={form.vehicleId}
+                onChange={handleSelectChange("vehicleId")}
+                options={vehicleOptions}
+                placeholder="Prefixo | placa | assentos"
+                hasError={Boolean(validationErrors.vehicleId)}
+                errorMessage={validationErrors.vehicleId}
+              />
+              <GenericSelect
+                id="drivers"
+                label="Motoristas"
+                required
+                searchable
+                multiple
+                disabled={isLoadingOptions}
+                value={form.driverIds}
+                onChange={handleSelectChange("driverIds")}
+                options={driverOptions}
+                placeholder="Selecione um ou mais motoristas"
+                searchPlaceholder="Buscar motorista..."
+                hasError={Boolean(validationErrors.driverIds)}
+                errorMessage={validationErrors.driverIds}
+              />
+            </FormSection>
+
+            <FormSection
+              icon={ClipboardList}
+              title="Informações complementares"
+              description="Dados opcionais para a reserva."
+            >
+              <GenericSelect
+                id="client"
+                label="Cliente (opcional)"
+                searchable
+                disabled={isLoadingOptions}
+                value={form.clientId}
+                onChange={handleSelectChange("clientId")}
+                options={clientOptions}
+                placeholder="Selecione um cliente"
+              />
+              <GenericInput
+                id="minimum-passengers"
+                label="Mínimo de passageiros (opcional)"
+                type="number"
+                inputMode="numeric"
+                min="1"
+                step="1"
+                value={form.minimumPassengers}
+                onChange={handleInputChange("minimumPassengers")}
+                placeholder="Ex: 10"
+                hasError={Boolean(validationErrors.minimumPassengers)}
+                errorMessage={validationErrors.minimumPassengers}
+              />
+              <div className="md:col-span-2">
+                <GenericInput
+                  id="notes"
+                  label="Observação (opcional)"
+                  value={form.notes}
+                  onChange={handleInputChange("notes")}
+                  placeholder="Informações adicionais sobre a viagem"
+                  maxLength={2000}
+                />
+              </div>
+            </FormSection>
+          </div>
+        </form>
+
+        <FormFooter
+          formId="form-viagem"
+          onBack={() => navigate("/viagens")}
+          isSaving={isSaving}
+          saveLabel="Salvar viagem"
+        />
       </Card>
     </div>
   );
@@ -429,24 +405,14 @@ function CadastroViagemEdicao() {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-slate-50/50 font-sans">
-      <div className="mb-3">
-        <h1 className="text-xl font-semibold text-slate-700">Editar Viagem</h1>
-      </div>
-      <Card className="overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-sm">
-        <div className="flex items-center gap-3 border-b border-slate-100 px-6 py-3">
-          <Map className="size-4 text-[#e31e24]" />
-          <h2 className="text-sm font-medium text-[#062A45]">Dados da Viagem</h2>
-        </div>
-        <CardFooter className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3 sm:flex-row sm:justify-between sm:px-6">
-          <Button
-            variant="outline"
-            onClick={() => navigate("/viagens")}
-            className="h-11 w-full gap-2 rounded-md border border-slate-200 bg-white px-5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 sm:w-auto"
-          >
-            <ArrowLeft className="size-4" /> Voltar
-          </Button>
-        </CardFooter>
+    <div>
+      <PageHeader title="Edição de viagem" />
+      <Card className="gap-0 py-0">
+        <FormFooter
+          formId="form-viagem-edicao"
+          onBack={() => navigate("/viagens")}
+          showSave={false}
+        />
       </Card>
     </div>
   );
