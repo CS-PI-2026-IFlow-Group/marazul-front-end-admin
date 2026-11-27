@@ -59,6 +59,14 @@ class ViagemService extends BaseService {
       estimatedTotalValue: toNumberOrNull(data.estimatedTotalValue),
       estimatedIndividualValue: toNumberOrNull(data.estimatedIndividualValue),
       notes: data.notes?.trim() || null,
+      passengers: Array.isArray(data.passengers)
+        ? data.passengers.map((passenger) => ({
+            passengerId: Number(passenger.passengerId),
+            amountDue: toNumberOrNull(passenger.amountDue),
+            amountPaid: toNumberOrNull(passenger.amountPaid) ?? 0,
+          }))
+        : undefined,
+      responsiblePassengerId: toNumberOrNull(data.responsiblePassengerId),
     };
   }
 
