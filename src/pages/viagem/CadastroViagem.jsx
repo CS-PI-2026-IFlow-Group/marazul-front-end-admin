@@ -15,6 +15,7 @@ import FormSection from "../../components/FormSection";
 import GenericInput from "../../components/GenericInput";
 import GenericSelect from "../../components/GenericSelect";
 import PageHeader from "../../components/PageHeader";
+import TripPassengers from "../../components/TripPassengers";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { usePageTitle } from "../../hooks/usePageTitle";
@@ -59,6 +60,8 @@ const INITIAL_FORM = {
   estimatedIndividualValue: "",
   expenses: [],
   notes: "",
+  passengers: [],
+  responsiblePassengerId: null,
 };
 
 function currentDateTimeLocal() {
@@ -67,7 +70,7 @@ function currentDateTimeLocal() {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 }
 
-function validateForm(form) {
+function validateForm(form, capacity = null) {
   const errors = {};
   const requiredFields = [
     ["originStateId", "Selecione o estado de origem."],
@@ -119,6 +122,10 @@ function validateForm(form) {
     else if (value > 99999999.99) errors.estimatedIndividualValue = "O valor excede o limite permitido.";
   }
 
+  if (capacity !== null && form.passengers.length > capacity) {
+    errors.passengers = `O ônibus selecionado tem ${capacity} assentos, menos que os ${form.passengers.length} passageiros incluídos.`;
+  }
+
   return errors;
 }
 
@@ -141,8 +148,8 @@ function CadastroViagemForm({ isEdicao = false }) {
   const [isLoadingTrip, setIsLoadingTrip] = useState(isEdicao);
   const [loadError, setLoadError] = useState("");
 
-  const passengerCount = Number(form.passengerCount) > 0
-    ? Number(form.passengerCount)
+  const passengerCount = form.passengers.length > 0
+    ? form.passengers.length
     : (Number(form.minimumPassengers) > 0 ? Number(form.minimumPassengers) : 0);
   const totalExpense = expenseTotal(form.expenses);
 
@@ -249,6 +256,14 @@ function CadastroViagemForm({ isEdicao = false }) {
           estimatedIndividualValue: moneyInputFromValue(trip.estimatedIndividualValue ?? trip.estimatedPassengerAmount),
           expenses,
           notes: trip.notes ?? "",
+          passengers: (trip.passengers ?? []).map((passenger) => ({
+            passengerId: Number(passenger.passengerId),
+            name: passenger.name,
+            cpf: passenger.cpf,
+            amountDue: passenger.amountDue,
+            amountPaid: passenger.amountPaid ?? 0,
+          })),
+          responsiblePassengerId: trip.responsiblePassengerId ?? null,
         });
         setLoadError("");
       })
@@ -261,7 +276,9 @@ function CadastroViagemForm({ isEdicao = false }) {
     return () => { active = false; };
   }, [id, isEdicao]);
 
-  const validationErrors = hasSubmitted ? validateForm(form) : {};
+  const selectedVehicle = vehicles.find((vehicle) => String(vehicle.id) === form.vehicleId);
+  const capacity = selectedVehicle?.seats ?? null;
+  const validationErrors = hasSubmitted ? validateForm(form, capacity) : {};
   const stateOptions = states.map((state) => ({
     value: String(state.id),
     label: `${state.name} (${state.acronym})`,
@@ -290,6 +307,9 @@ function CadastroViagemForm({ isEdicao = false }) {
   const handleSelectChange = (field) => (value) => {
     setForm((previous) => ({ ...previous, [field]: value }));
   };
+  const handlePassengersChange = ({ passengers, responsiblePassengerId }) => {
+    setForm((previous) => ({ ...previous, passengers, responsiblePassengerId }));
+  };
   const handleStateChange = (stateField, cityField) => (value) => {
     setForm((previous) => ({ ...previous, [stateField]: value, [cityField]: "" }));
   };
@@ -313,7 +333,8 @@ function CadastroViagemForm({ isEdicao = false }) {
     event.preventDefault();
     setHasSubmitted(true);
     const errors = validateForm(form);
-    if (Object.keys(errors).length || isSaving || isLoadingTrip) return;
+    if (errors.passengers) toast.error(errors.passengers);
+    if (Object.keys(errors).length || isSaving || (isEdicao && isLoadingTrip)) return;
 
     setIsSaving(true);
     try {
@@ -332,6 +353,12 @@ function CadastroViagemForm({ isEdicao = false }) {
         estimatedTotalValue: parseMoneyInput(effectiveForm.estimatedTotalValue),
         estimatedIndividualValue: parseMoneyInput(effectiveForm.estimatedIndividualValue),
         expenses: form.expenses,
+        passengers: form.passengers.map((passenger) => ({
+          passengerId: Number(passenger.passengerId),
+          amountDue: passenger.amountDue,
+          amountPaid: passenger.amountPaid ?? 0,
+        })),
+        responsiblePassengerId: form.responsiblePassengerId,
         notes: form.notes,
       };
       if (isEdicao) {
@@ -526,6 +553,16 @@ function CadastroViagemForm({ isEdicao = false }) {
                   />
                 </div>
               </FormSection>
+
+              <TripPassengers
+                passengers={form.passengers}
+                responsiblePassengerId={form.responsiblePassengerId}
+                onChange={handlePassengersChange}
+                capacity={capacity}
+                suggestedAmount={parseMoneyInput(effectiveForm.estimatedIndividualValue)}
+                minimumPassengers={Number(form.minimumPassengers) || null}
+                disabled={isSaving}
+              />
 
               <ExpensesAndValuesSection
                 form={effectiveForm}
