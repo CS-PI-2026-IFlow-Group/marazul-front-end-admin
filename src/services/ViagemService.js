@@ -78,6 +78,14 @@ class ViagemService extends BaseService {
     return super.update(id, this.buildPayload(data));
   }
 
+  async alterarSituacao(id, status, dataHora = null) {
+    const response = await api.patch(`${this.endpoint}/${id}/situacao`, {
+      status,
+      dataHora: toApiDateTime(dataHora),
+    });
+    return response.data;
+  }
+
   getStatusLabel(value) {
     const item = FALLBACK_STATUSES.find((status) => status.value === value);
     return item?.label || value;
