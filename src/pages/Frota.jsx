@@ -435,13 +435,11 @@ export default function Frota() {
             title="Veículos ativos"
             value={stats.active}
             icon={Bus}
-            tone="success"
           />
           <MetricCard
             title="Em manutenção"
             value={stats.maintenance}
             icon={Wrench}
-            tone="warning"
           />
           <MetricCard
             title="Taxa operacional"

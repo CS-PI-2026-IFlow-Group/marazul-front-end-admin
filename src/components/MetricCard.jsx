@@ -2,24 +2,31 @@ import { TriangleAlert } from "lucide-react";
 import { Card } from "./ui/card";
 import { cn } from "../lib/utils";
 
-const tones = {
-  primary: "bg-primary/10 text-primary",
-  accent: "bg-accent/10 text-accent",
-  success: "bg-success/12 text-success",
-  warning: "bg-warning/15 text-warning",
-};
+function formatMetricValue(value, suffix) {
+  if (value == null) {
+    return `${(0).toLocaleString("pt-BR")}${suffix}`;
+  }
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? `${value.toLocaleString("pt-BR")}${suffix}` : "—";
+  }
+  if (typeof value === "string") {
+    return `${value}${suffix}`;
+  }
+  return value;
+}
 
 export default function MetricCard({
   title,
   value,
   icon: Icon,
-  tone = "primary",
   loading,
   error,
   suffix = "",
+  className,
+  valueClassName,
 }) {
   return (
-    <Card className="flex-row items-center justify-between gap-4 p-5">
+    <Card className={cn("flex-row items-center justify-between gap-4 p-5", className)}>
       <div className="min-w-0">
         <p className="text-sm text-muted-foreground">{title}</p>
 
@@ -38,21 +45,31 @@ export default function MetricCard({
         )}
 
         {!loading && !error && (
-          <p className="mt-1 truncate font-display text-3xl font-bold tabular-nums">
-            {Number(value ?? 0).toLocaleString("pt-BR")}
-            {suffix}
+          <p
+            className={cn(
+              "mt-1 truncate font-display text-3xl font-bold tabular-nums",
+              valueClassName,
+            )}
+          >
+            {formatMetricValue(value, suffix)}
           </p>
         )}
       </div>
 
-      <div
-        className={cn(
-          "grid size-12 shrink-0 place-items-center rounded-xl",
-          error ? "bg-destructive/10 text-destructive" : tones[tone],
-        )}
-      >
-        {error ? <TriangleAlert className="size-5" /> : <Icon className="size-5" />}
-      </div>
+      {(error || Icon) && (
+        <div
+          className={cn(
+            "grid size-12 shrink-0 place-items-center rounded-xl",
+            error ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary",
+          )}
+        >
+          {error ? (
+            <TriangleAlert aria-hidden="true" className="size-5" />
+          ) : (
+            <Icon aria-hidden="true" className="size-5" />
+          )}
+        </div>
+      )}
     </Card>
   );
 }

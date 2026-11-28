@@ -15,7 +15,7 @@ export default function WeeklyScheduleSummary({ totais }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <MetricCard title={trips?.titulo ?? "Viagens"} value={trips?.valor} icon={Route} />
-      <MetricCard title={buses?.titulo ?? "Ônibus envolvidos"} value={buses?.valor} icon={BusFront} tone="accent" />
+      <MetricCard title={buses?.titulo ?? "Ônibus envolvidos"} value={buses?.valor} icon={BusFront} />
       <Card className="flex-row items-start justify-between gap-4 p-5 sm:col-span-2">
         <div className="min-w-0 space-y-2">
           <p className="text-sm text-muted-foreground">{idle?.titulo ?? "Ônibus sem viagem"}</p>
@@ -31,8 +31,8 @@ export default function WeeklyScheduleSummary({ totais }) {
             <p className="text-sm font-medium text-foreground">Nenhum ônibus ativo sem viagem no período.</p>
           )}
         </div>
-        <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-warning/15 text-warning">
-          <CircleParking className="size-5" />
+        <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+          <CircleParking aria-hidden="true" className="size-5" />
         </div>
       </Card>
     </div>
