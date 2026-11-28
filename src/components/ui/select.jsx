@@ -26,14 +26,14 @@ function SelectTrigger({ className, size = "default", children, ...props }) {
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex h-11 w-full items-center justify-between gap-2 rounded-md border border-slate-200 bg-[#F8FAFC] px-3.5 py-2 text-sm text-slate-800 transition-colors focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        "flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-input bg-card px-3.5 py-2.5 text-sm text-foreground transition outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/15 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/15 data-[placeholder]:text-muted-foreground [&>span]:truncate [&_svg]:pointer-events-none [&_svg]:shrink-0",
         className,
       )}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="pointer-events-none size-4 text-slate-500" />
+        <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
@@ -51,7 +51,7 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          "relative z-50 max-h-96 min-w-36 overflow-hidden rounded-md border border-slate-200 bg-white text-slate-800 shadow-lg p-1.5 duration-100 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+          "relative z-50 max-h-96 min-w-36 overflow-hidden rounded-lg border bg-popover p-1 text-popover-foreground shadow-lg duration-100 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           className,
         )}
         position={position}
@@ -80,7 +80,7 @@ function SelectLabel({ className, ...props }) {
     <SelectPrimitive.Label
       data-slot="select-label"
       className={cn(
-        "px-3 py-2 text-xs font-semibold tracking-wider text-slate-400 uppercase",
+        "px-3 py-2 text-xs font-medium text-muted-foreground",
         className,
       )}
       {...props}
@@ -93,12 +93,12 @@ function SelectItem({ className, children, ...props }) {
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-pointer select-none items-center rounded-sm py-2.5 pl-3 pr-8 text-sm text-slate-700 outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 data-[highlighted]:bg-slate-100 data-[state=checked]:bg-slate-100 data-[state=checked]:font-medium data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex w-full cursor-pointer items-center rounded-md py-2 pr-8 pl-3 text-sm text-foreground outline-none select-none transition-colors hover:bg-muted focus:bg-muted data-[highlighted]:bg-muted data-[state=checked]:font-medium data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className,
       )}
       {...props}
     >
-      <span className="pointer-events-none absolute right-2 flex size-4 items-center justify-center text-[#062A45]">
+      <span className="pointer-events-none absolute right-2 flex size-4 items-center justify-center text-accent">
         <SelectPrimitive.ItemIndicator>
           <CheckIcon className="pointer-events-none size-4" />
         </SelectPrimitive.ItemIndicator>
@@ -113,7 +113,7 @@ function SelectSeparator({ className, ...props }) {
     <SelectPrimitive.Separator
       data-slot="select-separator"
       className={cn(
-        "pointer-events-none -mx-1.5 my-1.5 h-px bg-border/50",
+        "pointer-events-none -mx-1 my-1 h-px bg-border",
         className,
       )}
       {...props}

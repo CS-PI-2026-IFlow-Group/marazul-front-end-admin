@@ -1,0 +1,881 @@
+import {
+  BusFront,
+  ClipboardList,
+  MapPinned,
+  Pencil,
+  Receipt,
+  RotateCcw,
+  Trash2,
+  TriangleAlert,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import FormFooter from "../../components/FormFooter";
+import FormSection from "../../components/FormSection";
+import GenericInput from "../../components/GenericInput";
+import GenericSelect from "../../components/GenericSelect";
+import LoadingIndicator from "../../components/LoadingIndicator";
+import PageHeader from "../../components/PageHeader";
+import TripPassengers from "../../components/TripPassengers";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import { usePageTitle } from "../../hooks/usePageTitle";
+import ClienteService from "../../services/ClienteService";
+import FrotaService from "../../services/FrotaService";
+import FuncionarioService from "../../services/FuncionarioService";
+import LocalidadeService from "../../services/LocalidadeService";
+import ViagemService from "../../services/ViagemService";
+import {
+  formatMoneyInput,
+  formatCurrency,
+  moneyInputFromValue,
+  parseMoneyInput,
+  toCents,
+} from "../../lib/moneyMasks";
+
+const TIME_FIELDS = [
+  ["plannedDepartureOrigin", "Saída prevista da origem", "Informe a saída prevista da origem."],
+  ["plannedArrivalDestination", "Chegada prevista ao destino", "Informe a chegada prevista ao destino."],
+  ["plannedDepartureDestination", "Saída prevista do destino", "Informe a saída prevista do destino."],
+  ["plannedArrivalOrigin", "Chegada prevista à origem", "Informe a chegada prevista à origem."],
+];
+
+const INITIAL_FORM = {
+  originStateId: "",
+  originStateAcronym: "",
+  originCityId: "",
+  destinationStateId: "",
+  destinationStateAcronym: "",
+  destinationCityId: "",
+  plannedDepartureOrigin: "",
+  plannedArrivalDestination: "",
+  plannedDepartureDestination: "",
+  plannedArrivalOrigin: "",
+  vehicleId: "",
+  driverIds: [],
+  clientId: "",
+  minimumPassengers: "",
+  passengerCount: 0,
+  estimatedPassengerAmount: "",
+  estimatedTotalValue: "",
+  estimatedIndividualValue: "",
+  expenses: [],
+  notes: "",
+  passengers: [],
+  responsiblePassengerId: null,
+};
+
+const EDITABLE_STATUSES = ["SCHEDULED", "CONFIRMED"];
+
+function toComparable(form, customTotal, customIndividual) {
+  return JSON.stringify({
+    ...form,
+    driverIds: [...form.driverIds].sort(),
+    customTotal,
+    customIndividual,
+  });
+}
+
+function currentDateTimeLocal() {
+  const now = new Date();
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+
+function validateForm(form, capacity = null) {
+  const errors = {};
+  const requiredFields = [
+    ["originStateId", "Selecione o estado de origem."],
+    ["originCityId", "Selecione a cidade de origem."],
+    ["destinationStateId", "Selecione o estado de destino."],
+    ["destinationCityId", "Selecione a cidade de destino."],
+    ["vehicleId", "Selecione um ônibus."],
+  ];
+
+  requiredFields.forEach(([field, message]) => {
+    if (!form[field]) errors[field] = message;
+  });
+  if (!form.driverIds.length) errors.driverIds = "Selecione ao menos um motorista.";
+
+  TIME_FIELDS.forEach(([field, , requiredMessage]) => {
+    if (!form[field]) errors[field] = requiredMessage;
+  });
+
+  if (form.originCityId && form.destinationCityId && form.originCityId === form.destinationCityId) {
+    errors.destinationCityId = "A cidade de destino deve ser diferente da origem.";
+  }
+
+  TIME_FIELDS.slice(1).forEach(([field], index) => {
+    const previousField = TIME_FIELDS[index][0];
+    if (form[field] && form[previousField] && form[field] <= form[previousField]) {
+      errors[field] = "O horário deve ser posterior ao horário anterior.";
+    }
+  });
+
+  if (form.plannedDepartureOrigin && form.plannedDepartureOrigin < currentDateTimeLocal()) {
+    errors.plannedDepartureOrigin = "A saída prevista da origem não pode estar no passado.";
+  }
+
+  if (form.minimumPassengers) {
+    const minimumPassengers = Number(form.minimumPassengers);
+    if (!Number.isInteger(minimumPassengers) || minimumPassengers <= 0) {
+      errors.minimumPassengers = "Informe um número inteiro maior que zero.";
+    }
+  }
+
+  if (form.estimatedTotalValue) {
+    const value = parseMoneyInput(form.estimatedTotalValue);
+    if (value === null || value < 0) errors.estimatedTotalValue = "O valor estimado total não pode ser negativo.";
+    else if (value > 99999999.99) errors.estimatedTotalValue = "O valor excede o limite permitido.";
+  }
+  if (form.estimatedIndividualValue) {
+    const value = parseMoneyInput(form.estimatedIndividualValue);
+    if (value === null || value < 0) errors.estimatedIndividualValue = "O valor estimado por passageiro não pode ser negativo.";
+    else if (value > 99999999.99) errors.estimatedIndividualValue = "O valor excede o limite permitido.";
+  }
+
+  if (capacity !== null && form.passengers.length > capacity) {
+    errors.passengers = `O ônibus selecionado tem ${capacity} assentos, menos que os ${form.passengers.length} passageiros incluídos.`;
+  }
+
+  return errors;
+}
+
+function CadastroViagemForm({ isEdicao = false }) {
+  usePageTitle(isEdicao ? "Edição de Viagem" : "Agendamento de Viagem");
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [form, setForm] = useState(INITIAL_FORM);
+  const [states, setStates] = useState([]);
+  const [originCities, setOriginCities] = useState({ stateId: "", items: [] });
+  const [destinationCities, setDestinationCities] = useState({ stateId: "", items: [] });
+  const [vehicles, setVehicles] = useState([]);
+  const [drivers, setDrivers] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [customTotal, setCustomTotal] = useState(false);
+  const [customIndividual, setCustomIndividual] = useState(false);
+  const [isLoadingTrip, setIsLoadingTrip] = useState(isEdicao);
+  const [loadError, setLoadError] = useState("");
+  const [trip, setTrip] = useState(null);
+  const [initialSnapshot, setInitialSnapshot] = useState(null);
+
+  const passengerCount = form.passengers.length > 0
+    ? form.passengers.length
+    : (Number(form.minimumPassengers) > 0 ? Number(form.minimumPassengers) : 0);
+  const totalExpense = expenseTotal(form.expenses);
+
+  const resolvedOriginStateId = form.originStateId || String(states.find((state) => state.acronym === form.originStateAcronym)?.id ?? "");
+  const resolvedDestinationStateId = form.destinationStateId || String(states.find((state) => state.acronym === form.destinationStateAcronym)?.id ?? "");
+
+  useEffect(() => {
+    let active = true;
+    Promise.allSettled([
+      LocalidadeService.getEstados(),
+      FrotaService.getAll(),
+      FuncionarioService.getAll(),
+      ClienteService.getAll(),
+    ]).then((results) => {
+      if (!active) return;
+      const [statesResult, vehiclesResult, driversResult, clientsResult] = results;
+      const getValue = (result) => (result.status === "fulfilled" ? result.value : []);
+      setStates(getValue(statesResult));
+      setVehicles(getValue(vehiclesResult).filter((vehicle) => vehicle.status === "ACTIVE"));
+      setDrivers(
+        getValue(driversResult).filter(
+          (employee) => employee.status === "ACTIVE" && employee.position === "DRIVER",
+        ),
+      );
+      setClients(getValue(clientsResult));
+      if (results.some((result) => result.status === "rejected")) {
+        toast.error("Não foi possível carregar todas as opções do cadastro.");
+      }
+      setIsLoadingOptions(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    if (!resolvedOriginStateId) return () => { active = false; };
+    LocalidadeService.getCidades(resolvedOriginStateId)
+      .then((items) => {
+        if (active) setOriginCities({ stateId: String(resolvedOriginStateId), items });
+      })
+      .catch(() => {
+        if (active) toast.error("Não foi possível carregar as cidades de origem.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [resolvedOriginStateId]);
+
+  useEffect(() => {
+    let active = true;
+    if (!resolvedDestinationStateId) return () => { active = false; };
+    LocalidadeService.getCidades(resolvedDestinationStateId)
+      .then((items) => {
+        if (active) setDestinationCities({ stateId: String(resolvedDestinationStateId), items });
+      })
+      .catch(() => {
+        if (active) toast.error("Não foi possível carregar as cidades de destino.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [resolvedDestinationStateId]);
+
+  useEffect(() => {
+    if (!isEdicao || !id) return;
+    let active = true;
+    ViagemService.getById(id)
+      .then((trip) => {
+        if (!active) return;
+        const expenses = (trip.expenses ?? []).map((expense) => ({ description: expense.description, amount: expense.amount }));
+        const total = expenseTotal(expenses);
+        const passengerCountLoaded = (trip.passengerCount ?? trip.passengers?.length ?? 0) > 0
+          ? (trip.passengerCount ?? trip.passengers.length)
+          : (trip.minimumPassengers ?? 0);
+        const loadedEffectiveTotal = trip.estimatedTotalValue ?? total;
+        const individual = passengerCountLoaded > 0
+          ? Number(loadedEffectiveTotal) / passengerCountLoaded
+          : 0;
+        const loadedCustomTotal = trip.estimatedTotalValue != null && toCents(trip.estimatedTotalValue) !== toCents(total);
+        const loadedCustomIndividual = (trip.estimatedIndividualValue ?? trip.estimatedPassengerAmount) != null
+          && toCents(trip.estimatedIndividualValue ?? trip.estimatedPassengerAmount) !== toCents(individual);
+        const loadedForm = {
+          ...INITIAL_FORM,
+          originCityId: trip.originCityId == null ? "" : String(trip.originCityId),
+          originStateAcronym: trip.originStateAcronym ?? "",
+          destinationCityId: trip.destinationCityId == null ? "" : String(trip.destinationCityId),
+          destinationStateAcronym: trip.destinationStateAcronym ?? "",
+          plannedDepartureOrigin: trip.plannedDepartureOrigin?.slice(0, 16) ?? "",
+          plannedArrivalDestination: trip.plannedArrivalDestination?.slice(0, 16) ?? "",
+          plannedDepartureDestination: trip.plannedDepartureDestination?.slice(0, 16) ?? "",
+          plannedArrivalOrigin: trip.plannedArrivalOrigin?.slice(0, 16) ?? "",
+          vehicleId: trip.vehicleId == null ? "" : String(trip.vehicleId),
+          driverIds: (trip.drivers ?? []).map((driver) => String(driver.id)),
+          clientId: trip.clientId == null ? "" : String(trip.clientId),
+          minimumPassengers: trip.minimumPassengers == null ? "" : String(trip.minimumPassengers),
+          passengerCount: trip.passengerCount ?? trip.passengers?.length ?? 0,
+          estimatedPassengerAmount: moneyInputFromValue(trip.estimatedPassengerAmount),
+          estimatedTotalValue: moneyInputFromValue(trip.estimatedTotalValue),
+          estimatedIndividualValue: moneyInputFromValue(trip.estimatedIndividualValue ?? trip.estimatedPassengerAmount),
+          expenses,
+          notes: trip.notes ?? "",
+          passengers: (trip.passengers ?? []).map((passenger) => ({
+            passengerId: Number(passenger.passengerId),
+            name: passenger.name,
+            cpf: passenger.cpf,
+            amountDue: passenger.amountDue,
+            amountPaid: passenger.amountPaid ?? 0,
+          })),
+          responsiblePassengerId: trip.responsiblePassengerId ?? null,
+        };
+        setTrip(trip);
+        setCustomTotal(loadedCustomTotal);
+        setCustomIndividual(loadedCustomIndividual);
+        setForm(loadedForm);
+        setInitialSnapshot(toComparable(loadedForm, loadedCustomTotal, loadedCustomIndividual));
+        setLoadError("");
+      })
+      .catch((error) => {
+        if (!active) return;
+        if ([400, 404].includes(error.response?.status)) {
+          toast.error("Viagem não encontrada.");
+          navigate("/viagens");
+          return;
+        }
+        setLoadError("Não foi possível carregar a viagem. Tente novamente.");
+      })
+      .finally(() => {
+        if (active) setIsLoadingTrip(false);
+      });
+    return () => { active = false; };
+  }, [id, isEdicao, navigate]);
+
+  const isCompleted = trip?.status === "COMPLETED";
+  const isInProgress = Boolean(trip) && !isCompleted && !EDITABLE_STATUSES.includes(trip.status);
+  const isFieldsLocked = isSaving || isInProgress || isCompleted;
+  const isExpensesLocked = isSaving || isCompleted;
+  const hasChanges = Boolean(initialSnapshot)
+    && toComparable(form, customTotal, customIndividual) !== initialSnapshot;
+
+  const selectedVehicle = vehicles.find((vehicle) => String(vehicle.id) === form.vehicleId);
+  const capacity = selectedVehicle?.seats ?? null;
+  const validationErrors = hasSubmitted
+    ? validateForm({
+        ...form,
+        originStateId: String(resolvedOriginStateId),
+        destinationStateId: String(resolvedDestinationStateId),
+      }, capacity)
+    : {};
+  const stateOptions = states.map((state) => ({
+    value: String(state.id),
+    label: `${state.name} (${state.acronym})`,
+  }));
+  const originCityOptions = (originCities.stateId === String(resolvedOriginStateId) ? originCities.items : []).map((city) => ({
+    value: String(city.id),
+    label: city.name,
+  }));
+  const destinationCityOptions = (destinationCities.stateId === String(resolvedDestinationStateId) ? destinationCities.items : []).map((city) => ({
+    value: String(city.id),
+    label: city.name,
+  }));
+  const vehicleOptions = vehicles.map((vehicle) => ({
+    value: String(vehicle.id),
+    label: `${vehicle.prefix} | ${vehicle.licensePlate} | ${vehicle.seats} assentos`,
+  }));
+  const driverOptions = drivers.map((driver) => ({ value: String(driver.id), label: driver.name }));
+  const clientOptions = [
+    { value: "", label: "Nenhum cliente" },
+    ...clients.map((client) => ({ value: String(client.id), label: client.name })),
+  ];
+
+  const handleInputChange = (field) => (event) => {
+    setForm((previous) => ({ ...previous, [field]: event.target.value }));
+  };
+  const handleSelectChange = (field) => (value) => {
+    setForm((previous) => ({ ...previous, [field]: value }));
+  };
+  const handlePassengersChange = ({ passengers, responsiblePassengerId }) => {
+    setForm((previous) => ({ ...previous, passengers, responsiblePassengerId }));
+  };
+  const handleStateChange = (stateField, cityField) => (value) => {
+    if (!value) return;
+    setForm((previous) => ({ ...previous, [stateField]: value, [cityField]: "" }));
+  };
+
+  const handleCustomTotal = (value) => {
+    setCustomTotal(true);
+    setForm((previous) => ({ ...previous, estimatedTotalValue: value }));
+  };
+  const handleCustomIndividual = (value) => {
+    setCustomIndividual(true);
+    setForm((previous) => ({ ...previous, estimatedIndividualValue: value }));
+  };
+  const handleResetTotal = () => {
+    setCustomTotal(false);
+  };
+  const handleResetIndividual = () => {
+    setCustomIndividual(false);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (isCompleted || isSaving || (isEdicao && (isLoadingTrip || !hasChanges))) return;
+    if (!isInProgress) {
+      setHasSubmitted(true);
+      const normalizedForm = {
+        ...effectiveForm,
+        originStateId: resolvedOriginStateId,
+        destinationStateId: resolvedDestinationStateId,
+      };
+      const errors = validateForm(normalizedForm, capacity);
+      if (errors.passengers) toast.error(errors.passengers);
+      if (Object.keys(errors).length) return;
+    }
+
+    setIsSaving(true);
+    try {
+      if (isInProgress) {
+        await ViagemService.updateExpenses(id, form.expenses);
+        toast.success("Gastos da viagem atualizados com sucesso!");
+        navigate("/viagens");
+        return;
+      }
+      const payload = {
+        originCityId: form.originCityId,
+        destinationCityId: form.destinationCityId,
+        plannedDepartureOrigin: form.plannedDepartureOrigin,
+        plannedArrivalDestination: form.plannedArrivalDestination,
+        plannedDepartureDestination: form.plannedDepartureDestination,
+        plannedArrivalOrigin: form.plannedArrivalOrigin,
+        vehicleId: form.vehicleId,
+        driverIds: form.driverIds,
+        clientId: form.clientId,
+        minimumPassengers: form.minimumPassengers,
+        estimatedPassengerAmount: customIndividual ? parseMoneyInput(effectiveForm.estimatedIndividualValue) : null,
+        estimatedTotalValue: customTotal ? parseMoneyInput(effectiveForm.estimatedTotalValue) : null,
+        estimatedIndividualValue: customIndividual ? parseMoneyInput(effectiveForm.estimatedIndividualValue) : null,
+        expenses: form.expenses,
+        passengers: form.passengers.map((passenger) => ({
+          passengerId: Number(passenger.passengerId),
+          amountDue: passenger.amountDue,
+          amountPaid: passenger.amountPaid ?? 0,
+        })),
+        responsiblePassengerId: form.responsiblePassengerId,
+        notes: form.notes,
+      };
+      if (isEdicao) {
+        await ViagemService.update(id, payload);
+        toast.success("Viagem atualizada com sucesso!");
+      } else {
+        await ViagemService.create(payload);
+        toast.success("Viagem agendada com sucesso!");
+      }
+      navigate("/viagens");
+    } catch (error) {
+      const data = error.response?.data;
+      if (isEdicao && error.response?.status === 404) {
+        toast.error("Viagem não encontrada.");
+        navigate("/viagens");
+      } else if (error.response?.status === 409) {
+        toast.error(data?.message || data?.erro || "Conflito na agenda do ônibus ou do motorista.");
+      } else {
+        const failedAction = isInProgress
+          ? "atualizar os gastos da"
+          : `${isEdicao ? "atualizar" : "agendar"} a`;
+        toast.error(`Não foi possível ${failedAction} viagem.`, {
+          description: data?.message || data?.erro || "Ocorreu um problema ao salvar. Tente novamente.",
+        });
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const suggestedTotalValue = moneyInputFromValue(totalExpense);
+  const effectiveTotalValue = customTotal
+    ? parseMoneyInput(form.estimatedTotalValue)
+    : totalExpense;
+  const suggestedIndividualValue = moneyInputFromValue(
+    passengerCount > 0 && effectiveTotalValue !== null
+      ? effectiveTotalValue / passengerCount
+      : 0
+  );
+  const effectiveForm = {
+    ...form,
+    estimatedTotalValue: customTotal ? form.estimatedTotalValue : suggestedTotalValue,
+    estimatedIndividualValue: customIndividual ? form.estimatedIndividualValue : suggestedIndividualValue,
+  };
+
+  return (
+    <div>
+      <PageHeader title={isEdicao ? "Editar viagem" : "Agendar viagem"} />
+
+      {isEdicao && isLoadingTrip ? (
+        <Card className="p-6" aria-busy="true">
+          <LoadingIndicator variant="button" label="Carregando viagem..." className="text-sm text-muted-foreground" />
+        </Card>
+      ) : isEdicao && loadError ? (
+        <Card className="p-6 text-sm text-destructive">{loadError}</Card>
+      ) : (
+        <Card className="gap-0 py-0">
+          {(isInProgress || isCompleted) && (
+            <div
+              role="alert"
+              className="flex items-start gap-3 border-b bg-warning/10 px-6 py-4 text-sm text-foreground"
+            >
+              <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
+              <p>
+                {isCompleted
+                  ? "Esta viagem já foi concluída, por isso não pode ser alterada."
+                  : `Esta viagem já saiu da origem e está em andamento (${ViagemService.getStatusLabel(trip.status).toLowerCase()}). Só os gastos podem ser alterados.`}
+              </p>
+            </div>
+          )}
+
+          <form id="form-viagem" noValidate onSubmit={handleSubmit}>
+            <div className="divide-y">
+              <FormSection
+                icon={MapPinned}
+                title="Trecho e horários"
+                description="Origem, destino e horários previstos."
+              >
+                <GenericSelect
+                  id="origin-state"
+                  label="Estado de origem"
+                  required
+                  disabled={isFieldsLocked}
+                  value={String(resolvedOriginStateId)}
+                  onChange={handleStateChange("originStateId", "originCityId")}
+                  options={stateOptions}
+                  placeholder="Selecione o estado"
+                  hasError={Boolean(validationErrors.originStateId)}
+                  errorMessage={validationErrors.originStateId}
+                />
+                <GenericSelect
+                  id="origin-city"
+                  label="Cidade de origem"
+                  required
+                  searchable
+                  disabled={isFieldsLocked || !resolvedOriginStateId}
+                  value={form.originCityId}
+                  onChange={handleSelectChange("originCityId")}
+                  options={originCityOptions}
+                  placeholder={resolvedOriginStateId ? "Selecione a cidade" : "Escolha primeiro o estado"}
+                  hasError={Boolean(validationErrors.originCityId)}
+                  errorMessage={validationErrors.originCityId}
+                />
+                <GenericSelect
+                  id="destination-state"
+                  label="Estado de destino"
+                  required
+                  disabled={isFieldsLocked}
+                  value={String(resolvedDestinationStateId)}
+                  onChange={handleStateChange("destinationStateId", "destinationCityId")}
+                  options={stateOptions}
+                  placeholder="Selecione o estado"
+                  hasError={Boolean(validationErrors.destinationStateId)}
+                  errorMessage={validationErrors.destinationStateId}
+                />
+                <GenericSelect
+                  id="destination-city"
+                  label="Cidade de destino"
+                  required
+                  searchable
+                  disabled={isFieldsLocked || !resolvedDestinationStateId}
+                  value={form.destinationCityId}
+                  onChange={handleSelectChange("destinationCityId")}
+                  options={destinationCityOptions}
+                  placeholder={resolvedDestinationStateId ? "Selecione a cidade" : "Escolha primeiro o estado"}
+                  hasError={Boolean(validationErrors.destinationCityId)}
+                  errorMessage={validationErrors.destinationCityId}
+                />
+                {TIME_FIELDS.map(([field, label]) => (
+                  <GenericInput
+                    key={field}
+                    id={field}
+                    label={label}
+                    type="datetime-local"
+                    required
+                    disabled={isFieldsLocked}
+                    min={currentDateTimeLocal().slice(0, 16)}
+                    value={form[field]}
+                    onChange={handleInputChange(field)}
+                    hasError={Boolean(validationErrors[field])}
+                    errorMessage={validationErrors[field]}
+                  />
+                ))}
+              </FormSection>
+
+              <FormSection
+                icon={BusFront}
+                title="Ônibus e motoristas"
+                description="Recursos disponíveis para a viagem."
+              >
+                <GenericSelect
+                  id="vehicle"
+                  label="Ônibus"
+                  required
+                  searchable
+                  disabled={isFieldsLocked || isLoadingOptions}
+                  value={form.vehicleId}
+                  onChange={handleSelectChange("vehicleId")}
+                  options={vehicleOptions}
+                  placeholder="Prefixo | placa | assentos"
+                  hasError={Boolean(validationErrors.vehicleId)}
+                  errorMessage={validationErrors.vehicleId}
+                />
+                <GenericSelect
+                  id="drivers"
+                  label="Motoristas"
+                  required
+                  searchable
+                  multiple
+                  disabled={isFieldsLocked || isLoadingOptions}
+                  value={form.driverIds}
+                  onChange={handleSelectChange("driverIds")}
+                  options={driverOptions}
+                  placeholder="Selecione um ou mais motoristas"
+                  searchPlaceholder="Buscar motorista..."
+                  hasError={Boolean(validationErrors.driverIds)}
+                  errorMessage={validationErrors.driverIds}
+                />
+              </FormSection>
+
+              <FormSection
+                icon={ClipboardList}
+                title="Informações complementares"
+                description="Dados opcionais para a reserva."
+              >
+                <GenericSelect
+                  id="client"
+                  label="Cliente (opcional)"
+                  searchable
+                  disabled={isFieldsLocked || isLoadingOptions}
+                  value={form.clientId}
+                  onChange={handleSelectChange("clientId")}
+                  options={clientOptions}
+                  placeholder="Selecione um cliente"
+                />
+                <GenericInput
+                  id="minimum-passengers"
+                  label="Mínimo de passageiros (opcional)"
+                  type="number"
+                  inputMode="numeric"
+                  min="1"
+                  step="1"
+                  disabled={isFieldsLocked}
+                  value={form.minimumPassengers}
+                  onChange={handleInputChange("minimumPassengers")}
+                  placeholder="Ex: 10"
+                  hasError={Boolean(validationErrors.minimumPassengers)}
+                  errorMessage={validationErrors.minimumPassengers}
+                />
+                <div className="md:col-span-2">
+                  <GenericInput
+                    id="notes"
+                    label="Observação (opcional)"
+                    disabled={isFieldsLocked}
+                    value={form.notes}
+                    onChange={handleInputChange("notes")}
+                    placeholder="Informações adicionais sobre a viagem"
+                    maxLength={2000}
+                  />
+                </div>
+              </FormSection>
+
+              <TripPassengers
+                passengers={form.passengers}
+                responsiblePassengerId={form.responsiblePassengerId}
+                onChange={handlePassengersChange}
+                capacity={capacity}
+                suggestedAmount={parseMoneyInput(effectiveForm.estimatedIndividualValue)}
+                minimumPassengers={Number(form.minimumPassengers) || null}
+                disabled={isFieldsLocked}
+              />
+
+              <ExpensesAndValuesSection
+                form={effectiveForm}
+                setForm={setForm}
+                totalExpense={totalExpense}
+                passengerCount={passengerCount}
+                customTotal={customTotal}
+                customIndividual={customIndividual}
+                onCustomTotal={handleCustomTotal}
+                onCustomIndividual={handleCustomIndividual}
+                onResetTotal={handleResetTotal}
+                onResetIndividual={handleResetIndividual}
+                validationErrors={validationErrors}
+                expensesDisabled={isExpensesLocked}
+                valuesDisabled={isFieldsLocked}
+              />
+            </div>
+          </form>
+
+          <FormFooter
+            formId="form-viagem"
+            onBack={() => navigate("/viagens")}
+            isSaving={isSaving}
+            isDisabled={isEdicao && !hasChanges}
+            showSave={!isCompleted}
+            saveLabel={isInProgress ? "Salvar gastos" : isEdicao ? "Salvar alterações" : "Salvar viagem"}
+          />
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function ExpensesAndValuesSection({
+  form,
+  setForm,
+  totalExpense,
+  passengerCount,
+  customTotal,
+  customIndividual,
+  onCustomTotal,
+  onCustomIndividual,
+  onResetTotal,
+  onResetIndividual,
+  validationErrors,
+  expensesDisabled = false,
+  valuesDisabled = false,
+}) {
+  const [draftDescription, setDraftDescription] = useState("");
+  const [draftAmount, setDraftAmount] = useState("");
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [expenseErrors, setExpenseErrors] = useState({});
+  const draftDescriptionRef = useRef(null);
+  const expenseFormRef = useRef(null);
+
+  const resetDraft = () => {
+    setDraftDescription("");
+    setDraftAmount("");
+    setEditingIndex(null);
+    setExpenseErrors({});
+  };
+
+  const saveExpense = () => {
+    const description = draftDescription.trim();
+    const amount = parseMoneyInput(draftAmount);
+    const errors = {};
+    if (!description) errors.description = "Informe a descrição do gasto.";
+    else if (description.length > 255) errors.description = "A descrição deve ter no máximo 255 caracteres.";
+    if (amount === null) errors.amount = "Informe o valor do gasto.";
+    else if (amount <= 0) errors.amount = "O valor do gasto deve ser maior que zero.";
+    else if (amount > 99999999.99) errors.amount = "O valor excede o limite permitido.";
+    setExpenseErrors(errors);
+    if (Object.keys(errors).length) return;
+
+    setForm((previous) => {
+      const expenses = [...previous.expenses];
+      if (editingIndex === null) expenses.push({ description, amount });
+      else expenses[editingIndex] = { description, amount };
+      return { ...previous, expenses };
+    });
+    resetDraft();
+  };
+
+  const editExpense = (index) => {
+    const expense = form.expenses[index];
+    setEditingIndex(index);
+    setDraftDescription(expense.description);
+    setDraftAmount(moneyInputFromValue(expense.amount));
+    setExpenseErrors({});
+    requestAnimationFrame(() => {
+      expenseFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.getElementById("expense-description")?.focus();
+    });
+  };
+
+  const removeExpense = (index) => {
+    const expense = form.expenses[index];
+    if (!window.confirm(`Remover o gasto "${expense.description}"?`)) return;
+    setForm((previous) => ({
+      ...previous,
+      expenses: previous.expenses.filter((_, expenseIndex) => expenseIndex !== index),
+    }));
+    if (editingIndex === index) {
+      resetDraft();
+    } else if (editingIndex !== null && index < editingIndex) {
+      resetDraft();
+    }
+  };
+
+  return (
+    <FormSection icon={Receipt} title="Gastos" description="Despesas previstas para esta viagem.">
+      <div className="sm:col-span-2">
+        <div ref={expenseFormRef} className="grid gap-3 rounded-xl border p-4 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-start">
+          <GenericInput
+            id="expense-description"
+            label="Descrição"
+            required
+            disabled={expensesDisabled}
+            value={draftDescription}
+            onChange={(event) => setDraftDescription(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.preventDefault();
+            }}
+            placeholder="Ex.: Pedágio"
+            maxLength={255}
+            hasError={Boolean(expenseErrors.description)}
+            errorMessage={expenseErrors.description}
+            ref={draftDescriptionRef}
+          />
+          <GenericInput
+            id="expense-amount"
+            label="Valor"
+            required
+            disabled={expensesDisabled}
+            inputMode="decimal"
+            value={draftAmount}
+            onChange={(event) => setDraftAmount(formatMoneyInput(event.target.value))}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.preventDefault();
+            }}
+            placeholder="R$ 0,00"
+            hasError={Boolean(expenseErrors.amount)}
+            errorMessage={expenseErrors.amount}
+          />
+          <div className="flex gap-2">
+            <Button type="button" onClick={saveExpense} disabled={expensesDisabled}>{editingIndex === null ? "Adicionar" : "Salvar gasto"}</Button>
+            {editingIndex !== null && <Button type="button" variant="outline" onClick={resetDraft} disabled={expensesDisabled}>Cancelar</Button>}
+          </div>
+        </div>
+
+        {form.expenses.length === 0 ? (
+          <p className="mt-4 rounded-xl border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
+            Nenhum gasto registrado nesta viagem.
+          </p>
+        ) : (
+          <div className="mt-4 overflow-x-auto rounded-xl border">
+            <table className="w-full text-sm">
+              <thead className="border-b bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Descrição</th>
+                  <th className="px-4 py-3 font-medium">Valor</th>
+                  <th className="px-4 py-3 text-right font-medium">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {form.expenses.map((expense, index) => (
+                  <tr key={`${expense.description}-${index}`}>
+                    <td className="px-4 py-3 text-foreground">{expense.description}</td>
+                    <td className="whitespace-nowrap px-4 py-3 tabular-nums">{formatCurrency(expense.amount)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end gap-1">
+                        <Button type="button" variant="ghost" size="icon-sm" aria-label={`Alterar gasto ${expense.description}`} onClick={() => editExpense(index)} disabled={expensesDisabled}><Pencil /></Button>
+                        <Button type="button" variant="ghost" size="icon-sm" className="text-destructive" aria-label={`Remover gasto ${expense.description}`} onClick={() => removeExpense(index)} disabled={expensesDisabled}><Trash2 /></Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="border-t bg-muted/20">
+                <tr>
+                  <td className="px-4 py-3 font-semibold">Total dos gastos</td>
+                  <td className="px-4 py-3 font-semibold tabular-nums" colSpan={2}>{formatCurrency(totalExpense)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="sm:col-span-2">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <GenericInput
+              id="estimated-total"
+              label="Valor estimado total (opcional)"
+              disabled={valuesDisabled}
+              inputMode="decimal"
+              value={form.estimatedTotalValue}
+              onChange={(event) => onCustomTotal(formatMoneyInput(event.target.value))}
+              placeholder="R$ 0,00"
+              hasError={Boolean(validationErrors.estimatedTotalValue)}
+              errorMessage={validationErrors.estimatedTotalValue}
+            />
+            {customTotal && <Button type="button" variant="link" size="xs" onClick={onResetTotal} disabled={valuesDisabled} className="mt-1 px-0"><RotateCcw /> Usar valor calculado</Button>}
+          </div>
+          <div>
+            <GenericInput
+              id="estimated-individual"
+              label="Valor estimado por passageiro (opcional)"
+              disabled={valuesDisabled}
+              inputMode="decimal"
+              value={form.estimatedIndividualValue}
+              onChange={(event) => onCustomIndividual(formatMoneyInput(event.target.value))}
+              placeholder="R$ 0,00"
+              hasError={Boolean(validationErrors.estimatedIndividualValue)}
+              errorMessage={validationErrors.estimatedIndividualValue}
+            />
+            {customIndividual && <Button type="button" variant="link" size="xs" onClick={onResetIndividual} disabled={valuesDisabled} className="mt-1 px-0"><RotateCcw /> Usar valor calculado</Button>}
+            <p className="mt-1 min-h-8 text-xs text-muted-foreground">
+              {passengerCount > 0
+                ? `Divisão por ${passengerCount} passageiro(s).`
+                : "Informe a quantidade mínima ou inclua passageiros para calcular."}
+            </p>
+          </div>
+        </div>
+      </div>
+    </FormSection>
+  );
+}
+
+function expenseTotal(expenses) {
+  return expenses.reduce((sum, expense) => sum + (toCents(expense.amount) ?? 0), 0) / 100;
+}
+
+export default function CadastroViagem({ isEdicao = false }) {
+  return <CadastroViagemForm isEdicao={isEdicao} />;
+}

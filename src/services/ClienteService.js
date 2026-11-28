@@ -33,6 +33,8 @@ class ClienteService extends BaseService {
         complement: data.address?.complement?.trim() || null,
         cityId,
       },
+      phone: onlyDigits(data.phone) || null,
+      email: data.email?.trim() || null,
     };
   }
 

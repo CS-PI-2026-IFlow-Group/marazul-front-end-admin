@@ -1,21 +1,16 @@
 import { NavLink } from "react-router-dom";
-import { ShieldCheck } from "lucide-react";
-import { isAdmin } from "../lib/auth";
+import { adminNavItems, filterNavItems } from "../config/navigation";
+import { useAuth } from "../context/AuthContext";
 import { cn } from "../lib/utils";
 
-const adminItems = [
-  { to: "/perfis", label: "Perfis de Acesso", icon: ShieldCheck },
-];
-
-/**
- * Itens de menu restritos ao perfil administrador.
- * Não renderiza nada para os demais perfis.
- */
 export default function Rightbar({ onNavigate }) {
-  if (!isAdmin()) return null;
+  const { profile } = useAuth();
+  const adminItems = filterNavItems(adminNavItems, profile);
+
+  if (adminItems.length === 0) return null;
 
   return (
-    <div className="space-y-1 border-t border-slate-100 pt-4">
+    <div className="mt-3 flex flex-col gap-1 border-t border-sidebar-border pt-3">
       {adminItems.map(({ to, label, icon: Icon }) => (
         <NavLink
           key={to}
@@ -23,14 +18,14 @@ export default function Rightbar({ onNavigate }) {
           onClick={onNavigate}
           className={({ isActive }) =>
             cn(
-              "flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium transition-colors",
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors",
               isActive
-                ? "bg-[#e31e24]/10 text-[#e31e24] font-semibold"
-                : "text-slate-500 hover:bg-slate-50 hover:text-[#062A45]",
+                ? "bg-sidebar-accent font-semibold text-sidebar-foreground [&_svg]:text-accent"
+                : "text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground",
             )
           }
         >
-          <Icon className="size-5 shrink-0" />
+          <Icon className="size-4.5 shrink-0" />
           <span>{label}</span>
         </NavLink>
       ))}

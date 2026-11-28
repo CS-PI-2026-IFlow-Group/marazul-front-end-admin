@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { Bus, RefreshCw, Users } from "lucide-react";
+import { Bus, Contact, RefreshCw, UserRound, Users } from "lucide-react";
 import MetricCard from "../components/MetricCard";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
 import dashboardService from "../services/DashboardService";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 export default function Dashboard() {
+  usePageTitle("Dashboard");
   const {
     profile,
     loading: profileLoading,
@@ -59,51 +61,71 @@ export default function Dashboard() {
 
   const firstName = profile?.nome?.trim().split(/\s+/)[0];
 
+  const isUnavailable = (value) => failed || (!loading && value == null);
+
+  const cards = [
+    {
+      title: "Total de ônibus",
+      value: metrics?.totalVehicles,
+      icon: Bus,
+    },
+    {
+      title: "Colaboradores ativos",
+      value: metrics?.activeEmployees,
+      icon: Users,
+    },
+    {
+      title: "Clientes cadastrados",
+      value: metrics?.totalClients,
+      icon: Contact,
+    },
+    {
+      title: "Passageiros cadastrados",
+      value: metrics?.totalPassengers,
+      icon: UserRound,
+    },
+  ];
+
+  const hasUnavailable = cards.some((card) => isUnavailable(card.value));
+
   return (
-    <div className="space-y-8">
-      <div className="space-y-1">
-        <h1 className="flex flex-wrap items-center gap-x-2 text-2xl font-bold text-[#062A45] sm:text-3xl">
+    <div>
+      <div className="mb-8">
+        <h1 className="flex flex-wrap items-center gap-x-2 text-3xl font-bold md:text-4xl">
           {profileLoading ? (
             <>
               Olá,
               <span
                 role="status"
                 aria-label="Carregando nome do administrador"
-                className="inline-block h-7 w-40 animate-pulse rounded bg-slate-200"
+                className="inline-block h-8 w-40 animate-pulse rounded-lg bg-muted"
               />
             </>
           ) : (
             <span>{firstName ? `Olá, ${firstName}` : "Olá!"}</span>
           )}
         </h1>
-        <p className="text-slate-600">
+        <p className="mt-1.5 text-muted-foreground">
           Resumo da operação da Marazul em tempo real.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <MetricCard
-          title="Total de ônibus"
-          value={metrics?.totalVehicles}
-          icon={Bus}
-          loading={loading}
-          error={failed}
-        />
-        <MetricCard
-          title="Colaboradores ativos"
-          value={metrics?.activeEmployees}
-          icon={Users}
-          loading={loading}
-          error={failed}
-        />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {cards.map((card) => (
+          <MetricCard
+            key={card.title}
+            title={card.title}
+            value={card.value}
+            icon={card.icon}
+            loading={loading}
+            error={isUnavailable(card.value)}
+          />
+        ))}
       </div>
 
-      {failed && (
-        <Button
-          onClick={handleRetry}
-          className="gap-2 bg-[#062A45] font-bold text-white hover:bg-[#0f172a]"
-        >
-          <RefreshCw className="size-4" /> Tentar novamente
+      {hasUnavailable && (
+        <Button onClick={handleRetry} className="mt-6">
+          <RefreshCw /> Tentar novamente
         </Button>
       )}
     </div>
