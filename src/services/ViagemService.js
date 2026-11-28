@@ -58,7 +58,12 @@ class ViagemService extends BaseService {
       estimatedPassengerAmount: toNumberOrNull(data.estimatedPassengerAmount),
       estimatedTotalValue: toNumberOrNull(data.estimatedTotalValue),
       estimatedIndividualValue: toNumberOrNull(data.estimatedIndividualValue),
+      expenses: (data.expenses ?? []).map((expense) => ({
+        description: expense.description.trim(),
+        amount: toNumberOrNull(expense.amount),
+      })),
       notes: data.notes?.trim() || null,
+      responsiblePassengerId: toNumberOrNull(data.responsiblePassengerId),
       passengers: Array.isArray(data.passengers)
         ? data.passengers.map((passenger) => ({
             passengerId: Number(passenger.passengerId),
@@ -66,7 +71,6 @@ class ViagemService extends BaseService {
             amountPaid: toNumberOrNull(passenger.amountPaid) ?? 0,
           }))
         : undefined,
-      responsiblePassengerId: toNumberOrNull(data.responsiblePassengerId),
     };
   }
 
