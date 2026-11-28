@@ -1,6 +1,7 @@
-import { Ban, Eye, Map, Pencil, Plus, RotateCcw } from "lucide-react";
+import { Ban, Eye, Map, Pencil, Plus, RotateCcw, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import DataTable from "../../components/DataTable";
 import EmptyState from "../../components/EmptyState";
 import ErrorState from "../../components/ErrorState";
@@ -54,8 +55,94 @@ function hasStarted(trip) {
   return !NOT_STARTED_STATUSES.includes(trip.status);
 }
 
-function TripActions({ trip, onDetails, onEdit }) {
+function CancelTripModal({ trip, isLoading, onConfirm, onCancel }) {
+  if (!trip) return null;
+
+  const close = () => {
+    if (!isLoading) onCancel();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cancelar-viagem-titulo"
+    >
+      <div
+        className="absolute inset-0 bg-foreground/40 backdrop-blur-sm transition-opacity"
+        onClick={close}
+      />
+
+      <div className="relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl border bg-card p-5 text-card-foreground shadow-2xl sm:p-8">
+        <button
+          type="button"
+          onClick={close}
+          disabled={isLoading}
+          aria-label="Fechar"
+          className="absolute top-4 right-4 cursor-pointer rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <X className="size-5" />
+        </button>
+
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="flex size-16 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+            <Ban className="size-8" />
+          </div>
+          <div>
+            <h3
+              id="cancelar-viagem-titulo"
+              className="font-display text-xl font-bold text-foreground"
+            >
+              Cancelar Viagem
+            </h3>
+            <p className="mt-3 text-base text-muted-foreground">
+              Deseja realmente cancelar a viagem{" "}
+              <span className="font-semibold text-foreground">
+                {formatRoute(trip)}
+              </span>{" "}
+              com saída prevista em{" "}
+              <span className="font-semibold text-foreground">
+                {formatDateTime(trip.plannedDepartureOrigin)}
+              </span>
+              ?
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Esta ação não pode ser desfeita.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Button
+            variant="outline"
+            onClick={close}
+            disabled={isLoading}
+            className="h-11 w-full flex-1 font-semibold"
+          >
+            Voltar
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={onConfirm}
+            disabled={isLoading}
+            className="h-11 w-full flex-1"
+          >
+            {isLoading ? (
+              <LoadingIndicator variant="button" label="Cancelando..." />
+            ) : (
+              "Confirmar Cancelamento"
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TripActions({ trip, onDetails, onEdit, onCancel }) {
   const started = hasStarted(trip);
+  const completed = trip.status === "COMPLETED";
 
   return (
     <RowActions>
@@ -70,11 +157,13 @@ function TripActions({ trip, onDetails, onEdit }) {
       <button
         type="button"
         onClick={onEdit}
-        disabled={started}
+        disabled={completed}
         title={
-          started
-            ? "Viagem que já saiu da origem não pode ser alterada"
-            : "Editar"
+          completed
+            ? "Viagem concluída não pode ser alterada"
+            : started
+              ? "Editar gastos"
+              : "Editar"
         }
         aria-label="Editar viagem"
       >
@@ -82,11 +171,12 @@ function TripActions({ trip, onDetails, onEdit }) {
       </button>
       <button
         type="button"
-        disabled
+        onClick={onCancel}
+        disabled={started}
         title={
           started
             ? "Viagem que já saiu da origem não pode ser cancelada"
-            : "Disponível em breve"
+            : "Cancelar"
         }
         aria-label="Cancelar viagem"
       >
@@ -108,6 +198,8 @@ export default function Viagens() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [confirmTrip, setConfirmTrip] = useState(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -174,6 +266,25 @@ export default function Viagens() {
     if (hasApiFilters) {
       reload();
       setFilters(EMPTY_FILTERS);
+    }
+  };
+
+  const handleCancelTrip = async () => {
+    if (!confirmTrip) return;
+    setIsCancelling(true);
+
+    try {
+      await ViagemService.delete(confirmTrip.id);
+      setTrips((current) => current.filter((trip) => trip.id !== confirmTrip.id));
+      toast.success("Viagem cancelada com sucesso!");
+    } catch (requestError) {
+      const data = requestError.response?.data;
+      toast.error(
+        data?.message || data?.erro || "Não foi possível cancelar a viagem. Tente novamente.",
+      );
+    } finally {
+      setIsCancelling(false);
+      setConfirmTrip(null);
     }
   };
 
@@ -346,6 +457,7 @@ export default function Viagens() {
                       trip={trip}
                       onDetails={() => navigate(`/viagens/detalhes/${trip.id}`)}
                       onEdit={() => navigate(`/viagens/editar/${trip.id}`)}
+                      onCancel={() => setConfirmTrip(trip)}
                     />
                   </td>
                 </tr>
@@ -386,6 +498,7 @@ export default function Viagens() {
                       trip={trip}
                       onDetails={() => navigate(`/viagens/detalhes/${trip.id}`)}
                       onEdit={() => navigate(`/viagens/editar/${trip.id}`)}
+                      onCancel={() => setConfirmTrip(trip)}
                     />
                   </div>
                 </article>
@@ -404,6 +517,13 @@ export default function Viagens() {
           </>
         )}
       </ListCard>
+
+      <CancelTripModal
+        trip={confirmTrip}
+        isLoading={isCancelling}
+        onConfirm={handleCancelTrip}
+        onCancel={() => setConfirmTrip(null)}
+      />
     </div>
   );
 }
