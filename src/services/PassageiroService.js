@@ -1,8 +1,16 @@
+import api from "../config/axiosConfig";
 import BaseService from "./BaseService";
 
 class PassageiroService extends BaseService {
   constructor() {
     super("/api/passageiros");
+  }
+
+  async search(busca = "") {
+    const response = await api.get(this.endpoint, {
+      params: busca.trim() ? { busca: busca.trim() } : {},
+    });
+    return Array.isArray(response.data) ? response.data : [];
   }
 
   buildPayload(data) {

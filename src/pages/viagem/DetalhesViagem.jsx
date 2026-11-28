@@ -427,6 +427,11 @@ export default function DetalhesViagem() {
                 </DataTable>
               </div>
             )}
+            {expenses.length > 0 && (
+              <Detail label="Soma dos gastos" className="sm:col-span-2">
+                {formatCurrency(trip.totalExpenses ?? expenses.reduce((sum, expense) => sum + (toCents(expense.amount) ?? 0), 0) / 100)}
+              </Detail>
+            )}
           </FormSection>
 
           <FormSection icon={Wallet} title="Valores">
