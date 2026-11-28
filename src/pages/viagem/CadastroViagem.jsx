@@ -300,7 +300,10 @@ function CadastroViagemForm({ isEdicao = false }) {
     return () => { active = false; };
   }, [id, isEdicao, navigate]);
 
-  const isReadOnly = Boolean(trip) && !EDITABLE_STATUSES.includes(trip.status);
+  const isCompleted = trip?.status === "COMPLETED";
+  const isInProgress = Boolean(trip) && !isCompleted && !EDITABLE_STATUSES.includes(trip.status);
+  const isFieldsLocked = isSaving || isInProgress || isCompleted;
+  const isExpensesLocked = isSaving || isCompleted;
   const hasChanges = Boolean(initialSnapshot)
     && toComparable(form, customTotal, customIndividual) !== initialSnapshot;
 
@@ -366,19 +369,27 @@ function CadastroViagemForm({ isEdicao = false }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (isReadOnly || (isEdicao && !hasChanges)) return;
-    setHasSubmitted(true);
-    const normalizedForm = {
-      ...effectiveForm,
-      originStateId: resolvedOriginStateId,
-      destinationStateId: resolvedDestinationStateId,
-    };
-    const errors = validateForm(normalizedForm, capacity);
-    if (errors.passengers) toast.error(errors.passengers);
-    if (Object.keys(errors).length || isSaving || (isEdicao && isLoadingTrip)) return;
+    if (isCompleted || isSaving || (isEdicao && (isLoadingTrip || !hasChanges))) return;
+    if (!isInProgress) {
+      setHasSubmitted(true);
+      const normalizedForm = {
+        ...effectiveForm,
+        originStateId: resolvedOriginStateId,
+        destinationStateId: resolvedDestinationStateId,
+      };
+      const errors = validateForm(normalizedForm, capacity);
+      if (errors.passengers) toast.error(errors.passengers);
+      if (Object.keys(errors).length) return;
+    }
 
     setIsSaving(true);
     try {
+      if (isInProgress) {
+        await ViagemService.updateExpenses(id, form.expenses);
+        toast.success("Gastos da viagem atualizados com sucesso!");
+        navigate("/viagens");
+        return;
+      }
       const payload = {
         originCityId: form.originCityId,
         destinationCityId: form.destinationCityId,
@@ -418,7 +429,10 @@ function CadastroViagemForm({ isEdicao = false }) {
       } else if (error.response?.status === 409) {
         toast.error(data?.message || data?.erro || "Conflito na agenda do ônibus ou do motorista.");
       } else {
-        toast.error(`Não foi possível ${isEdicao ? "atualizar" : "agendar"} a viagem.`, {
+        const failedAction = isInProgress
+          ? "atualizar os gastos da"
+          : `${isEdicao ? "atualizar" : "agendar"} a`;
+        toast.error(`Não foi possível ${failedAction} viagem.`, {
           description: data?.message || data?.erro || "Ocorreu um problema ao salvar. Tente novamente.",
         });
       }
@@ -454,22 +468,22 @@ function CadastroViagemForm({ isEdicao = false }) {
         <Card className="p-6 text-sm text-destructive">{loadError}</Card>
       ) : (
         <Card className="gap-0 py-0">
-          {isReadOnly && (
+          {(isInProgress || isCompleted) && (
             <div
               role="alert"
               className="flex items-start gap-3 border-b bg-warning/10 px-6 py-4 text-sm text-foreground"
             >
               <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
               <p>
-                Esta viagem já saiu da origem e está em andamento
-                ({ViagemService.getStatusLabel(trip.status).toLowerCase()}), por isso não pode ser
-                alterada.
+                {isCompleted
+                  ? "Esta viagem já foi concluída, por isso não pode ser alterada."
+                  : `Esta viagem já saiu da origem e está em andamento (${ViagemService.getStatusLabel(trip.status).toLowerCase()}). Só os gastos podem ser alterados.`}
               </p>
             </div>
           )}
 
           <form id="form-viagem" noValidate onSubmit={handleSubmit}>
-            <fieldset disabled={isReadOnly} className="min-w-0 divide-y">
+            <div className="divide-y">
               <FormSection
                 icon={MapPinned}
                 title="Trecho e horários"
@@ -479,6 +493,7 @@ function CadastroViagemForm({ isEdicao = false }) {
                   id="origin-state"
                   label="Estado de origem"
                   required
+                  disabled={isFieldsLocked}
                   value={String(resolvedOriginStateId)}
                   onChange={handleStateChange("originStateId", "originCityId")}
                   options={stateOptions}
@@ -491,7 +506,7 @@ function CadastroViagemForm({ isEdicao = false }) {
                   label="Cidade de origem"
                   required
                   searchable
-                  disabled={!resolvedOriginStateId}
+                  disabled={isFieldsLocked || !resolvedOriginStateId}
                   value={form.originCityId}
                   onChange={handleSelectChange("originCityId")}
                   options={originCityOptions}
@@ -503,6 +518,7 @@ function CadastroViagemForm({ isEdicao = false }) {
                   id="destination-state"
                   label="Estado de destino"
                   required
+                  disabled={isFieldsLocked}
                   value={String(resolvedDestinationStateId)}
                   onChange={handleStateChange("destinationStateId", "destinationCityId")}
                   options={stateOptions}
@@ -515,7 +531,7 @@ function CadastroViagemForm({ isEdicao = false }) {
                   label="Cidade de destino"
                   required
                   searchable
-                  disabled={!resolvedDestinationStateId}
+                  disabled={isFieldsLocked || !resolvedDestinationStateId}
                   value={form.destinationCityId}
                   onChange={handleSelectChange("destinationCityId")}
                   options={destinationCityOptions}
@@ -530,6 +546,7 @@ function CadastroViagemForm({ isEdicao = false }) {
                     label={label}
                     type="datetime-local"
                     required
+                    disabled={isFieldsLocked}
                     min={currentDateTimeLocal().slice(0, 16)}
                     value={form[field]}
                     onChange={handleInputChange(field)}
@@ -549,7 +566,7 @@ function CadastroViagemForm({ isEdicao = false }) {
                   label="Ônibus"
                   required
                   searchable
-                  disabled={isLoadingOptions}
+                  disabled={isFieldsLocked || isLoadingOptions}
                   value={form.vehicleId}
                   onChange={handleSelectChange("vehicleId")}
                   options={vehicleOptions}
@@ -563,7 +580,7 @@ function CadastroViagemForm({ isEdicao = false }) {
                   required
                   searchable
                   multiple
-                  disabled={isLoadingOptions}
+                  disabled={isFieldsLocked || isLoadingOptions}
                   value={form.driverIds}
                   onChange={handleSelectChange("driverIds")}
                   options={driverOptions}
@@ -583,7 +600,7 @@ function CadastroViagemForm({ isEdicao = false }) {
                   id="client"
                   label="Cliente (opcional)"
                   searchable
-                  disabled={isLoadingOptions}
+                  disabled={isFieldsLocked || isLoadingOptions}
                   value={form.clientId}
                   onChange={handleSelectChange("clientId")}
                   options={clientOptions}
@@ -596,6 +613,7 @@ function CadastroViagemForm({ isEdicao = false }) {
                   inputMode="numeric"
                   min="1"
                   step="1"
+                  disabled={isFieldsLocked}
                   value={form.minimumPassengers}
                   onChange={handleInputChange("minimumPassengers")}
                   placeholder="Ex: 10"
@@ -606,6 +624,7 @@ function CadastroViagemForm({ isEdicao = false }) {
                   <GenericInput
                     id="notes"
                     label="Observação (opcional)"
+                    disabled={isFieldsLocked}
                     value={form.notes}
                     onChange={handleInputChange("notes")}
                     placeholder="Informações adicionais sobre a viagem"
@@ -621,7 +640,7 @@ function CadastroViagemForm({ isEdicao = false }) {
                 capacity={capacity}
                 suggestedAmount={parseMoneyInput(effectiveForm.estimatedIndividualValue)}
                 minimumPassengers={Number(form.minimumPassengers) || null}
-                disabled={isSaving}
+                disabled={isFieldsLocked}
               />
 
               <ExpensesAndValuesSection
@@ -636,8 +655,10 @@ function CadastroViagemForm({ isEdicao = false }) {
                 onResetTotal={handleResetTotal}
                 onResetIndividual={handleResetIndividual}
                 validationErrors={validationErrors}
+                expensesDisabled={isExpensesLocked}
+                valuesDisabled={isFieldsLocked}
               />
-            </fieldset>
+            </div>
           </form>
 
           <FormFooter
@@ -645,8 +666,8 @@ function CadastroViagemForm({ isEdicao = false }) {
             onBack={() => navigate("/viagens")}
             isSaving={isSaving}
             isDisabled={isEdicao && !hasChanges}
-            showSave={!isReadOnly}
-            saveLabel={isEdicao ? "Salvar alterações" : "Salvar viagem"}
+            showSave={!isCompleted}
+            saveLabel={isInProgress ? "Salvar gastos" : isEdicao ? "Salvar alterações" : "Salvar viagem"}
           />
         </Card>
       )}
@@ -666,6 +687,8 @@ function ExpensesAndValuesSection({
   onResetTotal,
   onResetIndividual,
   validationErrors,
+  expensesDisabled = false,
+  valuesDisabled = false,
 }) {
   const [draftDescription, setDraftDescription] = useState("");
   const [draftAmount, setDraftAmount] = useState("");
@@ -736,6 +759,7 @@ function ExpensesAndValuesSection({
             id="expense-description"
             label="Descrição"
             required
+            disabled={expensesDisabled}
             value={draftDescription}
             onChange={(event) => setDraftDescription(event.target.value)}
             onKeyDown={(event) => {
@@ -751,6 +775,7 @@ function ExpensesAndValuesSection({
             id="expense-amount"
             label="Valor"
             required
+            disabled={expensesDisabled}
             inputMode="decimal"
             value={draftAmount}
             onChange={(event) => setDraftAmount(formatMoneyInput(event.target.value))}
@@ -762,8 +787,8 @@ function ExpensesAndValuesSection({
             errorMessage={expenseErrors.amount}
           />
           <div className="flex gap-2">
-            <Button type="button" onClick={saveExpense}>{editingIndex === null ? "Adicionar" : "Salvar gasto"}</Button>
-            {editingIndex !== null && <Button type="button" variant="outline" onClick={resetDraft}>Cancelar</Button>}
+            <Button type="button" onClick={saveExpense} disabled={expensesDisabled}>{editingIndex === null ? "Adicionar" : "Salvar gasto"}</Button>
+            {editingIndex !== null && <Button type="button" variant="outline" onClick={resetDraft} disabled={expensesDisabled}>Cancelar</Button>}
           </div>
         </div>
 
@@ -788,8 +813,8 @@ function ExpensesAndValuesSection({
                     <td className="whitespace-nowrap px-4 py-3 tabular-nums">{formatCurrency(expense.amount)}</td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1">
-                        <Button type="button" variant="ghost" size="icon-sm" aria-label={`Alterar gasto ${expense.description}`} onClick={() => editExpense(index)}><Pencil /></Button>
-                        <Button type="button" variant="ghost" size="icon-sm" className="text-destructive" aria-label={`Remover gasto ${expense.description}`} onClick={() => removeExpense(index)}><Trash2 /></Button>
+                        <Button type="button" variant="ghost" size="icon-sm" aria-label={`Alterar gasto ${expense.description}`} onClick={() => editExpense(index)} disabled={expensesDisabled}><Pencil /></Button>
+                        <Button type="button" variant="ghost" size="icon-sm" className="text-destructive" aria-label={`Remover gasto ${expense.description}`} onClick={() => removeExpense(index)} disabled={expensesDisabled}><Trash2 /></Button>
                       </div>
                     </td>
                   </tr>
@@ -812,6 +837,7 @@ function ExpensesAndValuesSection({
             <GenericInput
               id="estimated-total"
               label="Valor estimado total (opcional)"
+              disabled={valuesDisabled}
               inputMode="decimal"
               value={form.estimatedTotalValue}
               onChange={(event) => onCustomTotal(formatMoneyInput(event.target.value))}
@@ -819,12 +845,13 @@ function ExpensesAndValuesSection({
               hasError={Boolean(validationErrors.estimatedTotalValue)}
               errorMessage={validationErrors.estimatedTotalValue}
             />
-            {customTotal && <Button type="button" variant="link" size="xs" onClick={onResetTotal} className="mt-1 px-0"><RotateCcw /> Usar valor calculado</Button>}
+            {customTotal && <Button type="button" variant="link" size="xs" onClick={onResetTotal} disabled={valuesDisabled} className="mt-1 px-0"><RotateCcw /> Usar valor calculado</Button>}
           </div>
           <div>
             <GenericInput
               id="estimated-individual"
               label="Valor estimado por passageiro (opcional)"
+              disabled={valuesDisabled}
               inputMode="decimal"
               value={form.estimatedIndividualValue}
               onChange={(event) => onCustomIndividual(formatMoneyInput(event.target.value))}
@@ -832,7 +859,7 @@ function ExpensesAndValuesSection({
               hasError={Boolean(validationErrors.estimatedIndividualValue)}
               errorMessage={validationErrors.estimatedIndividualValue}
             />
-            {customIndividual && <Button type="button" variant="link" size="xs" onClick={onResetIndividual} className="mt-1 px-0"><RotateCcw /> Usar valor calculado</Button>}
+            {customIndividual && <Button type="button" variant="link" size="xs" onClick={onResetIndividual} disabled={valuesDisabled} className="mt-1 px-0"><RotateCcw /> Usar valor calculado</Button>}
             <p className="mt-1 min-h-8 text-xs text-muted-foreground">
               {passengerCount > 0
                 ? `Divisão por ${passengerCount} passageiro(s).`

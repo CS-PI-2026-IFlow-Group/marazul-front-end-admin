@@ -18,6 +18,13 @@ function toNumberOrNull(value) {
   return Number.isNaN(number) ? null : number;
 }
 
+function toExpensesPayload(expenses) {
+  return (expenses ?? []).map((expense) => ({
+    description: expense.description.trim(),
+    amount: toNumberOrNull(expense.amount),
+  }));
+}
+
 class ViagemService extends BaseService {
   constructor() {
     super("/api/viagens");
@@ -58,10 +65,7 @@ class ViagemService extends BaseService {
       estimatedPassengerAmount: toNumberOrNull(data.estimatedPassengerAmount),
       estimatedTotalValue: toNumberOrNull(data.estimatedTotalValue),
       estimatedIndividualValue: toNumberOrNull(data.estimatedIndividualValue),
-      expenses: (data.expenses ?? []).map((expense) => ({
-        description: expense.description.trim(),
-        amount: toNumberOrNull(expense.amount),
-      })),
+      expenses: toExpensesPayload(data.expenses),
       notes: data.notes?.trim() || null,
       responsiblePassengerId: toNumberOrNull(data.responsiblePassengerId),
       passengers: Array.isArray(data.passengers)
@@ -80,6 +84,13 @@ class ViagemService extends BaseService {
 
   async update(id, data) {
     return super.update(id, this.buildPayload(data));
+  }
+
+  async updateExpenses(id, expenses) {
+    const response = await api.put(`${this.endpoint}/${id}/gastos`, {
+      expenses: toExpensesPayload(expenses),
+    });
+    return response.data;
   }
 
   async alterarSituacao(id, status, dataHora = null) {

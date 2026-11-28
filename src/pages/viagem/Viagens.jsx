@@ -142,6 +142,7 @@ function CancelTripModal({ trip, isLoading, onConfirm, onCancel }) {
 
 function TripActions({ trip, onDetails, onEdit, onCancel }) {
   const started = hasStarted(trip);
+  const completed = trip.status === "COMPLETED";
 
   return (
     <RowActions>
@@ -156,11 +157,13 @@ function TripActions({ trip, onDetails, onEdit, onCancel }) {
       <button
         type="button"
         onClick={onEdit}
-        disabled={started}
+        disabled={completed}
         title={
-          started
-            ? "Viagem que já saiu da origem não pode ser alterada"
-            : "Editar"
+          completed
+            ? "Viagem concluída não pode ser alterada"
+            : started
+              ? "Editar gastos"
+              : "Editar"
         }
         aria-label="Editar viagem"
       >
