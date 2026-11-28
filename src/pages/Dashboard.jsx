@@ -68,25 +68,21 @@ export default function Dashboard() {
       title: "Total de ônibus",
       value: metrics?.totalVehicles,
       icon: Bus,
-      tone: "primary",
     },
     {
       title: "Colaboradores ativos",
       value: metrics?.activeEmployees,
       icon: Users,
-      tone: "success",
     },
     {
       title: "Clientes cadastrados",
       value: metrics?.totalClients,
       icon: Contact,
-      tone: "accent",
     },
     {
       title: "Passageiros cadastrados",
       value: metrics?.totalPassengers,
       icon: UserRound,
-      tone: "primary",
     },
   ];
 
@@ -121,7 +117,6 @@ export default function Dashboard() {
             title={card.title}
             value={card.value}
             icon={card.icon}
-            tone={card.tone}
             loading={loading}
             error={isUnavailable(card.value)}
           />
