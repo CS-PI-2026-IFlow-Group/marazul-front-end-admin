@@ -8,17 +8,17 @@ class RelatorioService extends BaseService {
     super("/api/relatorios");
   }
 
-  async generate(relatorio, period = {}) {
+  async generate(relatorio, period = {}, filters = {}) {
     const response = await api.get(`${this.endpoint}/${relatorio}`, {
-      params: periodParams(period),
+      params: { ...periodParams(period), ...filterParams(filters) },
     });
     return response.data;
   }
 
-  async downloadPdf(relatorio, period = {}) {
+  async downloadPdf(relatorio, period = {}, filters = {}) {
     try {
       const response = await api.get(`${this.endpoint}/${relatorio}/pdf`, {
-        params: periodParams(period),
+        params: { ...periodParams(period), ...filterParams(filters) },
         responseType: "blob",
       });
       const fileName =
@@ -36,6 +36,12 @@ function periodParams({ dataInicio, dataFim }) {
     dataInicio: dataInicio || undefined,
     dataFim: dataFim || undefined,
   };
+}
+
+function filterParams(filters) {
+  return Object.fromEntries(
+    Object.entries(filters ?? {}).filter(([, value]) => value !== undefined && value !== null && value !== ""),
+  );
 }
 
 async function withReadableBody(error) {
