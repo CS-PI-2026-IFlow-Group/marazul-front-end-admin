@@ -94,6 +94,10 @@ class ViagemService extends BaseService {
     const item = FALLBACK_STATUSES.find((status) => status.value === value);
     return item?.label || value;
   }
+
+  getStatusValue(label) {
+    return FALLBACK_STATUSES.find((status) => status.label === label)?.value;
+  }
 }
 
 export default new ViagemService();

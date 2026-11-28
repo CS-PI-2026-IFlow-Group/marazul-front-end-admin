@@ -1,9 +1,7 @@
 import { formatDate } from "../lib/reportFormat";
 import { cn } from "../lib/utils";
-import { FALLBACK_STATUSES } from "../services/ViagemService";
+import ViagemService from "../services/ViagemService";
 import TripStatusBadge from "./TripStatusBadge";
-
-const STATUS_BY_LABEL = Object.fromEntries(FALLBACK_STATUSES.map((status) => [status.label, status.value]));
 
 const COLUMNS = [
   { title: "Saída", className: "text-center" },
@@ -81,7 +79,7 @@ export default function WeeklySchedule({ linhas }) {
                 <td className="whitespace-nowrap px-5 py-3.5 font-medium text-foreground">{viagem.onibus}</td>
                 <td className="px-5 py-3.5 text-muted-foreground">{viagem.motoristas ?? "—"}</td>
                 <td className="whitespace-nowrap px-5 py-3.5 text-center">
-                  <TripStatusBadge status={STATUS_BY_LABEL[viagem.situacao]} label={viagem.situacao} />
+                  <TripStatusBadge status={ViagemService.getStatusValue(viagem.situacao)} label={viagem.situacao} />
                 </td>
               </tr>
             ))}

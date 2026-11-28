@@ -23,6 +23,7 @@ import Relatorios from "./pages/Relatorios";
 import ResumoMensal from "./pages/ResumoMensal";
 import CadastroViagem from "./pages/viagem/CadastroViagem";
 import DetalhesViagem from "./pages/viagem/DetalhesViagem";
+import ResultadoViagem from "./pages/viagem/ResultadoViagem";
 import Viagens from "./pages/viagem/Viagens";
 import NotFound from "./pages/NotFound";
 
@@ -104,6 +105,7 @@ export default function App() {
           <Route element={<RequirePermission permission="relatorios:view" />}>
             <Route path="/relatorios" element={<Relatorios />} />
             <Route path="/relatorios/resumo-mensal" element={<ResumoMensal />} />
+            <Route path="/relatorios/resultado-viagens/:id" element={<ResultadoViagem />} />
           </Route>
         </Route>
 

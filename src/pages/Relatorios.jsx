@@ -9,6 +9,7 @@ import FleetUsageTable from "../components/FleetUsageTable";
 import LoadingIndicator from "../components/LoadingIndicator";
 import PageHeader from "../components/PageHeader";
 import PeriodFilter from "../components/PeriodFilter";
+import ReportFilters from "../components/ReportFilters";
 import ReportTable from "../components/ReportTable";
 import ReportTotals from "../components/ReportTotals";
 import WeeklySchedule from "../components/WeeklySchedule";
@@ -34,6 +35,10 @@ function canQuery(report, period) {
 
 function isSamePeriod(first, second) {
   return first.dataInicio === second.dataInicio && first.dataFim === second.dataFim;
+}
+
+function hasActiveFilters(filters) {
+  return Object.values(filters).some((value) => value !== undefined && value !== null && value !== "");
 }
 
 function normalizeVehicles(payload, periodDays) {
@@ -110,6 +115,7 @@ export default function Relatorios() {
   const [reloadReports, setReloadReports] = useState(0);
   const [selected, setSelected] = useState(null);
   const [period, setPeriod] = useState(currentMonthPeriod);
+  const [filters, setFilters] = useState({});
   const [result, setResult] = useState(null);
   const [resultError, setResultError] = useState("");
   const [reloadResult, setReloadResult] = useState(0);
@@ -123,6 +129,8 @@ export default function Relatorios() {
   const isFleetUsage = activeReport?.relatorio === "uso-frota";
   const isSchedule = activeReport?.relatorio === "agenda";
   const hasGenericView = !isFleetUsage && !isSchedule;
+  const isFiltering = hasActiveFilters(filters);
+  const isDefaultState = isSamePeriod(period, defaultPeriodFor(activeReport)) && !isFiltering;
   const fleetVehicles = isFleetUsage && result
     ? normalizeVehicles(result, getPeriodDays(period))
     : [];
@@ -168,7 +176,7 @@ export default function Relatorios() {
   useEffect(() => {
     if (!shouldQuery) return undefined;
     let active = true;
-    RelatorioService.generate(activeReport.relatorio, activeReport.exigePeriodo ? period : {})
+    RelatorioService.generate(activeReport.relatorio, activeReport.exigePeriodo ? period : {}, filters)
       .then((data) => {
         if (active) {
           setResult(data);
@@ -182,7 +190,7 @@ export default function Relatorios() {
         }
       });
     return () => { active = false; };
-  }, [activeReport, period, reloadResult, shouldQuery]);
+  }, [activeReport, period, filters, reloadResult, shouldQuery]);
 
   const resetResult = () => {
     setResult(null);
@@ -193,11 +201,23 @@ export default function Relatorios() {
     if (report.relatorio === activeReport?.relatorio) return;
     setSelected(report);
     setPeriod(defaultPeriodFor(report));
+    setFilters({});
     resetResult();
   };
 
   const handlePeriodChange = (nextPeriod) => {
     setPeriod(nextPeriod);
+    resetResult();
+  };
+
+  const handleFiltersChange = (nextFilters) => {
+    setFilters(nextFilters);
+    resetResult();
+  };
+
+  const clearFilters = () => {
+    setPeriod(defaultPeriodFor(activeReport));
+    setFilters({});
     resetResult();
   };
 
@@ -220,7 +240,7 @@ export default function Relatorios() {
   const handleExportPdf = async () => {
     setIsDownloadingPdf(true);
     try {
-      await RelatorioService.downloadPdf(result.relatorio, result.periodo ?? {});
+      await RelatorioService.downloadPdf(result.relatorio, result.periodo ?? {}, filters);
     } catch (error) {
       toast.error(errorMessage(error, "Não foi possível baixar o PDF."));
     } finally {
@@ -302,8 +322,8 @@ export default function Relatorios() {
                     <Button
                       variant="ghost"
                       size="xs"
-                      onClick={() => handlePeriodChange(defaultPeriodFor(activeReport))}
-                      disabled={isSamePeriod(period, defaultPeriodFor(activeReport))}
+                      onClick={clearFilters}
+                      disabled={isDefaultState}
                       className="text-muted-foreground"
                     >
                       <RotateCcw /> Limpar filtros
@@ -315,6 +335,9 @@ export default function Relatorios() {
                 <PeriodFilter value={period} onChange={handlePeriodChange} />
               ) : (
                 <p className="text-sm text-muted-foreground">Este relatório não depende de período.</p>
+              )}
+              {activeReport.filtros?.length > 0 && (
+                <ReportFilters filtros={activeReport.filtros} value={filters} onChange={handleFiltersChange} />
               )}
             </div>
 
@@ -350,7 +373,7 @@ export default function Relatorios() {
               <EmptyState
                 icon={SearchX}
                 title="Nenhum dado encontrado no período"
-                description="Tente escolher outro período."
+                description={isFiltering ? "Tente escolher outro período ou limpar os filtros." : "Tente escolher outro período."}
               />
             )}
 
