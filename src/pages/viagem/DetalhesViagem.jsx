@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   ArrowRight,
+  Calculator,
   Clock,
   FileText,
   Map,
@@ -26,10 +27,12 @@ import { Card } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
+import { useAuth } from "../../context/AuthContext";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { formatDateTime } from "../../lib/dateTime";
 import { formatCpf } from "../../lib/documentMasks";
 import { formatCurrency, toCents } from "../../lib/moneyMasks";
+import { hasPermission } from "../../lib/permissions";
 import {
   NEXT_STAGE_ACTIONS,
   getNextStage,
@@ -205,6 +208,8 @@ export default function DetalhesViagem() {
   usePageTitle("Detalhes da Viagem");
   const navigate = useNavigate();
   const { id } = useParams();
+  const { profile } = useAuth();
+  const canViewReports = hasPermission(profile, "relatorios:view");
 
   const [trip, setTrip] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -322,6 +327,11 @@ export default function DetalhesViagem() {
           {nextStage && (
             <Button onClick={() => setIsAdvancing(true)} disabled={isAdvancing}>
               {NEXT_STAGE_ACTIONS[nextStage]} <ArrowRight />
+            </Button>
+          )}
+          {trip.status === "COMPLETED" && canViewReports && (
+            <Button onClick={() => navigate(`/relatorios/resultado-viagens/${trip.id}`)}>
+              <Calculator /> Resultado da viagem
             </Button>
           )}
         </div>

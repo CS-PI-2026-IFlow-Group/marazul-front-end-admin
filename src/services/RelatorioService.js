@@ -16,18 +16,35 @@ class RelatorioService extends BaseService {
   }
 
   async downloadPdf(relatorio, period = {}, filters = {}) {
-    try {
-      const response = await api.get(`${this.endpoint}/${relatorio}/pdf`, {
-        params: { ...periodParams(period), ...filterParams(filters) },
-        responseType: "blob",
-      });
-      const fileName =
-        fileNameFromDisposition(response.headers["content-disposition"]) || `relatorio-${relatorio}.pdf`;
-      saveFile(response.data, fileName);
-      return fileName;
-    } catch (error) {
-      throw await withReadableBody(error);
-    }
+    return downloadPdf(
+      `${this.endpoint}/${relatorio}/pdf`,
+      { ...periodParams(period), ...filterParams(filters) },
+      `relatorio-${relatorio}.pdf`,
+    );
+  }
+
+  async getTripResult(viagemId) {
+    const response = await api.get(`${this.endpoint}/resultado-viagens/viagem/${viagemId}`);
+    return response.data;
+  }
+
+  async downloadTripResultPdf(viagemId) {
+    return downloadPdf(
+      `${this.endpoint}/resultado-viagens/viagem/${viagemId}/pdf`,
+      {},
+      `resultado-viagem-${viagemId}.pdf`,
+    );
+  }
+}
+
+async function downloadPdf(url, params, fallbackName) {
+  try {
+    const response = await api.get(url, { params, responseType: "blob" });
+    const fileName = fileNameFromDisposition(response.headers["content-disposition"]) || fallbackName;
+    saveFile(response.data, fileName);
+    return fileName;
+  } catch (error) {
+    throw await withReadableBody(error);
   }
 }
 
