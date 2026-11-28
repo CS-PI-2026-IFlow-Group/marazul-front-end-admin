@@ -7,7 +7,7 @@ import {
   RotateCcw,
   Trash2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import FormFooter from "../../components/FormFooter";
@@ -278,7 +278,13 @@ function CadastroViagemForm({ isEdicao = false }) {
 
   const selectedVehicle = vehicles.find((vehicle) => String(vehicle.id) === form.vehicleId);
   const capacity = selectedVehicle?.seats ?? null;
-  const validationErrors = hasSubmitted ? validateForm(form, capacity) : {};
+  const validationErrors = hasSubmitted
+    ? validateForm({
+        ...form,
+        originStateId: String(resolvedOriginStateId),
+        destinationStateId: String(resolvedDestinationStateId),
+      }, capacity)
+    : {};
   const stateOptions = states.map((state) => ({
     value: String(state.id),
     label: `${state.name} (${state.acronym})`,
@@ -332,7 +338,12 @@ function CadastroViagemForm({ isEdicao = false }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setHasSubmitted(true);
-    const errors = validateForm(form);
+    const normalizedForm = {
+      ...effectiveForm,
+      originStateId: resolvedOriginStateId,
+      destinationStateId: resolvedDestinationStateId,
+    };
+    const errors = validateForm(normalizedForm, capacity);
     if (errors.passengers) toast.error(errors.passengers);
     if (Object.keys(errors).length || isSaving || (isEdicao && isLoadingTrip)) return;
 
@@ -349,9 +360,9 @@ function CadastroViagemForm({ isEdicao = false }) {
         driverIds: form.driverIds,
         clientId: form.clientId,
         minimumPassengers: form.minimumPassengers,
-        estimatedPassengerAmount: parseMoneyInput(effectiveForm.estimatedIndividualValue),
-        estimatedTotalValue: parseMoneyInput(effectiveForm.estimatedTotalValue),
-        estimatedIndividualValue: parseMoneyInput(effectiveForm.estimatedIndividualValue),
+        estimatedPassengerAmount: customIndividual ? parseMoneyInput(effectiveForm.estimatedIndividualValue) : null,
+        estimatedTotalValue: customTotal ? parseMoneyInput(effectiveForm.estimatedTotalValue) : null,
+        estimatedIndividualValue: customIndividual ? parseMoneyInput(effectiveForm.estimatedIndividualValue) : null,
         expenses: form.expenses,
         passengers: form.passengers.map((passenger) => ({
           passengerId: Number(passenger.passengerId),
@@ -419,7 +430,7 @@ function CadastroViagemForm({ isEdicao = false }) {
                   id="origin-state"
                   label="Estado de origem"
                   required
-                  value={form.originStateId}
+                  value={String(resolvedOriginStateId)}
                   onChange={handleStateChange("originStateId", "originCityId")}
                   options={stateOptions}
                   placeholder="Selecione o estado"
@@ -443,7 +454,7 @@ function CadastroViagemForm({ isEdicao = false }) {
                   id="destination-state"
                   label="Estado de destino"
                   required
-                  value={form.destinationStateId}
+                  value={String(resolvedDestinationStateId)}
                   onChange={handleStateChange("destinationStateId", "destinationCityId")}
                   options={stateOptions}
                   placeholder="Selecione o estado"
@@ -609,6 +620,8 @@ function ExpensesAndValuesSection({
   const [draftAmount, setDraftAmount] = useState("");
   const [editingIndex, setEditingIndex] = useState(null);
   const [expenseErrors, setExpenseErrors] = useState({});
+  const draftDescriptionRef = useRef(null);
+  const expenseFormRef = useRef(null);
 
   const resetDraft = () => {
     setDraftDescription("");
@@ -644,6 +657,10 @@ function ExpensesAndValuesSection({
     setDraftDescription(expense.description);
     setDraftAmount(moneyInputFromValue(expense.amount));
     setExpenseErrors({});
+    requestAnimationFrame(() => {
+      expenseFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.getElementById("expense-description")?.focus();
+    });
   };
 
   const removeExpense = (index) => {
@@ -653,23 +670,31 @@ function ExpensesAndValuesSection({
       ...previous,
       expenses: previous.expenses.filter((_, expenseIndex) => expenseIndex !== index),
     }));
-    if (editingIndex === index) resetDraft();
+    if (editingIndex === index) {
+      resetDraft();
+    } else if (editingIndex !== null && index < editingIndex) {
+      resetDraft();
+    }
   };
 
   return (
     <FormSection icon={Receipt} title="Gastos" description="Despesas previstas para esta viagem.">
       <div className="sm:col-span-2">
-        <div className="grid gap-3 rounded-xl border p-4 sm:grid-cols-[1fr_220px_auto] sm:items-end">
+        <div ref={expenseFormRef} className="grid gap-3 rounded-xl border p-4 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-start">
           <GenericInput
             id="expense-description"
             label="Descrição"
             required
             value={draftDescription}
             onChange={(event) => setDraftDescription(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.preventDefault();
+            }}
             placeholder="Ex.: Pedágio"
             maxLength={255}
             hasError={Boolean(expenseErrors.description)}
             errorMessage={expenseErrors.description}
+            ref={draftDescriptionRef}
           />
           <GenericInput
             id="expense-amount"
@@ -678,6 +703,9 @@ function ExpensesAndValuesSection({
             inputMode="decimal"
             value={draftAmount}
             onChange={(event) => setDraftAmount(formatMoneyInput(event.target.value))}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.preventDefault();
+            }}
             placeholder="R$ 0,00"
             hasError={Boolean(expenseErrors.amount)}
             errorMessage={expenseErrors.amount}
@@ -754,7 +782,11 @@ function ExpensesAndValuesSection({
               errorMessage={validationErrors.estimatedIndividualValue}
             />
             {customIndividual && <Button type="button" variant="link" size="xs" onClick={onResetIndividual} className="mt-1 px-0"><RotateCcw /> Usar valor calculado</Button>}
-            <p className="mt-1 text-xs text-muted-foreground">Divisão por {passengerCount > 0 ? passengerCount : "mínimo"} passageiro(s).</p>
+            <p className="mt-1 min-h-8 text-xs text-muted-foreground">
+              {passengerCount > 0
+                ? `Divisão por ${passengerCount} passageiro(s).`
+                : "Informe a quantidade mínima ou inclua passageiros para calcular."}
+            </p>
           </div>
         </div>
       </div>
