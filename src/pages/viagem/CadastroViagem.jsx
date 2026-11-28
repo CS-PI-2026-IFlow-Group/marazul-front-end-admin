@@ -73,6 +73,10 @@ function tripToForm(trip, states) {
   };
 }
 
+function toComparable(form) {
+  return JSON.stringify({ ...form, driverIds: [...form.driverIds].sort() });
+}
+
 function currentDateTimeLocal() {
   const now = new Date();
   const pad = (value) => String(value).padStart(2, "0");
@@ -129,6 +133,7 @@ export default function CadastroViagem({ isEdicao = false }) {
   const { id } = useParams();
   const [trip, setTrip] = useState(null);
   const [form, setForm] = useState(INITIAL_FORM);
+  const [initialForm, setInitialForm] = useState(null);
   const [states, setStates] = useState([]);
   const [originCities, setOriginCities] = useState({ stateId: "", items: [] });
   const [destinationCities, setDestinationCities] = useState({ stateId: "", items: [] });
@@ -166,8 +171,10 @@ export default function CadastroViagem({ isEdicao = false }) {
       const loadedStates = getValue(statesResult);
       setStates(loadedStates);
       if (tripResult.value) {
+        const loadedForm = tripToForm(tripResult.value, loadedStates);
         setTrip(tripResult.value);
-        setForm(tripToForm(tripResult.value, loadedStates));
+        setForm(loadedForm);
+        setInitialForm(loadedForm);
       }
       setVehicles(getValue(vehiclesResult).filter((vehicle) => vehicle.status === "ACTIVE"));
       setDrivers(
@@ -219,6 +226,7 @@ export default function CadastroViagem({ isEdicao = false }) {
 
   const isLoadingTrip = isEdicao && isLoadingOptions;
   const isReadOnly = Boolean(trip) && !EDITABLE_STATUSES.includes(trip.status);
+  const hasChanges = Boolean(initialForm) && toComparable(form) !== toComparable(initialForm);
   const validationErrors = hasSubmitted ? validateForm(form) : {};
   const stateOptions = states.map((state) => ({
     value: String(state.id),
@@ -249,39 +257,55 @@ export default function CadastroViagem({ isEdicao = false }) {
     setForm((previous) => ({ ...previous, [field]: value }));
   };
   const handleStateChange = (stateField, cityField) => (value) => {
+    if (!value) return;
     setForm((previous) => ({ ...previous, [stateField]: value, [cityField]: "" }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (isEdicao) return;
+    if (isReadOnly || (isEdicao && !hasChanges)) return;
     setHasSubmitted(true);
     const errors = validateForm(form);
     if (Object.keys(errors).length || isSaving) return;
 
+    const payload = {
+      originCityId: form.originCityId,
+      destinationCityId: form.destinationCityId,
+      plannedDepartureOrigin: form.plannedDepartureOrigin,
+      plannedArrivalDestination: form.plannedArrivalDestination,
+      plannedDepartureDestination: form.plannedDepartureDestination,
+      plannedArrivalOrigin: form.plannedArrivalOrigin,
+      vehicleId: form.vehicleId,
+      driverIds: form.driverIds,
+      clientId: form.clientId,
+      minimumPassengers: form.minimumPassengers,
+      notes: form.notes,
+    };
+
     setIsSaving(true);
     try {
-      await ViagemService.create({
-        originCityId: form.originCityId,
-        destinationCityId: form.destinationCityId,
-        plannedDepartureOrigin: form.plannedDepartureOrigin,
-        plannedArrivalDestination: form.plannedArrivalDestination,
-        plannedDepartureDestination: form.plannedDepartureDestination,
-        plannedArrivalOrigin: form.plannedArrivalOrigin,
-        vehicleId: form.vehicleId,
-        driverIds: form.driverIds,
-        clientId: form.clientId,
-        minimumPassengers: form.minimumPassengers,
-        notes: form.notes,
-      });
-      toast.success("Viagem agendada com sucesso!");
+      if (isEdicao) {
+        await ViagemService.update(id, {
+          ...payload,
+          estimatedPassengerAmount: trip.estimatedPassengerAmount,
+          responsiblePassengerId: trip.responsiblePassengerId,
+        });
+        toast.success("Viagem atualizada com sucesso!");
+      } else {
+        await ViagemService.create(payload);
+        toast.success("Viagem agendada com sucesso!");
+      }
       navigate("/viagens");
     } catch (error) {
+      const status = error.response?.status;
       const data = error.response?.data;
-      if (error.response?.status === 409) {
+      if (isEdicao && status === 404) {
+        toast.error("Viagem não encontrada.");
+        navigate("/viagens");
+      } else if (status === 409) {
         toast.error(data?.message || data?.erro || "Conflito na agenda do ônibus ou do motorista.");
       } else {
-        toast.error("Não foi possível agendar a viagem.", {
+        toast.error(`Não foi possível ${isEdicao ? "atualizar" : "agendar"} a viagem.`, {
           description: data?.message || data?.erro || "Ocorreu um problema ao salvar. Tente novamente.",
         });
       }
@@ -467,8 +491,9 @@ export default function CadastroViagem({ isEdicao = false }) {
           formId="form-viagem"
           onBack={() => navigate("/viagens")}
           isSaving={isSaving}
+          isDisabled={isEdicao && (isLoadingTrip || !hasChanges)}
           saveLabel="Salvar viagem"
-          showSave={!isEdicao}
+          showSave={!isReadOnly}
         />
       </Card>
     </div>
